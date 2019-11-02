@@ -49,12 +49,12 @@ impl Hit for MovingSphere {
         let radius = self.radius;
 
         let box0 = AABB {
-            min: self.center(t0) - Vec3([radius, radius, radius]),
-            max: self.center(t0) + Vec3([radius, radius, radius]),
+            min: self.center(t0) - Vec3::splat(radius),
+            max: self.center(t0) + Vec3::splat(radius),
         };
         let box1 = AABB {
-            min: self.center(t1) - Vec3([radius, radius, radius]),
-            max: self.center(t1) + Vec3([radius, radius, radius]),
+            min: self.center(t1) - Vec3::splat(radius),
+            max: self.center(t1) + Vec3::splat(radius),
         };
 
         Some(AABB::surrounding_box(box0, box1))

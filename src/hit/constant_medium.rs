@@ -38,7 +38,7 @@ impl Hit for ConstantMedium {
         Some(HitRecord {
             t,
             p: ray.point_at_parameter(t),
-            normal: Vec3([1., 0., 0.]),
+            normal: Vec3::new(1., 0., 0.),
             mat: self.phase_function.as_ref(),
             u: 0.,
             v: 0.,

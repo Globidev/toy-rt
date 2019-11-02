@@ -64,8 +64,8 @@ impl RotateY {
 
 fn compute_bbox(bbox: AABB, cos_theta: f32, sin_theta: f32) -> AABB {
     let f_max = std::f32::MAX;
-    let mut min = Vec3([f_max, f_max, f_max]);
-    let mut max = Vec3([-f_max, -f_max, -f_max]);
+    let mut min = Vec3::splat(f_max);
+    let mut max = Vec3::splat(-f_max);
 
     for i in 0..2 {
         for j in 0..2 {
@@ -81,7 +81,7 @@ fn compute_bbox(bbox: AABB, cos_theta: f32, sin_theta: f32) -> AABB {
                 let new_x = cos_theta * x + sin_theta * z;
                 let new_z = -sin_theta * x + cos_theta * z;
 
-                let tester = Vec3([new_x, y, new_z]);
+                let tester = Vec3::new(new_x, y, new_z);
                 for c in 0..3 {
                     if tester[c] > max[c] {
                         max[c] = tester[c]

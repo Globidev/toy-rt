@@ -1,9 +1,21 @@
 use std::ops::{Add, Sub, Mul, Div, AddAssign, MulAssign, DivAssign, Neg, Index, IndexMut};
 
 #[derive(Clone, Copy)]
-pub struct Vec3(pub [f32; 3]);
+pub struct Vec3([f32; 3]);
 
 impl Vec3 {
+    pub fn new(x: f32, y: f32, z: f32) -> Self {
+        Self([x.into(), y.into(), z.into()])
+    }
+
+    pub fn splat(xyz: f32) -> Self {
+        Self::new(xyz, xyz, xyz)
+    }
+
+    pub fn random() -> Self {
+        Self(rand::random())
+    }
+
     pub fn x(&self) -> f32 { self.0[0] }
     pub fn y(&self) -> f32 { self.0[1] }
     pub fn z(&self) -> f32 { self.0[2] }

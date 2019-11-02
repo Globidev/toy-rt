@@ -5,7 +5,7 @@ use crate::vec3::Vec3;
 pub trait Material {
     fn scatter(&self, r_in: &Ray, rec: &HitRecord) -> Option<(Ray, Vec3)>;
     fn emitted(&self, u: f32, v: f32, p: Vec3) -> Vec3 {
-        Vec3([0., 0., 0.])
+        Vec3::splat(0.)
     }
 }
 

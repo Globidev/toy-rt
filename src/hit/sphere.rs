@@ -41,8 +41,8 @@ impl Hit for Sphere {
     fn bounding_box(&self, _t0: f32, _t1: f32) -> Option<AABB> {
         let radius = self.radius;
         Some(AABB {
-            min: self.center - Vec3([radius, radius, radius]),
-            max: self.center + Vec3([radius, radius, radius]),
+            min: self.center - Vec3::splat(radius),
+            max: self.center + Vec3::splat(radius),
         })
     }
 }

@@ -27,7 +27,7 @@ impl Perlin {
         let j = p.y().floor() as usize;
         let k = p.z().floor() as usize;
 
-        let mut c = [[[Vec3([0., 0., 0.]); 2]; 2]; 2];
+        let mut c = [[[Vec3::splat(0.); 2]; 2]; 2];
         for di in 0..2 {
             for dj in 0..2 {
                 for dk in 0..2 {
@@ -57,13 +57,13 @@ impl Perlin {
 }
 
 fn perlin_generate() -> [Vec3; 256] {
-    let mut p = [Vec3([0., 0., 0.]); 256];
+    let mut p = [Vec3::splat(0.); 256];
     let mut rng = thread_rng();
     for v in &mut p[..] {
         let x = 2. * rng.gen::<f32>() - 1.;
         let y = 2. * rng.gen::<f32>() - 1.;
         let z = 2. * rng.gen::<f32>() - 1.;
-        *v = Vec3([x, y, z]).unit();
+        *v = Vec3::new(x, y, z).unit();
     }
     p
 }
@@ -94,7 +94,7 @@ fn trilinear_interp(c: [[[Vec3; 2]; 2]; 2], u: f32, v: f32, w: f32) -> f32 {
     for i in 0..2 {
         for j in 0..2 {
             for k in 0..2 {
-                let weight_v = Vec3([u - i as f32, v - j as f32, w - k as f32]);
+                let weight_v = Vec3::new(u - i as f32, v - j as f32, w - k as f32);
                 accum += (i as f32 * uu + (1 - i) as f32 * (1. - uu)) *
                          (j as f32 * vv + (1 - j) as f32 * (1. - vv)) *
                          (k as f32 * ww + (1 - k) as f32 * (1. - ww)) * Vec3::dot(c[i][j][k], weight_v);

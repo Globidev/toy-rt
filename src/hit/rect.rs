@@ -51,13 +51,13 @@ impl Hit for XYRect {
             t,
             mat: self.material.as_ref(),
             p: ray.point_at_parameter(t),
-            normal: Vec3([0., 0., 1.]),
+            normal: Vec3::new(0., 0., 1.),
         })
     }
 
     fn bounding_box(&self, _t0: f32, _t1: f32) -> Option<AABB> {
-        let min = Vec3([self.x0, self.y0, self.k - 0.0001]);
-        let max = Vec3([self.x1, self.y1, self.k + 0.0001]);
+        let min = Vec3::new(self.x0, self.y0, self.k - 0.0001);
+        let max = Vec3::new(self.x1, self.y1, self.k + 0.0001);
 
         Some(AABB { min, max })
     }
@@ -82,13 +82,13 @@ impl Hit for XZRect {
             t,
             mat: self.material.as_ref(),
             p: ray.point_at_parameter(t),
-            normal: Vec3([0., 1., 0.]),
+            normal: Vec3::new(0., 1., 0.),
         })
     }
 
     fn bounding_box(&self, _t0: f32, _t1: f32) -> Option<AABB> {
-        let min = Vec3([self.x0, self.k - 0.0001, self.z0]);
-        let max = Vec3([self.x1, self.k + 0.0001, self.z1]);
+        let min = Vec3::new(self.x0, self.k - 0.0001, self.z0);
+        let max = Vec3::new(self.x1, self.k + 0.0001, self.z1);
 
         Some(AABB { min, max })
     }
@@ -113,13 +113,13 @@ impl Hit for YZRect {
             t,
             mat: self.material.as_ref(),
             p: ray.point_at_parameter(t),
-            normal: Vec3([1., 0., 0.]),
+            normal: Vec3::new(1., 0., 0.),
         })
     }
 
     fn bounding_box(&self, _t0: f32, _t1: f32) -> Option<AABB> {
-        let min = Vec3([self.k - 0.0001, self.y0, self.z0]);
-        let max = Vec3([self.k + 0.0001, self.y1, self.z1]);
+        let min = Vec3::new(self.k - 0.0001, self.y0, self.z0);
+        let max = Vec3::new(self.k + 0.0001, self.y1, self.z1);
 
         Some(AABB { min, max })
     }

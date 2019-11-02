@@ -41,13 +41,13 @@ fn color(ray: &Ray, world: &impl Hit, depth: u32) -> Vec3 {
 
         emitted
     } else {
-        Vec3([0., 0., 0.])
+        Vec3::splat(0.)
     }
 }
 
 pub fn random_in_unit_sphere() -> Vec3 {
     loop {
-        let p = 2.0 * Vec3(random()) - Vec3([1., 1., 1.]);
+        let p = 2.0 * Vec3::random() - Vec3::splat(1.);
         if Vec3::dot(p, p) < 1.0 {
             break p;
         }
@@ -56,7 +56,7 @@ pub fn random_in_unit_sphere() -> Vec3 {
 
 pub fn random_in_unit_disk() -> Vec3 {
     loop {
-        let p = 2.0 * Vec3([random(), random(), 0.]) - Vec3([1., 1., 0.]);
+        let p = 2.0 * Vec3::new(random(), random(), 0.) - Vec3::new(1., 1., 0.);
         if Vec3::dot(p, p) < 1.0 {
             break p;
         }
@@ -108,12 +108,12 @@ fn random_scene() -> impl Hit {
     let mut objects = Vec::<Box<dyn Hit + Send + Sync>>::with_capacity(n);
 
     let checker = Box::new(CheckerTexture {
-        odd: Box::new(ConstantTexture { color: Vec3([0.2, 0.3, 0.1]) }),
-        even: Box::new(ConstantTexture { color: Vec3([0.9, 0.9, 0.9]) }),
+        odd: Box::new(ConstantTexture { color: Vec3::new(0.2, 0.3, 0.1) }),
+        even: Box::new(ConstantTexture { color: Vec3::new(0.9, 0.9, 0.9) }),
     });
 
     objects.push(Box::new(Sphere {
-        center: Vec3([0., -1000., 0.]),
+        center: Vec3::new(0., -1000., 0.),
         radius: 1000.,
         material: Box::new(Lambertian {
             albedo: checker
@@ -123,16 +123,16 @@ fn random_scene() -> impl Hit {
     for a in -10..10 {
         for b in -5..5 {
             let choose_mat = random::<f32>();
-            let center = Vec3([a as f32 + 0.9 * random::<f32>(), 0.2, b as f32 + 0.9 * random::<f32>()]);
+            let center = Vec3::new(a as f32 + 0.9 * random::<f32>(), 0.2, b as f32 + 0.9 * random::<f32>());
 
-            if (center - Vec3([4., 0.2, 0.])).len() > 0.9 {
+            if (center - Vec3::new(4., 0.2, 0.)).len() > 0.9 {
                 let material: Box<dyn material::Material + Send + Sync> = if choose_mat < 0.8 {
                     Box::new(Lambertian {
-                        albedo: Box::new(ConstantTexture { color: Vec3(random()) * Vec3(random()) })
+                        albedo: Box::new(ConstantTexture { color: Vec3::random() * Vec3::random() })
                     })
                 } else if choose_mat < 0.95 {
                     Box::new(Metal::new(
-                        (Vec3(random()) + Vec3([1., 1., 1.])) * 0.5,
+                        (Vec3::random() + Vec3::splat(1.)) * 0.5,
                         0.5 * random::<f32>()
                     ))
                 } else {
@@ -142,7 +142,7 @@ fn random_scene() -> impl Hit {
                 let obj: Box<dyn Hit + Send + Sync> = if choose_mat < 0.8 {
                     Box::new(MovingSphere {
                         center0: center,
-                        center1: center + Vec3([0., 0.5 * random::<f32>(), 0.]),
+                        center1: center + Vec3::new(0., 0.5 * random::<f32>(), 0.),
                         time0: 0.0,
                         time1: 1.0,
                         radius: 0.2,
@@ -162,7 +162,7 @@ fn random_scene() -> impl Hit {
     }
 
     objects.push(Box::new(Sphere {
-        center: Vec3([0., 1., 0.]),
+        center: Vec3::new(0., 1., 0.),
         radius: 1.,
         material: Box::new(Dielectric {
             ref_idx: 1.5
@@ -170,18 +170,18 @@ fn random_scene() -> impl Hit {
     }));
 
     objects.push(Box::new(Sphere {
-        center: Vec3([-4., 1., 0.]),
+        center: Vec3::new(-4., 1., 0.),
         radius: 1.,
         material: Box::new(Lambertian {
-            albedo: Box::new(ConstantTexture { color: Vec3([0.4, 0.2, 0.1]) })
+            albedo: Box::new(ConstantTexture { color: Vec3::new(0.4, 0.2, 0.1) })
         })
     }));
 
     objects.push(Box::new(Sphere {
-        center: Vec3([4., 1., 0.]),
+        center: Vec3::new(4., 1., 0.),
         radius: 1.,
         material: Box::new(Metal {
-            albedo: Vec3([0.7, 0.6, 0.5]),
+            albedo: Vec3::new(0.7, 0.6, 0.5),
             fuzz: 0.0,
         })
     }));
@@ -191,20 +191,20 @@ fn random_scene() -> impl Hit {
 
 fn two_spheres() -> impl Hit {
     let checker = || Box::new(CheckerTexture {
-        odd: Box::new(ConstantTexture { color: Vec3([0.2, 0.3, 0.1]) }),
-        even: Box::new(ConstantTexture { color: Vec3([0.9, 0.9, 0.9]) }),
+        odd: Box::new(ConstantTexture { color: Vec3::new(0.2, 0.3, 0.1) }),
+        even: Box::new(ConstantTexture { color: Vec3::new(0.9, 0.9, 0.9) }),
     });
 
     HitList(vec![
         Box::new(Sphere {
-            center: Vec3([0., -10., 0.]),
+            center: Vec3::new(0., -10., 0.),
             radius: 10.,
             material: Box::new(Lambertian {
                 albedo: checker()
             })
         }),
         Box::new(Sphere {
-            center: Vec3([0., 10., 0.]),
+            center: Vec3::new(0., 10., 0.),
             radius: 10.,
             material: Box::new(Lambertian {
                 albedo: checker()
@@ -228,14 +228,14 @@ fn two_perlin_spheres() -> impl Hit {
 
     HitList(vec![
         Box::new(Sphere {
-            center: Vec3([0., -1000., 0.]),
+            center: Vec3::new(0., -1000., 0.),
             radius: 1000.,
             material: Box::new(Lambertian {
                 albedo: pertext()
             })
         }),
         Box::new(Sphere {
-            center: Vec3([0., 2., 0.]),
+            center: Vec3::new(0., 2., 0.),
             radius: 2.,
             material: Box::new(Lambertian {
                 albedo: Box::new(ImageTexture { image })
@@ -249,24 +249,24 @@ fn simple_light() -> impl Hit {
 
     HitList(vec![
         Box::new(Sphere {
-            center: Vec3([0., -1000., 0.]),
+            center: Vec3::new(0., -1000., 0.),
             radius: 1000.,
             material: Box::new(Lambertian {
                 albedo: pertext()
             })
         }),
         Box::new(Sphere {
-            center: Vec3([0., 2., 0.]),
+            center: Vec3::new(0., 2., 0.),
             radius: 2.,
             material: Box::new(Lambertian {
                 albedo: pertext()
             })
         }),
         Box::new(Sphere {
-            center: Vec3([0., 7., 0.]),
+            center: Vec3::new(0., 7., 0.),
             radius: 2.,
             material: Box::new(DiffuseLight {
-                emit: Box::new(ConstantTexture { color: Vec3([4., 4., 4.]) })
+                emit: Box::new(ConstantTexture { color: Vec3::new(4., 4., 4.) })
             })
         }),
         Box::new(XYRect {
@@ -276,17 +276,17 @@ fn simple_light() -> impl Hit {
             y1: 3.,
             k: -2.,
             material: Arc::new(DiffuseLight {
-                emit: Box::new(ConstantTexture { color: Vec3([4., 4., 4.]) })
+                emit: Box::new(ConstantTexture { color: Vec3::new(4., 4., 4.) })
             })
         }),
     ])
 }
 
 fn cornell_box() -> impl Hit {
-    let red = Arc::new(Lambertian { albedo: Box::new(ConstantTexture { color: Vec3([0.65, 0.05, 0.05]) }) });
-    let white = Arc::new(Lambertian { albedo: Box::new(ConstantTexture { color: Vec3([0.73, 0.73, 0.73]) }) });
-    let green = Arc::new(Lambertian { albedo: Box::new(ConstantTexture { color: Vec3([0.12, 0.45, 0.15]) }) });
-    let light = Arc::new(DiffuseLight { emit: Box::new(ConstantTexture { color: Vec3([15.0, 15.0, 15.0]) }) });
+    let red = Arc::new(Lambertian { albedo: Box::new(ConstantTexture { color: Vec3::new(0.65, 0.05, 0.05) }) });
+    let white = Arc::new(Lambertian { albedo: Box::new(ConstantTexture { color: Vec3::new(0.73, 0.73, 0.73) }) });
+    let green = Arc::new(Lambertian { albedo: Box::new(ConstantTexture { color: Vec3::new(0.12, 0.45, 0.15) }) });
+    let light = Arc::new(DiffuseLight { emit: Box::new(ConstantTexture { color: Vec3::new(15.0, 15.0, 15.0) }) });
 
     HitList(vec![
         Box::new(FlipNormals { hittable: Box::new(YZRect { y0: 0., y1: 555., z0: 0., z1: 555., k: 555., material: green }) }),
@@ -299,42 +299,42 @@ fn cornell_box() -> impl Hit {
         // Box::new(HitBox::new(Vec3([265., 0., 295.]), Vec3([430., 330., 460.]), white)),
         Box::new(Translate {
             hittable: Box::new(RotateY::new(
-                HitBox::new(Vec3([0., 0., 0.]), Vec3([165., 165., 165.]), white.clone()),
+                HitBox::new(Vec3::new(0., 0., 0.), Vec3::new(165., 165., 165.), white.clone()),
                 -18.
             )),
-            offset: Vec3([130., 0., 65.])
+            offset: Vec3::new(130., 0., 65.)
         }),
         Box::new(Translate {
             hittable: Box::new(RotateY::new(
-                HitBox::new(Vec3([0., 0., 0.]), Vec3([165., 330., 165.]), white.clone()),
+                HitBox::new(Vec3::new(0., 0., 0.), Vec3::new(165., 330., 165.), white.clone()),
                 15.
             )),
-            offset: Vec3([265., 0., 295.])
+            offset: Vec3::new(265., 0., 295.)
         }),
     ])
 }
 
 fn cornell_smoke() -> impl Hit {
-    let red = Arc::new(Lambertian { albedo: Box::new(ConstantTexture { color: Vec3([0.65, 0.05, 0.05]) }) });
-    let white = Arc::new(Lambertian { albedo: Box::new(ConstantTexture { color: Vec3([0.73, 0.73, 0.73]) }) });
-    let green = Arc::new(Lambertian { albedo: Box::new(ConstantTexture { color: Vec3([0.12, 0.45, 0.15]) }) });
-    let light = Arc::new(DiffuseLight { emit: Box::new(ConstantTexture { color: Vec3([7.0, 7.0, 7.0]) }) });
+    let red = Arc::new(Lambertian { albedo: Box::new(ConstantTexture { color: Vec3::new(0.65, 0.05, 0.05) }) });
+    let white = Arc::new(Lambertian { albedo: Box::new(ConstantTexture { color: Vec3::new(0.73, 0.73, 0.73) }) });
+    let green = Arc::new(Lambertian { albedo: Box::new(ConstantTexture { color: Vec3::new(0.12, 0.45, 0.15) }) });
+    let light = Arc::new(DiffuseLight { emit: Box::new(ConstantTexture { color: Vec3::new(7.0, 7.0, 7.0) }) });
     // let light = Box::new(DiffuseLight { emit: Box::new(ConstantTexture { color: Vec3([15.0, 15.0, 15.0]) }) });
 
     let b1 = Box::new(Translate {
         hittable: Box::new(RotateY::new(
-            HitBox::new(Vec3([0., 0., 0.]), Vec3([165., 165., 165.]), white.clone()),
+            HitBox::new(Vec3::new(0., 0., 0.), Vec3::new(165., 165., 165.), white.clone()),
             -18.
         )),
-        offset: Vec3([130., 0., 65.])
+        offset: Vec3::new(130., 0., 65.)
     });
 
     let b2 = Box::new(Translate {
         hittable: Box::new(RotateY::new(
-            HitBox::new(Vec3([0., 0., 0.]), Vec3([165., 330., 165.]), white.clone()),
+            HitBox::new(Vec3::new(0., 0., 0.), Vec3::new(165., 330., 165.), white.clone()),
             15.
         )),
-        offset: Vec3([265., 0., 295.])
+        offset: Vec3::new(265., 0., 295.)
     });
 
     HitList(vec![
@@ -354,14 +354,14 @@ fn cornell_smoke() -> impl Hit {
             boundary: b1,
             density: 0.01,
             phase_function: Box::new(Isotropic {
-                albedo: Box::new(ConstantTexture { color: Vec3([1., 1., 1.]) })
+                albedo: Box::new(ConstantTexture { color: Vec3::new(1., 1., 1.) })
             })
         }),
         Box::new(ConstantMedium {
             boundary: b2,
             density: 0.01,
             phase_function: Box::new(Isotropic {
-                albedo: Box::new(ConstantTexture { color: Vec3([0., 0., 0.]) })
+                albedo: Box::new(ConstantTexture { color: Vec3::new(0., 0., 0.) })
             })
         }),
     ])
@@ -372,8 +372,8 @@ fn final_scene() -> impl Hit {
     let mut boxlist = Vec::<Arc<dyn Hit + Send + Sync>>::new();
     let mut boxlist2 = Vec::<Arc<dyn Hit + Send + Sync>>::new();
 
-    let white = || Lambertian { albedo: Box::new(ConstantTexture { color: Vec3([0.73, 0.73, 0.73]) }) };
-    let ground = Arc::new(Lambertian { albedo: Box::new(ConstantTexture { color: Vec3([0.48, 0.83, 0.53]) }) });
+    let white = || Lambertian { albedo: Box::new(ConstantTexture { color: Vec3::new(0.73, 0.73, 0.73) }) };
+    let ground = Arc::new(Lambertian { albedo: Box::new(ConstantTexture { color: Vec3::new(0.48, 0.83, 0.53) }) });
 
     let nb = 20;
     for i in 0..nb {
@@ -385,39 +385,39 @@ fn final_scene() -> impl Hit {
             let x1 = x0 + w as f32;
             let y1 = 100. * (random::<f32>() + 0.01);
             let z1 = z0 + w as f32;
-            boxlist.push(Arc::new(HitBox::new(Vec3([x0, y0, z0]), Vec3([x1, y1, z1]), ground.clone())));
+            boxlist.push(Arc::new(HitBox::new(Vec3::new(x0, y0, z0), Vec3::new(x1, y1, z1), ground.clone())));
         }
     }
 
     list.push(Box::new(BVHNode::new(&mut boxlist, 0., 1.)));
 
-    let light = Arc::new(DiffuseLight { emit: Box::new(ConstantTexture { color: Vec3([7., 7., 7.]) }) });
+    let light = Arc::new(DiffuseLight { emit: Box::new(ConstantTexture { color: Vec3::new(7., 7., 7.) }) });
     list.push(Box::new(XZRect { x0: 123., x1: 423., z0: 147., z1: 412., k: 554., material: light }));
 
-    let center = Vec3([400., 400., 200.]);
+    let center = Vec3::new(400., 400., 200.);
     list.push(Box::new(MovingSphere {
         center0: center,
-        center1: center + Vec3([30., 0., 0.]),
+        center1: center + Vec3::new(30., 0., 0.),
         time0: 0.,
         time1: 1.,
         radius: 50.,
         material: Box::new(Lambertian {
-            albedo: Box::new(ConstantTexture { color: Vec3([0.7, 0.3, 0.1]) })
+            albedo: Box::new(ConstantTexture { color: Vec3::new(0.7, 0.3, 0.1) })
         }),
     }));
     list.push(Box::new(Sphere {
-        center: Vec3([260., 150., 45.]),
+        center: Vec3::new(260., 150., 45.),
         radius: 50.,
         material: Box::new(Dielectric { ref_idx: 1.5 }),
     }));
     list.push(Box::new(Sphere {
-        center: Vec3([0., 150., 145.]),
+        center: Vec3::new(0., 150., 145.),
         radius: 50.,
-        material: Box::new(Metal::new(Vec3([0.8, 0.8, 0.9]), 10.)),
+        material: Box::new(Metal::new(Vec3::new(0.8, 0.8, 0.9), 10.)),
     }));
 
     let boundary = || Box::new(Sphere {
-        center: Vec3([360., 150., 145.]),
+        center: Vec3::new(360., 150., 145.),
         radius: 70.,
         material: Box::new(Dielectric { ref_idx: 1.5 }),
     });
@@ -426,11 +426,11 @@ fn final_scene() -> impl Hit {
         boundary: boundary(),
         density: 0.2,
         phase_function: Box::new(Isotropic {
-            albedo: Box::new(ConstantTexture { color: Vec3([0.2, 0.4, 0.9]) }),
+            albedo: Box::new(ConstantTexture { color: Vec3::new(0.2, 0.4, 0.9) }),
         }),
     }));
     let boundary = Box::new(Sphere {
-        center: Vec3([0., 0., 0.]),
+        center: Vec3::new(0., 0., 0.),
         radius: 5000.,
         material: Box::new(Dielectric { ref_idx: 1.5 }),
     });
@@ -438,7 +438,7 @@ fn final_scene() -> impl Hit {
         boundary,
         density: 0.0001,
         phase_function: Box::new(Isotropic {
-            albedo: Box::new(ConstantTexture { color: Vec3([1.0, 1.0, 1.0]) }),
+            albedo: Box::new(ConstantTexture { color: Vec3::new(1.0, 1.0, 1.0) }),
         }),
     }));
 
@@ -452,13 +452,13 @@ fn final_scene() -> impl Hit {
     };
     let emat = Box::new(Lambertian { albedo: Box::new(ImageTexture { image }) });
     list.push(Box::new(Sphere {
-        center: Vec3([400., 200., 400.]),
+        center: Vec3::new(400., 200., 400.),
         radius: 100.,
         material: emat,
     }));
     let pertext = Box::new(NoiseTexture { perlin: Perlin::new(), scale: 0.1 });
     list.push(Box::new(Sphere {
-        center: Vec3([220., 280., 300.]),
+        center: Vec3::new(220., 280., 300.),
         radius: 80.,
         material: Box::new(Lambertian { albedo: pertext }),
     }));
@@ -466,7 +466,7 @@ fn final_scene() -> impl Hit {
     let ns = 1000;
     for _ in 0..ns {
         boxlist2.push(Arc::new(Sphere {
-            center: Vec3([165. * random::<f32>(), 165. * random::<f32>(), 165. * random::<f32>()]),
+            center: Vec3::new(165. * random::<f32>(), 165. * random::<f32>(), 165. * random::<f32>()),
             radius: 10.,
             material: Box::new(white()),
         }))
@@ -477,7 +477,7 @@ fn final_scene() -> impl Hit {
             BVHNode::new(&mut boxlist2, 0., 1.),
             15.,
         )),
-        offset: Vec3([-100., 270., 395.]),
+        offset: Vec3::new(-100., 270., 395.),
     }));
 
     HitList(list)
@@ -498,9 +498,9 @@ impl State for ImageViewer {
 
         let now = Instant::now();
 
-        let look_from = Vec3([478., 278., -600.]);
+        let look_from = Vec3::new(478., 278., -600.);
         // let look_from = Vec3([278., 278., -800.]);
-        let look_at = Vec3([278., 278., 0.]);
+        let look_at = Vec3::new(278., 278., 0.);
         // let look_from = Vec3([13., 2., 3.]);
         // let look_at = Vec3([0., 0., 0.]);
 
@@ -511,7 +511,7 @@ impl State for ImageViewer {
 
         let camera = Camera::new(
             look_from, look_at,
-            Vec3([0., 1., 0.]),
+            Vec3::new(0., 1., 0.),
             vfov,
             WIDTH as f32 / HEIGHT as f32,
             aperture,
@@ -530,7 +530,7 @@ impl State for ImageViewer {
             .rev()
             .flat_map(|j| (0..WIDTH).into_par_iter().map(move |i| (i, j)))
             .flat_map(|(i, j)| {
-                let mut col = Vec3([0., 0., 0.]);
+                let mut col = Vec3::splat(0.);
                 for _s in 0..RAYS_PER_PX {
                     let u = (i as f32 + random::<f32>()) / WIDTH as f32;
                     let v = (j as f32 + random::<f32>()) / HEIGHT as f32;
@@ -538,7 +538,7 @@ impl State for ImageViewer {
                     col += color(&ray, &world, 0);
                 }
                 col /= RAYS_PER_PX as f32;
-                col = Vec3([col.x().sqrt(), col.y().sqrt(), col.z().sqrt()]);
+                col = Vec3::new(col.x().sqrt(), col.y().sqrt(), col.z().sqrt());
 
                 let r = 255.99 * col.r();
                 let g = 255.99 * col.g();

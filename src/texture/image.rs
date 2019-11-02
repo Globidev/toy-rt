@@ -21,6 +21,6 @@ impl Texture for ImageTexture {
         let g = px[1] as f32 / 255.;
         let b = px[2] as f32 / 255.;
 
-        Vec3([r, g, b])
+        Vec3::new(r, g, b)
     }
 }
