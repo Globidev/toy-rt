@@ -2,7 +2,6 @@ use crate::vec3::Vec3;
 use crate::material::Material;
 use crate::ray::Ray;
 use crate::hit::HitRecord;
-use crate::texture::Texture;
 use crate::prelude::ParallelTexture;
 
 pub struct Lambertian<T> {

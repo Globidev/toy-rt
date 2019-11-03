@@ -1,4 +1,4 @@
-use std::ops::{Add, Sub, Mul, Div, AddAssign, MulAssign, DivAssign, Neg, Index, IndexMut};
+use std::ops::{Add, Sub, Mul, Div, AddAssign, MulAssign, DivAssign, Neg};
 use packed_simd::{f32x4, shuffle};
 
 #[derive(Clone, Copy)]
@@ -35,14 +35,10 @@ impl Vec3 {
     }
 
     pub fn len(&self) -> f32 {
-        // let e = &self.0;
         self.squared_len().sqrt()
     }
 
     pub fn squared_len(&self) -> f32 {
-        // let e = &self.0;
-        // e[0] * e[0] + e[1] * e[1] + e[2] * e[2]
-        // self.x() * self.x() + self.y() * self.y() + self.z() * self.z()
         (self.0 * self.0).sum()
     }
 
@@ -111,11 +107,6 @@ impl Add for Vec3 {
 
     fn add(self, rhs: Vec3) -> Self::Output {
         Vec3(self.0 + rhs.0)
-        // Vec3([
-        //     self.x() + rhs.x(),
-        //     self.y() + rhs.y(),
-        //     self.z() + rhs.z(),
-        // ])
     }
 }
 
@@ -124,11 +115,6 @@ impl Sub for Vec3 {
 
     fn sub(self, rhs: Vec3) -> Self::Output {
         Vec3(self.0 - rhs.0)
-        // Vec3([
-        //     self.x() - rhs.x(),
-        //     self.y() - rhs.y(),
-        //     self.z() - rhs.z(),
-        // ])
     }
 }
 
@@ -137,11 +123,6 @@ impl Mul for Vec3 {
 
     fn mul(self, rhs: Vec3) -> Self::Output {
         Vec3(self.0 * rhs.0)
-        // Vec3([
-        //     self.x() * rhs.x(),
-        //     self.y() * rhs.y(),
-        //     self.z() * rhs.z(),
-        // ])
     }
 }
 
@@ -216,17 +197,3 @@ impl Neg for Vec3 {
         Vec3(-self.0)
     }
 }
-
-// impl Index<usize> for Vec3 {
-//     type Output = f32;
-
-//     fn index(&self, idx: usize) -> &Self::Output {
-//         &self.0.extract(idx)
-//     }
-// }
-
-// impl IndexMut<usize> for Vec3 {
-//     fn index_mut(&mut self, idx: usize) -> &mut Self::Output {
-//         &mut self.0.extract(idx)
-//     }
-// }

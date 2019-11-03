@@ -9,11 +9,7 @@ pub struct DiffuseLight<T> {
 }
 
 impl<T: ParallelTexture> Material for DiffuseLight<T> {
-    fn scatter(&self, r_in: &Ray, rec: &HitRecord) -> Option<(Ray, Vec3)> {
-        // let target = rec.p + rec.normal + crate::random_in_unit_sphere();
-        // let scattered = Ray::new(rec.p, target - rec.p).with_time(r_in.time);
-        // let attenuation = self.albedo.value(0., 0., rec.p);
-        // Some((scattered, attenuation))
+    fn scatter(&self, _r_in: &Ray, _rec: &HitRecord) -> Option<(Ray, Vec3)> {
         None
     }
 

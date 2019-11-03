@@ -5,7 +5,7 @@ pub struct ImageTexture {
 }
 
 impl Texture for ImageTexture {
-    fn value(&self, u: f32, v: f32, p: Vec3) -> Vec3 {
+    fn value(&self, u: f32, v: f32, _p: Vec3) -> Vec3 {
         let (w, h) = self.image.dimensions();
 
         let mut i = (u * w as f32) as i32;

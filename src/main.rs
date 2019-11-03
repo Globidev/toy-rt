@@ -215,7 +215,7 @@ fn two_perlin_spheres() -> impl Hit {
 
     let image = match image {
         image::DynamicImage::ImageRgb8(rgb) => rgb,
-        i => panic!("Wrong format")
+        _ => panic!("Wrong format")
     };
 
     HitList::new_dyn(vec![
@@ -246,7 +246,7 @@ fn simple_light() -> impl Hit {
 
     let image = match image {
         image::DynamicImage::ImageRgb8(rgb) => rgb,
-        i => panic!("Wrong format")
+        _ => panic!("Wrong format")
     };
 
     HitList::new_dyn(vec![
@@ -298,7 +298,7 @@ fn cornell_box() -> impl Hit {
 
     let image = match image {
         image::DynamicImage::ImageRgb8(rgb) => rgb,
-        i => panic!("Wrong format")
+        _ => panic!("Wrong format")
     };
 
     let img_text = Arc::new(Lambertian { albedo: ImageTexture { image } });
