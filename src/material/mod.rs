@@ -1,11 +1,21 @@
 use crate::ray::Ray;
 use crate::hit::HitRecord;
 use crate::vec3::Vec3;
+use std::sync::Arc;
 
 pub trait Material {
     fn scatter(&self, r_in: &Ray, rec: &HitRecord) -> Option<(Ray, Vec3)>;
     fn emitted(&self, _u: f32, _v: f32, _p: Vec3) -> Vec3 {
         Vec3::splat(0.)
+    }
+}
+
+impl<T: Material + ?Sized> Material for Arc<T> {
+    fn scatter(&self, r_in: &Ray, rec: &HitRecord) -> Option<(Ray, Vec3)> {
+        self.as_ref().scatter(r_in, rec)
+    }
+    fn emitted(&self, u: f32, v: f32, p: Vec3) -> Vec3 {
+        self.as_ref().emitted(u, v, p)
     }
 }
 

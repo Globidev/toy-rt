@@ -277,18 +277,18 @@ fn simple_light() -> impl Hit {
             y0: 1.,
             y1: 3.,
             k: -2.,
-            material: Arc::new(DiffuseLight {
+            material: DiffuseLight {
                 emit: ConstantTexture { color: Vec3::new(4., 4., 4.) }
-            })
+            }
         }),
     ])
 }
 
 fn cornell_box() -> impl Hit {
-    let red = Arc::new(Lambertian { albedo: ConstantTexture { color: Vec3::new(0.65, 0.05, 0.05) } });
-    let white = Arc::new(Lambertian { albedo: ConstantTexture { color: Vec3::new(0.73, 0.73, 0.73) } });
-    let green = Arc::new(Lambertian { albedo: ConstantTexture { color: Vec3::new(0.12, 0.45, 0.15) } });
-    let light = Arc::new(DiffuseLight { emit: ConstantTexture { color: Vec3::new(15.0, 15.0, 15.0) } });
+    let red = Lambertian { albedo: ConstantTexture { color: Vec3::new(0.65, 0.05, 0.05) } };
+    let white = || Lambertian { albedo: ConstantTexture { color: Vec3::new(0.73, 0.73, 0.73) } };
+    let green = Lambertian { albedo: ConstantTexture { color: Vec3::new(0.12, 0.45, 0.15) } };
+    let light = DiffuseLight { emit: ConstantTexture { color: Vec3::new(15.0, 15.0, 15.0) } };
     // let light = Arc::new(DiffuseLight { emit: Box::new(ConstantTexture { color: Vec3::new(7.0, 7.0, 7.0) }) });
 
     let image = image::io::Reader::open("./oreo.jpg")
@@ -301,15 +301,15 @@ fn cornell_box() -> impl Hit {
         _ => panic!("Wrong format")
     };
 
-    let img_text = Arc::new(Lambertian { albedo: ImageTexture { image } });
+    let img_text = Arc::new(Lambertian { albedo: ImageTexture { image: image.clone() } });
 
     HitList::new_dyn(vec![
         Box::new(FlipNormals { hittable: YZRect { y0: 0., y1: 555., z0: 0., z1: 555., k: 555., material: green } }),
         Box::new(YZRect { y0: 0., y1: 555., z0: 0., z1: 555., k: 0., material: red }),
         Box::new(XZRect { x0: 113., x1: 443., z0: 127., z1: 432., k: 554., material: light }),
-        Box::new(FlipNormals { hittable: XZRect { x0: 0., x1: 555., z0: 0., z1: 555., k: 555., material: white.clone() } }),
-        Box::new(XZRect { x0: 0., x1: 555., z0: 0., z1: 555., k: 0., material: white.clone() }),
-        Box::new(FlipNormals { hittable: XYRect { x0: 0., x1: 555., y0: 0., y1: 555., k: 555., material: white.clone() } }),
+        Box::new(FlipNormals { hittable: XZRect { x0: 0., x1: 555., z0: 0., z1: 555., k: 555., material: white() } }),
+        Box::new(XZRect { x0: 0., x1: 555., z0: 0., z1: 555., k: 0., material: white() }),
+        Box::new(FlipNormals { hittable: XYRect { x0: 0., x1: 555., y0: 0., y1: 555., k: 555., material: white() } }),
         // Box::new(HitBox::new(Vec3([130., 0., 65.]), Vec3([295., 165., 230.]), white)),
         // Box::new(HitBox::new(Vec3([265., 0., 295.]), Vec3([430., 330., 460.]), white)),
         Box::new(Translate {
@@ -330,10 +330,10 @@ fn cornell_box() -> impl Hit {
 }
 
 fn cornell_smoke() -> impl Hit {
-    let red = Arc::new(Lambertian { albedo: ConstantTexture { color: Vec3::new(0.65, 0.05, 0.05) } });
+    let red = Lambertian { albedo: ConstantTexture { color: Vec3::new(0.65, 0.05, 0.05) } };
     let white = Arc::new(Lambertian { albedo: ConstantTexture { color: Vec3::new(0.73, 0.73, 0.73) } });
-    let green = Arc::new(Lambertian { albedo: ConstantTexture { color: Vec3::new(0.12, 0.45, 0.15) } });
-    let light = Arc::new(DiffuseLight { emit: ConstantTexture { color: Vec3::new(7.0, 7.0, 7.0) } });
+    let green = Lambertian { albedo: ConstantTexture { color: Vec3::new(0.12, 0.45, 0.15) } };
+    let light = DiffuseLight { emit: ConstantTexture { color: Vec3::new(7.0, 7.0, 7.0) } };
     // let light = Box::new(DiffuseLight { emit: Box::new(ConstantTexture { color: Vec3([15.0, 15.0, 15.0]) }) });
 
     let b1 = Translate {
@@ -363,7 +363,7 @@ fn cornell_smoke() -> impl Hit {
         }),
         Box::new(XZRect { x0: 0., x1: 555., z0: 0., z1: 555., k: 0., material: white.clone() }),
         Box::new(FlipNormals {
-            hittable: XYRect { x0: 0., x1: 555., y0: 0., y1: 555., k: 555., material: white.clone() }
+            hittable: XYRect { x0: 0., x1: 555., y0: 0., y1: 555., k: 555., material: white }
         }),
         Box::new(ConstantMedium {
             boundary: b1,
@@ -406,7 +406,7 @@ fn final_scene() -> impl Hit {
 
     list.push(Box::new(BVHNode::new(&mut boxlist, 0., 1.)));
 
-    let light = Arc::new(DiffuseLight { emit: ConstantTexture { color: Vec3::new(7., 7., 7.) } });
+    let light = DiffuseLight { emit: ConstantTexture { color: Vec3::new(7., 7., 7.) } };
     list.push(Box::new(XZRect { x0: 123., x1: 423., z0: 147., z1: 412., k: 554., material: light }));
 
     let center = Vec3::new(400., 400., 200.);

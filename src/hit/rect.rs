@@ -1,38 +1,37 @@
 use crate::hit::{Hit, HitRecord};
 use crate::vec3::Vec3;
 use crate::ray::Ray;
-use crate::material::Material;
 use crate::aabb::AABB;
-use std::sync::Arc;
+use crate::prelude::ParallelMaterial;
 
-pub struct XYRect {
+pub struct XYRect<T> {
     pub x0: f32,
     pub x1: f32,
     pub y0: f32,
     pub y1: f32,
     pub k: f32,
-    pub material: Arc<dyn Material + Send + Sync>,
+    pub material: T,
 }
 
-pub struct XZRect {
+pub struct XZRect<T> {
     pub x0: f32,
     pub x1: f32,
     pub z0: f32,
     pub z1: f32,
     pub k: f32,
-    pub material: Arc<dyn Material + Send + Sync>,
+    pub material: T,
 }
 
-pub struct YZRect {
+pub struct YZRect<T> {
     pub y0: f32,
     pub y1: f32,
     pub z0: f32,
     pub z1: f32,
     pub k: f32,
-    pub material: Arc<dyn Material + Send + Sync>,
+    pub material: T,
 }
 
-impl Hit for XYRect {
+impl<T: ParallelMaterial> Hit for XYRect<T> {
     fn hit(&self, ray: &Ray, t_min: f32, t_max: f32) -> Option<HitRecord<'_>> {
         let t = (self.k - ray.origin.z()) / ray.direction.z();
         if t < t_min || t > t_max {
@@ -49,7 +48,7 @@ impl Hit for XYRect {
             u: (x - self.x0) / (self.x1 - self.x0),
             v: (y - self.y0) / (self.y1 - self.y0),
             t,
-            mat: self.material.as_ref(),
+            mat: &self.material,
             p: ray.point_at_parameter(t),
             normal: Vec3::new(0., 0., 1.),
         })
@@ -63,7 +62,7 @@ impl Hit for XYRect {
     }
 }
 
-impl Hit for XZRect {
+impl<T: ParallelMaterial> Hit for XZRect<T> {
     fn hit(&self, ray: &Ray, t_min: f32, t_max: f32) -> Option<HitRecord<'_>> {
         let t = (self.k - ray.origin.y()) / ray.direction.y();
         if t < t_min || t > t_max {
@@ -80,7 +79,7 @@ impl Hit for XZRect {
             u: (x - self.x0) / (self.x1 - self.x0),
             v: (z - self.z0) / (self.z1 - self.z0),
             t,
-            mat: self.material.as_ref(),
+            mat: &self.material,
             p: ray.point_at_parameter(t),
             normal: Vec3::new(0., 1., 0.),
         })
@@ -94,7 +93,7 @@ impl Hit for XZRect {
     }
 }
 
-impl Hit for YZRect {
+impl<T: ParallelMaterial> Hit for YZRect<T> {
     fn hit(&self, ray: &Ray, t_min: f32, t_max: f32) -> Option<HitRecord<'_>> {
         let t = (self.k - ray.origin.x()) / ray.direction.x();
         if t < t_min || t > t_max {
@@ -111,7 +110,7 @@ impl Hit for YZRect {
             u: (y - self.y0) / (self.y1 - self.y0),
             v: (z - self.z0) / (self.z1 - self.z0),
             t,
-            mat: self.material.as_ref(),
+            mat: &self.material,
             p: ray.point_at_parameter(t),
             normal: Vec3::new(1., 0., 0.),
         })
