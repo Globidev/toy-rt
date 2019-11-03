@@ -4,27 +4,28 @@ use crate::ray::Ray;
 use crate::material::Material;
 use crate::aabb::AABB;
 use std::sync::Arc;
+use crate::prelude::ParallelHit;
 
 pub struct HitBox {
     pub pmin: Vec3,
     pub pmax: Vec3,
-    pub list: HitList
+    pub list: HitList<Box<dyn ParallelHit>>,
 }
 
 impl HitBox {
     pub fn new(p0: Vec3, p1: Vec3, mat: Arc<dyn Material + Send + Sync>) -> Self {
-        let list = HitList(vec![
+        let list = HitList::new_dyn(vec![
             Box::new(XYRect { x0: p0.x(), x1: p1.x(), y0: p0.y(), y1: p1.y(), k: p1.z(), material: mat.clone() }),
             Box::new(FlipNormals {
-                hittable: Box::new(XYRect { x0: p0.x(), x1: p1.x(), y0: p0.y(), y1: p1.y(), k: p0.z(), material: mat.clone() })
+                hittable: XYRect { x0: p0.x(), x1: p1.x(), y0: p0.y(), y1: p1.y(), k: p0.z(), material: mat.clone() }
             }),
             Box::new(XZRect { x0: p0.x(), x1: p1.x(), z0: p0.z(), z1: p1.z(), k: p1.y(), material: mat.clone() }),
             Box::new(FlipNormals {
-                hittable: Box::new(XZRect { x0: p0.x(), x1: p1.x(), z0: p0.z(), z1: p1.z(), k: p0.y(), material: mat.clone() })
+                hittable: XZRect { x0: p0.x(), x1: p1.x(), z0: p0.z(), z1: p1.z(), k: p0.y(), material: mat.clone() }
             }),
             Box::new(YZRect { y0: p0.y(), y1: p1.y(), z0: p0.z(), z1: p1.z(), k: p1.x(), material: mat.clone() }),
             Box::new(FlipNormals {
-                hittable: Box::new(YZRect { y0: p0.y(), y1: p1.y(), z0: p0.z(), z1: p1.z(), k: p0.x(), material: mat.clone() })
+                hittable: YZRect { y0: p0.y(), y1: p1.y(), z0: p0.z(), z1: p1.z(), k: p0.x(), material: mat.clone() }
             }),
         ]);
 

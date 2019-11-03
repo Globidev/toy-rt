@@ -2,15 +2,15 @@ use crate::hit::{Hit, HitRecord};
 use crate::vec3::Vec3;
 use crate::ray::Ray;
 use crate::aabb::AABB;
-use crate::material::Material;
+use crate::prelude::{ParallelHit, ParallelMaterial};
 
-pub struct ConstantMedium {
-    pub boundary: Box<dyn Hit + Send + Sync>,
+pub struct ConstantMedium<T, U> {
+    pub boundary: T,
     pub density: f32,
-    pub phase_function: Box<dyn Material + Send + Sync>,
+    pub phase_function: U,
 }
 
-impl Hit for ConstantMedium {
+impl<T: ParallelHit, U: ParallelMaterial> Hit for ConstantMedium<T, U> {
     fn hit(&self, ray: &Ray, t_min: f32, t_max: f32) -> Option<HitRecord<'_>> {
         let f_max = std::f32::MAX;
 
@@ -39,7 +39,7 @@ impl Hit for ConstantMedium {
             t,
             p: ray.point_at_parameter(t),
             normal: Vec3::new(1., 0., 0.),
-            mat: self.phase_function.as_ref(),
+            mat: &self.phase_function,
             u: 0.,
             v: 0.,
         })

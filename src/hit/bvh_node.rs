@@ -4,28 +4,28 @@ use crate::aabb::AABB;
 use rand::{thread_rng, seq::SliceRandom};
 use std::sync::Arc;
 use std::cmp::Ordering;
+use crate::prelude::ParallelHit;
 
 pub struct BVHNode {
-    left: Arc<dyn Hit + Send + Sync>,
-    right: Arc<dyn Hit + Send + Sync>,
+    left: Arc<dyn ParallelHit>,
+    right: Arc<dyn ParallelHit>,
     bbox: AABB,
 }
 
 impl BVHNode {
-    pub fn new(l: &mut [Arc<dyn Hit + Send + Sync>], time0: f32, time1: f32) -> Self {
+    pub fn new(hittables: &mut [Arc<dyn ParallelHit>], time0: f32, time1: f32) -> Self {
         let compare = [box_x_cmp, box_y_cmp, box_z_cmp].choose(&mut thread_rng()).unwrap();
 
-        l.sort_by(|a, b| compare(a.as_ref(), b.as_ref()));
-        let n = l.len();
+        hittables.sort_by(|a, b| compare(a.as_ref(), b.as_ref()));
 
-        let (left, right) = match n {
-            1 => (l[0].clone(), l[0].clone()),
-            2 => (l[0].clone(), l[1].clone()),
-            _ => {
-                let (left_l, right_l) = l.split_at_mut(n / 2);
+        let (left, right) = match hittables.len() {
+            1 => (hittables[0].clone(), hittables[0].clone()),
+            2 => (hittables[0].clone(), hittables[1].clone()),
+            n => {
+                let (left_l, right_l) = hittables.split_at_mut(n / 2);
                 (
-                Arc::new(BVHNode::new(left_l, time0, time1)) as _,
-                Arc::new(BVHNode::new(right_l, time0, time1)) as _,
+                    Arc::new(BVHNode::new(left_l, time0, time1)) as _,
+                    Arc::new(BVHNode::new(right_l, time0, time1)) as _,
                 )
             }
         };
@@ -65,7 +65,7 @@ impl Hit for BVHNode {
     }
 }
 
-fn box_x_cmp(ah: &(dyn Hit + Send + Sync), bh: &(dyn Hit + Send + Sync)) -> Ordering {
+fn box_x_cmp(ah: &dyn ParallelHit, bh: &dyn ParallelHit) -> Ordering {
     let box_left = ah.bounding_box(0., 0.).expect("missing bbox in BVH::new");
     let box_right = bh.bounding_box(0., 0.).expect("missing bbox in BVH::new");
 
@@ -73,7 +73,7 @@ fn box_x_cmp(ah: &(dyn Hit + Send + Sync), bh: &(dyn Hit + Send + Sync)) -> Orde
         .expect("got NaNs")
 }
 
-fn box_y_cmp(ah: &(dyn Hit + Send + Sync), bh: &(dyn Hit + Send + Sync)) -> Ordering {
+fn box_y_cmp(ah: &dyn ParallelHit, bh: &dyn ParallelHit) -> Ordering {
     let box_left = ah.bounding_box(0., 0.).expect("missing bbox in BVH::new");
     let box_right = bh.bounding_box(0., 0.).expect("missing bbox in BVH::new");
 
@@ -81,7 +81,7 @@ fn box_y_cmp(ah: &(dyn Hit + Send + Sync), bh: &(dyn Hit + Send + Sync)) -> Orde
         .expect("got NaNs")
 }
 
-fn box_z_cmp(ah: &(dyn Hit + Send + Sync), bh: &(dyn Hit + Send + Sync)) -> Ordering {
+fn box_z_cmp(ah: &dyn ParallelHit, bh: &dyn ParallelHit) -> Ordering {
     let box_left = ah.bounding_box(0., 0.).expect("missing bbox in BVH::new");
     let box_right = bh.bounding_box(0., 0.).expect("missing bbox in BVH::new");
 
