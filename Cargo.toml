@@ -5,7 +5,6 @@ authors = ["Guillaume Depardon <guillaume.depardon@gmail.com>"]
 edition = "2018"
 
 [dependencies]
-quicksilver = "0.3"
 rand = "0.7"
 rayon = "1.2"
 indicatif = { version = "0.12", features = ["with_rayon"] }

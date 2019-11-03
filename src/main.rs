@@ -1,14 +1,12 @@
-use quicksilver::{
-    geom::Vector,
-    graphics::{Background::Img, Color, Image, PixelFormat},
-    lifecycle::{run, Settings, State, Window},
-    Result,
-};
+#![feature(test)]
 use rand::random;
-use indicatif::ParallelProgressIterator;
+use indicatif::{ParallelProgressIterator, ProgressStyle, ProgressBar};
+use rayon::prelude::*;
+
 use std::sync::Arc;
+use std::time;
 
-
+mod prelude;
 mod hit;
 mod material;
 mod texture;
@@ -29,7 +27,7 @@ use prelude::ParallelHit;
 
 const WIDTH: usize = 300;
 const HEIGHT: usize = 300;
-const RAYS_PER_PX: usize = 10;
+const RAYS_PER_PX: usize = 1_000;
 
 fn color(ray: &Ray, world: &impl Hit, depth: u32) -> Vec3 {
     if let Some(rec) = world.hit(ray, 0.001, std::f32::MAX) {
@@ -503,88 +501,88 @@ fn clamp(x: f32) -> u8 {
     clamped as u8
 }
 
-impl State for ImageViewer {
-    fn new() -> Result<ImageViewer> {
-        use std::time::Instant;
 
-        let now = Instant::now();
+fn run() -> image::RgbImage {
+    use std::time::Instant;
 
-        let look_from = Vec3::new(478., 278., -600.);
-        // let look_from = Vec3([278., 278., -800.]);
-        let look_at = Vec3::new(278., 278., 0.);
-        // let look_from = Vec3([13., 2., 3.]);
-        // let look_at = Vec3([0., 0., 0.]);
+    let now = Instant::now();
 
-        let dist_to_focus = 10.0;
-        let aperture = 0.0;
-        let vfov = 40.0;
-        // let vfov = 20.0;
+    // let look_from = Vec3::new(278., 278., -800.);
+    let look_from = Vec3::new(478., 278., -600.);
+    let look_at = Vec3::new(278., 278., 0.);
 
-        let camera = Camera::new(
-            look_from, look_at,
-            Vec3::new(0., 1., 0.),
-            vfov,
-            WIDTH as f32 / HEIGHT as f32,
-            aperture,
-            dist_to_focus,
-            0.0, 1.0,
-        );
+    // let look_from = Vec3::new(13., 10., 3.);
+    // let look_at = Vec3::new(0., 0., 0.);
 
-        // let world = cornell_box();
-        // let world = cornell_smoke();
-        let world = final_scene();
+    let dist_to_focus = 10.0;
+    let aperture = 0.0;
+    let vfov = 40.0;
+    // let vfov = 20.0;
 
-        use rayon::prelude::*;
+    let camera = Camera::new(
+        look_from, look_at,
+        Vec3::new(0., 1., 0.),
+        vfov,
+        WIDTH as f32 / HEIGHT as f32,
+        aperture,
+        dist_to_focus,
+        0.0, 1.0,
+    );
 
-        let bytes = (0..HEIGHT)
-            .into_par_iter()
-            .rev()
-            .flat_map(|j| (0..WIDTH).into_par_iter().map(move |i| (i, j)))
-            .flat_map(|(i, j)| {
-                let mut col = Vec3::splat(0.);
-                for _s in 0..RAYS_PER_PX {
-                    let u = (i as f32 + random::<f32>()) / WIDTH as f32;
-                    let v = (j as f32 + random::<f32>()) / HEIGHT as f32;
-                    let ray = camera.get_ray(u, v);
-                    col += color(&ray, &world, 0);
-                }
-                col /= RAYS_PER_PX as f32;
-                col = col.sqrt();
+    // let world = cornell_box();
+    // let world = cornell_smoke();
+    let world = final_scene();
+    // let world = simple_light();
 
-                let r = 255.99 * col.r();
-                let g = 255.99 * col.g();
-                let b = 255.99 * col.b();
+    let progress = ProgressBar::new((WIDTH * HEIGHT) as u64)
+        .with_style(ProgressStyle::default_bar().template("{pos:>7}/{len:7} {bar:40.cyan/yellow} - [{elapsed_precise}] [{eta_precise}]"));
 
-                rayon::iter::once(clamp(r))
-                    .chain(rayon::iter::once(clamp(g)))
-                    .chain(rayon::iter::once(clamp(b)))
-            })
-            .progress_count((HEIGHT * WIDTH) as u64 * 3)
-            .collect::<Vec<_>>();
+    let bytes = (0..HEIGHT)
+        .into_par_iter()
+        .rev()
+        .flat_map(|j| (0..WIDTH).into_par_iter().map(move |i| (i, j)))
+        .map(|(i, j)| {
+            let mut col = Vec3::splat(0.);
+            for _s in 0..RAYS_PER_PX {
+                let u = (i as f32 + random::<f32>()) / WIDTH as f32;
+                let v = (j as f32 + random::<f32>()) / HEIGHT as f32;
+                let ray = camera.get_ray(u, v);
+                col += color(&ray, &world, 0);
+            }
+            col /= RAYS_PER_PX as f32;
+            col = col.sqrt();
 
-        let img = Image::from_raw(
-            &bytes,
-            WIDTH as u32,
-            HEIGHT as u32,
-            PixelFormat::RGB,
-        )?;
+            col
 
-        println!("Elapsed: {:?}", now.elapsed());
+        })
+        .progress_with(progress)
+        .flat_map(|col| {
+            let r = 255.99 * col.r();
+            let g = 255.99 * col.g();
+            let b = 255.99 * col.b();
 
-        Ok(ImageViewer { img })
-    }
+            rayon::iter::once(clamp(r))
+                .chain(rayon::iter::once(clamp(g)))
+                .chain(rayon::iter::once(clamp(b)))
+        })
+        .collect::<Vec<_>>();
 
-    fn draw(&mut self, window: &mut Window) -> Result<()> {
-        window.clear(Color::WHITE)?;
-        window.draw(&self.img.area(), Img(&self.img));
-        Ok(())
-    }
+    println!("Elapsed: {:?}", now.elapsed());
+
+    image::RgbImage::from_vec(WIDTH as u32, HEIGHT as u32, bytes)
+        .expect("Image and buffer dimension mismatch")
 }
 
 fn main() {
-    run::<ImageViewer>(
-        "Toy RT",
-        Vector::new(WIDTH as u32, HEIGHT as u32),
-        Settings::default(),
-    );
+    let image = run();
+
+    let epoch_secs = time::SystemTime::now()
+        .duration_since(time::UNIX_EPOCH)
+        .expect("Invalid times")
+        .as_secs();
+
+    let path = format!("./generated/{}.png", epoch_secs);
+
+    image.save(path)
+        .expect("Failed to save image")
 }
