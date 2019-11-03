@@ -31,6 +31,8 @@ impl<T: Hit + ?Sized> Hit for Box<T> {
     }
 }
 
+#[macro_use]
+mod combine;
 mod hitlist;
 mod sphere;
 mod moving_sphere;
@@ -41,7 +43,6 @@ mod r#box;
 mod translate;
 mod rotate;
 mod constant_medium;
-mod combine;
 
 pub use hitlist::HitList;
 pub use sphere::Sphere;

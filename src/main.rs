@@ -218,26 +218,31 @@ fn two_perlin_spheres() -> impl Hit {
         image::DynamicImage::ImageRgb8(rgb) => rgb,
         _ => panic!("Wrong format")
     };
-    Sphere {
-        center: Vec3::new(0., -1000., 0.),
-        radius: 1000.,
-        material: Lambertian {
-            albedo: pertext()
-        }
-    }.combine(Sphere {
-        center: Vec3::new(0., 2., 0.),
-        radius: 2.,
-        material: Lambertian {
-            albedo: ImageTexture { image }
-        }
-    }).combine(XZRect {
-        x0: -5.,
-        x1: 5.,
-        z0: -50.,
-        z1: 5.,
-        k: 20.,
-        material: DiffuseLight { emit: ConstantTexture { color: Vec3::new(5.0, 5.0, 5.0) } },
-    })
+
+    combine!(
+        Sphere {
+            center: Vec3::new(0., -1000., 0.),
+            radius: 1000.,
+            material: Lambertian {
+                albedo: pertext()
+            }
+        },
+        Sphere {
+            center: Vec3::new(0., 2., 0.),
+            radius: 2.,
+            material: Lambertian {
+                albedo: ImageTexture { image }
+            }
+        },
+        XZRect {
+            x0: -5.,
+            x1: 5.,
+            z0: -50.,
+            z1: 5.,
+            k: 20.,
+            material: DiffuseLight { emit: ConstantTexture { color: Vec3::new(5.0, 5.0, 5.0) } },
+        },
+    )
 }
 
 fn simple_light() -> impl Hit {
@@ -253,29 +258,29 @@ fn simple_light() -> impl Hit {
         _ => panic!("Wrong format")
     };
 
-    HitList::new_dyn(vec![
-        Box::new(Sphere {
+    combine!(
+        Sphere {
             center: Vec3::new(0., -1000., 0.),
             radius: 1000.,
             material: Lambertian {
                 albedo: pertext()
             }
-        }),
-        Box::new(Sphere {
+        },
+        Sphere {
             center: Vec3::new(0., 2., 0.),
             radius: 2.,
             material: Lambertian {
                 albedo: ImageTexture { image }
             }
-        }),
-        Box::new(Sphere {
+        },
+        Sphere {
             center: Vec3::new(0., 7., 0.),
             radius: 2.,
             material: DiffuseLight {
                 emit: ConstantTexture { color: Vec3::new(4., 4., 4.) }
             }
-        }),
-        Box::new(XYRect {
+        },
+        XYRect {
             x0: 3.,
             x1: 5.,
             y0: 1.,
@@ -284,8 +289,8 @@ fn simple_light() -> impl Hit {
             material: DiffuseLight {
                 emit: ConstantTexture { color: Vec3::new(4., 4., 4.) }
             }
-        }),
-    ])
+        },
+    )
 }
 
 fn cornell_box() -> impl Hit {
@@ -293,7 +298,6 @@ fn cornell_box() -> impl Hit {
     let white = || Lambertian { albedo: ConstantTexture { color: Vec3::new(0.73, 0.73, 0.73) } };
     let green = Lambertian { albedo: ConstantTexture { color: Vec3::new(0.12, 0.45, 0.15) } };
     let light = DiffuseLight { emit: ConstantTexture { color: Vec3::new(15.0, 15.0, 15.0) } };
-    // let light = Arc::new(DiffuseLight { emit: Box::new(ConstantTexture { color: Vec3::new(7.0, 7.0, 7.0) }) });
 
     let image = image::io::Reader::open("./oreo.jpg")
         .expect("Failed to read image")
@@ -307,30 +311,28 @@ fn cornell_box() -> impl Hit {
 
     let img_text = Arc::new(Lambertian { albedo: ImageTexture { image: image.clone() } });
 
-    HitList::new_dyn(vec![
-        Box::new(FlipNormals { hittable: YZRect { y0: 0., y1: 555., z0: 0., z1: 555., k: 555., material: green } }),
-        Box::new(YZRect { y0: 0., y1: 555., z0: 0., z1: 555., k: 0., material: red }),
-        Box::new(XZRect { x0: 113., x1: 443., z0: 127., z1: 432., k: 554., material: light }),
-        Box::new(FlipNormals { hittable: XZRect { x0: 0., x1: 555., z0: 0., z1: 555., k: 555., material: white() } }),
-        Box::new(XZRect { x0: 0., x1: 555., z0: 0., z1: 555., k: 0., material: white() }),
-        Box::new(FlipNormals { hittable: XYRect { x0: 0., x1: 555., y0: 0., y1: 555., k: 555., material: white() } }),
-        // Box::new(HitBox::new(Vec3([130., 0., 65.]), Vec3([295., 165., 230.]), white)),
-        // Box::new(HitBox::new(Vec3([265., 0., 295.]), Vec3([430., 330., 460.]), white)),
-        Box::new(Translate {
+    combine!(
+        FlipNormals { hittable: YZRect { y0: 0., y1: 555., z0: 0., z1: 555., k: 555., material: green } },
+        YZRect { y0: 0., y1: 555., z0: 0., z1: 555., k: 0., material: red },
+        XZRect { x0: 113., x1: 443., z0: 127., z1: 432., k: 554., material: light },
+        FlipNormals { hittable: XZRect { x0: 0., x1: 555., z0: 0., z1: 555., k: 555., material: white() } },
+        XZRect { x0: 0., x1: 555., z0: 0., z1: 555., k: 0., material: white() },
+        FlipNormals { hittable: XYRect { x0: 0., x1: 555., y0: 0., y1: 555., k: 555., material: white() } },
+        Translate {
             hittable: RotateY::new(
                 HitBox::new(Vec3::new(0., 0., 0.), Vec3::new(165., 165., 165.), img_text.clone()),
                 -18.
             ),
             offset: Vec3::new(130., 0., 65.)
-        }),
-        Box::new(Translate {
+        },
+        Translate {
             hittable: RotateY::new(
                 HitBox::new(Vec3::new(0., 0., 0.), Vec3::new(165., 330., 165.), img_text),
                 15.
             ),
             offset: Vec3::new(265., 0., 295.)
-        }),
-    ])
+        },
+    )
 }
 
 fn cornell_smoke() -> impl Hit {
@@ -356,34 +358,34 @@ fn cornell_smoke() -> impl Hit {
         offset: Vec3::new(265., 0., 295.)
     };
 
-    HitList::new_dyn(vec![
-        Box::new(FlipNormals {
+    combine!(
+        FlipNormals {
             hittable: YZRect { y0: 0., y1: 555., z0: 0., z1: 555., k: 555., material: green }
-        }),
-        Box::new(YZRect { y0: 0., y1: 555., z0: 0., z1: 555., k: 0., material: red }),
-        Box::new(XZRect { x0: 113., x1: 443., z0: 127., z1: 432., k: 554., material: light }),
-        Box::new(FlipNormals {
+        },
+        YZRect { y0: 0., y1: 555., z0: 0., z1: 555., k: 0., material: red },
+        XZRect { x0: 113., x1: 443., z0: 127., z1: 432., k: 554., material: light },
+        FlipNormals {
             hittable: XZRect { x0: 0., x1: 555., z0: 0., z1: 555., k: 555., material: white.clone() }
-        }),
-        Box::new(XZRect { x0: 0., x1: 555., z0: 0., z1: 555., k: 0., material: white.clone() }),
-        Box::new(FlipNormals {
+        },
+        XZRect { x0: 0., x1: 555., z0: 0., z1: 555., k: 0., material: white.clone() },
+        FlipNormals {
             hittable: XYRect { x0: 0., x1: 555., y0: 0., y1: 555., k: 555., material: white }
-        }),
-        Box::new(ConstantMedium {
+        },
+        ConstantMedium {
             boundary: b1,
             density: 0.01,
             phase_function: Isotropic {
                 albedo: ConstantTexture { color: Vec3::new(1., 1., 1.) }
             }
-        }),
-        Box::new(ConstantMedium {
+        },
+        ConstantMedium {
             boundary: b2,
             density: 0.01,
             phase_function: Isotropic {
                 albedo: ConstantTexture { color: Vec3::new(0., 0., 0.) }
             }
-        }),
-    ])
+        },
+    )
 }
 
 fn final_scene() -> impl Hit {
