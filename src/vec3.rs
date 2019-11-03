@@ -65,6 +65,14 @@ impl Vec3 {
 
         Self((r1 * r2) - (r3 * r4))
     }
+
+    pub fn min(self, other: Self) -> Vec3 {
+        Self(self.0.min(other.0))
+    }
+
+    pub fn max(self, other: Self) -> Vec3 {
+        Self(self.0.max(other.0))
+    }
 }
 
 #[cfg(test)]

@@ -34,17 +34,8 @@ impl AABB {
     }
 
     pub fn surrounding_box(box0: Self, box1: Self) -> Self {
-        let small = Vec3::new(
-            ffmin(box0.min.x(), box1.min.x()),
-            ffmin(box0.min.y(), box1.min.y()),
-            ffmin(box0.min.z(), box1.min.z()),
-        );
-
-        let big = Vec3::new(
-            ffmax(box0.max.x(), box1.max.x()),
-            ffmax(box0.max.y(), box1.max.y()),
-            ffmax(box0.max.z(), box1.max.z()),
-        );
+        let small = Vec3::min(box0.min, box1.min);
+        let big = Vec3::max(box0.max, box1.max);
 
         AABB {
             min: small,
