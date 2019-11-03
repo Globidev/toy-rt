@@ -52,7 +52,7 @@ impl Camera {
     }
 
     pub fn get_ray(&self, s: f32, t: f32) -> Ray {
-        let rd = self.lens_radius * crate::random_in_unit_disk();
+        let rd = self.lens_radius * crate::random_in_unit_disk(rand::thread_rng());
         let offset = self.u * rd.x() + self.v * rd.y();
         let time = self.time0 + rand::random::<f32>() * (self.time1-self.time0);
 

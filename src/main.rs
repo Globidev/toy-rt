@@ -1,5 +1,5 @@
 #![feature(test)]
-use rand::random;
+use rand::{random, thread_rng, Rng};
 use indicatif::{ParallelProgressIterator, ProgressStyle, ProgressBar};
 use rayon::prelude::*;
 
@@ -44,18 +44,18 @@ fn color(ray: &Ray, world: &impl Hit, depth: u32) -> Vec3 {
     }
 }
 
-pub fn random_in_unit_sphere() -> Vec3 {
+pub fn random_in_unit_sphere(mut rng: impl Rng) -> Vec3 {
     loop {
-        let p = 2.0 * Vec3::random() - Vec3::splat(1.);
+        let p = 2.0 * Vec3::random(&mut rng) - Vec3::splat(1.);
         if Vec3::dot(p, p) < 1.0 {
             break p;
         }
     }
 }
 
-pub fn random_in_unit_disk() -> Vec3 {
+pub fn random_in_unit_disk(mut rng: impl Rng) -> Vec3 {
     loop {
-        let p = 2.0 * Vec3::new(random(), random(), 0.) - Vec3::new(1., 1., 0.);
+        let p = 2.0 * Vec3::new(rng.gen(), rng.gen(), 0.) - Vec3::new(1., 1., 0.);
         if Vec3::dot(p, p) < 1.0 {
             break p;
         }
@@ -103,6 +103,7 @@ pub fn ffmax(a: f32, b: f32) -> f32 {
 }
 
 fn random_scene() -> impl Hit {
+    let rng = thread_rng();
     let n = 500;
     let mut objects = Vec::<Box<dyn ParallelHit>>::with_capacity(n);
 
@@ -130,7 +131,7 @@ fn random_scene() -> impl Hit {
                         center,
                         radius: 0.2,
                         material: Lambertian {
-                            albedo: ConstantTexture { color: Vec3::random() * Vec3::random() }
+                            albedo: ConstantTexture { color: Vec3::random(rng) * Vec3::random(rng) }
                         }
                     }));
                 } else if choose_mat < 0.95 {
@@ -138,7 +139,7 @@ fn random_scene() -> impl Hit {
                         center,
                         radius: 0.2,
                         material: Metal::new(
-                            (Vec3::random() + Vec3::splat(1.)) * 0.5,
+                            (Vec3::random(rng) + Vec3::splat(1.)) * 0.5,
                             0.5 * random::<f32>()
                         )
                     }));

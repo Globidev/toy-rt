@@ -1,6 +1,8 @@
 use std::ops::{Add, Sub, Mul, Div, AddAssign, MulAssign, DivAssign, Neg};
 use packed_simd::{f32x4, shuffle};
 
+use rand::Rng;
+
 #[derive(Clone, Copy)]
 pub struct Vec3(f32x4);
 
@@ -13,9 +15,8 @@ impl Vec3 {
         Self::new(xyz, xyz, xyz)
     }
 
-    pub fn random() -> Self {
-        use rand::random;
-        Self(f32x4::new(random(), random(), random(), random()))
+    pub fn random(mut rng: impl Rng) -> Self {
+        Self(f32x4::from_slice_aligned(&rng.gen::<[f32; 4]>()))
     }
 
     pub fn x(&self) -> f32 { unsafe { self.0.extract_unchecked(0) } }
@@ -81,11 +82,14 @@ mod tests {
     use test::Bencher;
     use super::Vec3;
 
+    use rand::{rngs::StdRng, SeedableRng};
+
     #[bench]
     fn dot(bencher: &mut Bencher) {
-        let v1 = Vec3::random();
+        let mut rng = StdRng::seed_from_u64(0xDEAD_BEEF);
+        let v1 = Vec3::random(&mut rng);
 
-        let vecs = std::iter::repeat_with(Vec3::random)
+        let vecs = std::iter::repeat_with(|| Vec3::random(&mut rng))
             .take(10_000)
             .collect::<Vec<_>>();
 
@@ -97,9 +101,10 @@ mod tests {
 
     #[bench]
     fn cross(bencher: &mut Bencher) {
-        let v1 = Vec3::random();
+        let mut rng = StdRng::seed_from_u64(0xDEAD_BEEF);
+        let v1 = Vec3::random(&mut rng);
 
-        let vecs = std::iter::repeat_with(Vec3::random)
+        let vecs = std::iter::repeat_with(|| Vec3::random(&mut rng))
             .take(10_000)
             .collect::<Vec<_>>();
 
