@@ -218,23 +218,26 @@ fn two_perlin_spheres() -> impl Hit {
         image::DynamicImage::ImageRgb8(rgb) => rgb,
         _ => panic!("Wrong format")
     };
-
-    HitList::new_dyn(vec![
-        Box::new(Sphere {
-            center: Vec3::new(0., -1000., 0.),
-            radius: 1000.,
-            material: Lambertian {
-                albedo: pertext()
-            }
-        }),
-        Box::new(Sphere {
-            center: Vec3::new(0., 2., 0.),
-            radius: 2.,
-            material: Lambertian {
-                albedo: ImageTexture { image }
-            }
-        }),
-    ])
+    Sphere {
+        center: Vec3::new(0., -1000., 0.),
+        radius: 1000.,
+        material: Lambertian {
+            albedo: pertext()
+        }
+    }.combine(Sphere {
+        center: Vec3::new(0., 2., 0.),
+        radius: 2.,
+        material: Lambertian {
+            albedo: ImageTexture { image }
+        }
+    }).combine(XZRect {
+        x0: -5.,
+        x1: 5.,
+        z0: -50.,
+        z1: 5.,
+        k: 20.,
+        material: DiffuseLight { emit: ConstantTexture { color: Vec3::new(5.0, 5.0, 5.0) } },
+    })
 }
 
 fn simple_light() -> impl Hit {

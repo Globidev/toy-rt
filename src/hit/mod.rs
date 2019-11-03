@@ -13,6 +13,13 @@ pub struct HitRecord<'mat> {
 pub trait Hit {
     fn hit(&self, ray: &Ray, t_min: f32, t_max: f32) -> Option<HitRecord<'_>>;
     fn bounding_box(&self, t0: f32, t1: f32) -> Option<crate::aabb::AABB>;
+
+    fn combine<Other: Hit>(self, other: Other) -> Combine<Self, Other>
+    where
+        Self: Sized
+    {
+        Combine { a: self, b: other }
+    }
 }
 
 impl<T: Hit + ?Sized> Hit for Box<T> {
@@ -34,6 +41,7 @@ mod r#box;
 mod translate;
 mod rotate;
 mod constant_medium;
+mod combine;
 
 pub use hitlist::HitList;
 pub use sphere::Sphere;
@@ -45,3 +53,4 @@ pub use r#box::HitBox;
 pub use translate::Translate;
 pub use rotate::{RotateY};
 pub use constant_medium::ConstantMedium;
+pub use combine::Combine;
