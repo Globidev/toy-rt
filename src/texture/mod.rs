@@ -1,4 +1,4 @@
-use crate::vec3::Vec3;
+use crate::prelude::Vec3;
 
 pub trait Texture {
     fn value(&self, u: f32, v: f32, p: Vec3) -> Vec3;

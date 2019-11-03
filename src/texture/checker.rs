@@ -1,11 +1,15 @@
-use crate::{texture::Texture, vec3::Vec3};
+use crate::prelude::{Texture, ParallelTexture, Vec3};
 
-pub struct CheckerTexture {
-    pub odd: Box<dyn Texture + Send + Sync>,
-    pub even: Box<dyn Texture + Send + Sync>,
+pub struct CheckerTexture<OddT, EvenT> {
+    pub odd: OddT,
+    pub even: EvenT,
 }
 
-impl Texture for CheckerTexture {
+impl<OddT, EvenT> Texture for CheckerTexture<OddT, EvenT>
+where
+    OddT: ParallelTexture,
+    EvenT: ParallelTexture,
+{
     fn value(&self, u: f32, v: f32, p: Vec3) -> Vec3 {
         let sines = (10. * p.x()).sin() * (10. * p.y()).sin() * (10. * p.z()).sin();
 

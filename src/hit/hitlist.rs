@@ -1,10 +1,17 @@
 use crate::hit::{Hit, HitRecord};
 use crate::ray::Ray;
 use crate::aabb::AABB;
+use crate::prelude::ParallelHit;
 
-pub struct HitList(pub Vec<Box<dyn Hit + Send + Sync>>);
+pub struct HitList<T>(Vec<T>);
 
-impl Hit for HitList {
+impl HitList<Box<dyn ParallelHit>> {
+    pub fn new_dyn(list: Vec<Box<dyn ParallelHit>>) -> Self {
+        Self(list)
+    }
+}
+
+impl<T: ParallelHit> Hit for HitList<T> {
     fn hit(&self, ray: &Ray, t_min: f32, t_max: f32) -> Option<HitRecord> {
         let mut record = None;
         let mut closest_so_far = t_max;

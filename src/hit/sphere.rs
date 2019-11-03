@@ -1,16 +1,16 @@
 use crate::hit::{Hit, HitRecord};
 use crate::vec3::Vec3;
 use crate::ray::Ray;
-use crate::material::Material;
 use crate::aabb::AABB;
+use crate::prelude::ParallelMaterial;
 
-pub struct Sphere {
+pub struct Sphere<T> {
     pub center: Vec3,
     pub radius: f32,
-    pub material: Box<dyn Material + Send + Sync>,
+    pub material: T,
 }
 
-impl Hit for Sphere {
+impl<T: ParallelMaterial> Hit for Sphere<T> {
     fn hit(&self, ray: &Ray, t_min: f32, t_max: f32) -> Option<HitRecord<'_>> {
         let oc = ray.origin - self.center;
         let a = Vec3::dot(ray.direction, ray.direction);
@@ -24,14 +24,14 @@ impl Hit for Sphere {
                 let p = ray.point_at_parameter(temp);
                 let normal = (p - self.center) / self.radius;
                 let (u, v) = crate::get_sphere_uv((p - self.center) / self.radius);
-                return Some(HitRecord { t: temp, p, normal, mat: self.material.as_ref(), u, v })
+                return Some(HitRecord { t: temp, p, normal, mat: &self.material, u, v })
             }
             let temp = (-b + discriminant.sqrt()) / a;
             if temp < t_max && temp > t_min {
                 let p = ray.point_at_parameter(temp);
                 let normal = (p - self.center) / self.radius;
                 let (u, v) = crate::get_sphere_uv((p - self.center) / self.radius);
-                return Some(HitRecord { t: temp, p, normal, mat: self.material.as_ref(), u, v })
+                return Some(HitRecord { t: temp, p, normal, mat: &self.material, u, v })
             }
         }
 

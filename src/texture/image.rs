@@ -1,4 +1,4 @@
-use crate::{texture::Texture, vec3::Vec3};
+use crate::prelude::{Texture, Vec3};
 
 pub struct ImageTexture {
     pub image: image::RgbImage

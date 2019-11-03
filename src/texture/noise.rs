@@ -1,4 +1,4 @@
-use crate::{texture::Texture, vec3::Vec3};
+use crate::prelude::{Texture, Vec3};
 use crate::perlin::Perlin;
 
 pub struct NoiseTexture {

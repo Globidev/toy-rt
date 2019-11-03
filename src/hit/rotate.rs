@@ -2,15 +2,16 @@ use crate::hit::{Hit, HitRecord};
 use crate::vec3::Vec3;
 use crate::ray::Ray;
 use crate::aabb::AABB;
+use crate::prelude::ParallelHit;
 
-pub struct RotateY {
-    pub hittable: Box<dyn Hit + Send + Sync>,
+pub struct RotateY<T> {
+    pub hittable: T,
     sin_theta: f32,
     cos_theta: f32,
     bbox: Option<AABB>,
 }
 
-impl Hit for RotateY {
+impl<T: ParallelHit> Hit for RotateY<T> {
     fn hit(&self, ray: &Ray, t_min: f32, t_max: f32) -> Option<HitRecord<'_>> {
         let mut origin = ray.origin;
         let mut direction = ray.direction;
@@ -45,8 +46,8 @@ impl Hit for RotateY {
     }
 }
 
-impl RotateY {
-    pub fn new(hittable: impl Hit + Send + Sync + 'static, angle: f32) -> Self {
+impl<T: ParallelHit> RotateY<T> {
+    pub fn new(hittable: T, angle: f32) -> Self {
         let radians = (std::f32::consts::PI / 180.) * angle;
         let sin_theta = radians.sin();
         let cos_theta = radians.cos();
@@ -54,7 +55,7 @@ impl RotateY {
             .map(|bbox| compute_bbox(bbox, cos_theta, sin_theta));
 
         Self {
-            hittable: Box::new(hittable),
+            hittable,
             sin_theta,
             cos_theta,
             bbox

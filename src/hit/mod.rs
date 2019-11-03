@@ -15,6 +15,15 @@ pub trait Hit {
     fn bounding_box(&self, t0: f32, t1: f32) -> Option<crate::aabb::AABB>;
 }
 
+impl<T: Hit + ?Sized> Hit for Box<T> {
+    fn hit(&self, ray: &Ray, t_min: f32, t_max: f32) -> Option<HitRecord<'_>> {
+        self.as_ref().hit(ray, t_min, t_max)
+    }
+    fn bounding_box(&self, t0: f32, t1: f32) -> Option<crate::aabb::AABB> {
+        self.as_ref().bounding_box(t0, t1)
+    }
+}
+
 mod hitlist;
 mod sphere;
 mod moving_sphere;
