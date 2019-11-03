@@ -116,9 +116,7 @@ fn random_scene() -> impl Hit {
     objects.push(Box::new(Sphere {
         center: Vec3::new(0., -1000., 0.),
         radius: 1000.,
-        material: Lambertian {
-            albedo: checker
-        }
+        material: Lambertian::new(checker),
     }));
 
     for a in -10..10 {
@@ -131,9 +129,7 @@ fn random_scene() -> impl Hit {
                     objects.push(Box::new(Sphere {
                         center,
                         radius: 0.2,
-                        material: Lambertian {
-                            albedo: ConstantTexture { color: Vec3::random(rng) * Vec3::random(rng) }
-                        }
+                        material: Lambertian::new(ConstantTexture { color: Vec3::random(rng) * Vec3::random(rng) })
                     }));
                 } else if choose_mat < 0.95 {
                     objects.push(Box::new(Sphere {
@@ -166,9 +162,7 @@ fn random_scene() -> impl Hit {
     objects.push(Box::new(Sphere {
         center: Vec3::new(-4., 1., 0.),
         radius: 1.,
-        material: Lambertian {
-            albedo: ConstantTexture { color: Vec3::new(0.4, 0.2, 0.1) }
-        }
+        material: Lambertian::new(ConstantTexture { color: Vec3::new(0.4, 0.2, 0.1) }),
     }));
 
     objects.push(Box::new(Sphere {
@@ -193,16 +187,12 @@ fn two_spheres() -> impl Hit {
         Box::new(Sphere {
             center: Vec3::new(0., -10., 0.),
             radius: 10.,
-            material: Lambertian {
-                albedo: checker()
-            }
+            material: Lambertian::new(checker()),
         }),
         Box::new(Sphere {
             center: Vec3::new(0., 10., 0.),
             radius: 10.,
-            material: Lambertian {
-                albedo: checker()
-            }
+            material: Lambertian::new(checker()),
         }),
     ])
 }
@@ -224,16 +214,12 @@ fn two_perlin_spheres() -> impl Hit {
         Sphere {
             center: Vec3::new(0., -1000., 0.),
             radius: 1000.,
-            material: Lambertian {
-                albedo: pertext()
-            }
+            material: Lambertian::new(pertext()),
         },
         Sphere {
             center: Vec3::new(0., 2., 0.),
             radius: 2.,
-            material: Lambertian {
-                albedo: ImageTexture { image }
-            }
+            material: Lambertian::new(ImageTexture { image })
         },
         XZRect {
             x0: -5.,
@@ -263,16 +249,12 @@ fn simple_light() -> impl Hit {
         Sphere {
             center: Vec3::new(0., -1000., 0.),
             radius: 1000.,
-            material: Lambertian {
-                albedo: pertext()
-            }
+            material: Lambertian::new(pertext())
         },
         Sphere {
             center: Vec3::new(0., 2., 0.),
             radius: 2.,
-            material: Lambertian {
-                albedo: ImageTexture { image }
-            }
+            material: Lambertian::new(ImageTexture { image })
         },
         Sphere {
             center: Vec3::new(0., 7., 0.),
@@ -295,9 +277,9 @@ fn simple_light() -> impl Hit {
 }
 
 fn cornell_box() -> impl Hit {
-    let red = Lambertian { albedo: ConstantTexture { color: Vec3::new(0.65, 0.05, 0.05) } };
-    let white = || Lambertian { albedo: ConstantTexture { color: Vec3::new(0.73, 0.73, 0.73) } };
-    let green = Lambertian { albedo: ConstantTexture { color: Vec3::new(0.12, 0.45, 0.15) } };
+    let red = Lambertian::new(ConstantTexture { color: Vec3::new(0.65, 0.05, 0.05) });
+    let white = || Lambertian::new(ConstantTexture { color: Vec3::new(0.73, 0.73, 0.73) });
+    let green = Lambertian::new(ConstantTexture { color: Vec3::new(0.12, 0.45, 0.15) });
     let light = DiffuseLight { emit: ConstantTexture { color: Vec3::new(15.0, 15.0, 15.0) } };
 
     let image = image::io::Reader::open("./oreo.jpg")
@@ -310,7 +292,7 @@ fn cornell_box() -> impl Hit {
         _ => panic!("Wrong format")
     };
 
-    let img_text = Arc::new(Lambertian { albedo: ImageTexture { image: image.clone() } });
+    let img_text = Arc::new(Lambertian::new(ImageTexture { image: image.clone() }));
 
     combine!(
         FlipNormals { hittable: YZRect { y0: 0., y1: 555., z0: 0., z1: 555., k: 555., material: green } },
@@ -337,9 +319,9 @@ fn cornell_box() -> impl Hit {
 }
 
 fn cornell_smoke() -> impl Hit {
-    let red = Lambertian { albedo: ConstantTexture { color: Vec3::new(0.65, 0.05, 0.05) } };
-    let white = Arc::new(Lambertian { albedo: ConstantTexture { color: Vec3::new(0.73, 0.73, 0.73) } });
-    let green = Lambertian { albedo: ConstantTexture { color: Vec3::new(0.12, 0.45, 0.15) } };
+    let red = Lambertian::new(ConstantTexture { color: Vec3::new(0.65, 0.05, 0.05) });
+    let white = Arc::new(Lambertian::new(ConstantTexture { color: Vec3::new(0.73, 0.73, 0.73) }));
+    let green = Lambertian::new(ConstantTexture { color: Vec3::new(0.12, 0.45, 0.15) });
     let light = DiffuseLight { emit: ConstantTexture { color: Vec3::new(7.0, 7.0, 7.0) } };
     // let light = Box::new(DiffuseLight { emit: Box::new(ConstantTexture { color: Vec3([15.0, 15.0, 15.0]) }) });
 
@@ -394,8 +376,8 @@ fn final_scene() -> impl Hit {
     let mut boxlist = Vec::<Arc<dyn ParallelHit>>::new();
     let mut boxlist2 = Vec::<Arc<dyn ParallelHit>>::new();
 
-    let white = || Lambertian { albedo: ConstantTexture { color: Vec3::new(0.73, 0.73, 0.73) } };
-    let ground = Arc::new(Lambertian { albedo: ConstantTexture { color: Vec3::new(0.48, 0.83, 0.53) } });
+    let white = || Lambertian::new(ConstantTexture { color: Vec3::new(0.73, 0.73, 0.73) });
+    let ground = Arc::new(Lambertian::new(ConstantTexture { color: Vec3::new(0.48, 0.83, 0.53) }));
 
     let nb = 20;
     for i in 0..nb {
@@ -423,9 +405,7 @@ fn final_scene() -> impl Hit {
         time0: 0.,
         time1: 1.,
         radius: 50.,
-        material: Lambertian {
-            albedo: ConstantTexture { color: Vec3::new(0.7, 0.3, 0.1) }
-        },
+        material: Lambertian::new(ConstantTexture { color: Vec3::new(0.7, 0.3, 0.1) })
     }));
     list.push(Box::new(Sphere {
         center: Vec3::new(260., 150., 45.),
@@ -474,13 +454,13 @@ fn final_scene() -> impl Hit {
     list.push(Box::new(Sphere {
         center: Vec3::new(400., 200., 400.),
         radius: 100.,
-        material: Lambertian { albedo: ImageTexture { image } },
+        material: Lambertian::new(ImageTexture { image }),
     }));
     let pertext = NoiseTexture { perlin: Perlin::new(), scale: 0.1 };
     list.push(Box::new(Sphere {
         center: Vec3::new(220., 280., 300.),
         radius: 80.,
-        material: Lambertian { albedo: pertext },
+        material: Lambertian::new(pertext),
     }));
 
     let ns = 1000;
