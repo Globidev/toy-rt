@@ -13,13 +13,13 @@ impl AABB {
     pub fn hit(&self, ray: &Ray, mut tmin: f32, mut tmax: f32) -> bool {
         for a in 0..3 {
             let t0 = ffmin(
-                (self.min[a] - ray.origin[a]) / ray.direction[a],
-                (self.max[a] - ray.origin[a]) / ray.direction[a],
+                (self.min.get(a) - ray.origin.get(a)) / ray.direction.get(a),
+                (self.max.get(a) - ray.origin.get(a)) / ray.direction.get(a),
             );
 
             let t1 = ffmax(
-                (self.min[a] - ray.origin[a]) / ray.direction[a],
-                (self.max[a] - ray.origin[a]) / ray.direction[a],
+                (self.min.get(a) - ray.origin.get(a)) / ray.direction.get(a),
+                (self.max.get(a) - ray.origin.get(a)) / ray.direction.get(a),
             );
 
             tmin = ffmax(t0, tmin);

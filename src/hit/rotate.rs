@@ -15,11 +15,11 @@ impl Hit for RotateY {
         let mut origin = ray.origin;
         let mut direction = ray.direction;
 
-        origin[0] = self.cos_theta * ray.origin[0] - self.sin_theta * ray.origin[2];
-        origin[2] = self.sin_theta * ray.origin[0] + self.cos_theta * ray.origin[2];
+        origin.set(0, self.cos_theta * ray.origin.x() - self.sin_theta * ray.origin.z());
+        origin.set(2, self.sin_theta * ray.origin.x() + self.cos_theta * ray.origin.z());
 
-        direction[0] = self.cos_theta * ray.direction[0] - self.sin_theta * ray.direction[2];
-        direction[2] = self.sin_theta * ray.direction[0] + self.cos_theta * ray.direction[2];
+        direction.set(0, self.cos_theta * ray.direction.x() - self.sin_theta * ray.direction.z());
+        direction.set(2, self.sin_theta * ray.direction.x() + self.cos_theta * ray.direction.z());
 
         let rotated_ray = Ray::new(origin, direction).with_time(ray.time);
 
@@ -28,11 +28,11 @@ impl Hit for RotateY {
         let mut p = rec.p;
         let mut normal = rec.normal;
 
-        p[0] = self.cos_theta * rec.p[0] + self.sin_theta * rec.p[2];
-        p[2] = -self.sin_theta * rec.p[0] + self.cos_theta * rec.p[2];
+        p.set(0, self.cos_theta * rec.p.x() + self.sin_theta * rec.p.z());
+        p.set(2, -self.sin_theta * rec.p.x() + self.cos_theta * rec.p.z());
 
-        normal[0] = self.cos_theta * rec.normal[0] + self.sin_theta * rec.normal[2];
-        normal[2] = -self.sin_theta * rec.normal[0] + self.cos_theta * rec.normal[2];
+        normal.set(0, self.cos_theta * rec.normal.x() + self.sin_theta * rec.normal.z());
+        normal.set(2, -self.sin_theta * rec.normal.x() + self.cos_theta * rec.normal.z());
 
         rec.p = p;
         rec.normal = normal;
@@ -83,11 +83,11 @@ fn compute_bbox(bbox: AABB, cos_theta: f32, sin_theta: f32) -> AABB {
 
                 let tester = Vec3::new(new_x, y, new_z);
                 for c in 0..3 {
-                    if tester[c] > max[c] {
-                        max[c] = tester[c]
+                    if tester.get(c) > max.get(c) {
+                        max.set(c, tester.get(c))
                     }
-                    if tester[c] < min[c] {
-                        min[c] = tester[c]
+                    if tester.get(c) < min.get(c) {
+                        min.set(c, tester.get(c))
                     }
                 }
             }

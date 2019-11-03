@@ -538,7 +538,7 @@ impl State for ImageViewer {
                     col += color(&ray, &world, 0);
                 }
                 col /= RAYS_PER_PX as f32;
-                col = Vec3::new(col.x().sqrt(), col.y().sqrt(), col.z().sqrt());
+                col = col.sqrt();
 
                 let r = 255.99 * col.r();
                 let g = 255.99 * col.g();
