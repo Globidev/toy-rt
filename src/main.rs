@@ -1,4 +1,5 @@
 #![feature(test)]
+#![feature(type_alias_impl_trait)]
 use rand::{random, thread_rng, Rng};
 use indicatif::{ParallelProgressIterator, ProgressStyle, ProgressBar};
 use rayon::prelude::*;
