@@ -65,12 +65,13 @@ impl<T: ParallelHit> RotateY<T> {
 
 fn compute_bbox(bbox: AABB, cos_theta: f32, sin_theta: f32) -> AABB {
     let f_max = std::f32::MAX;
+
     let mut min = Vec3::splat(f_max);
     let mut max = Vec3::splat(-f_max);
 
-    for i in 0..2 {
-        for j in 0..2 {
-            for k in 0..2 {
+    for i in 0..=1 {
+        for j in 0..=1 {
+            for k in 0..=1 {
                 let i = i as f32;
                 let j = j as f32;
                 let k = k as f32;
@@ -83,14 +84,8 @@ fn compute_bbox(bbox: AABB, cos_theta: f32, sin_theta: f32) -> AABB {
                 let new_z = -sin_theta * x + cos_theta * z;
 
                 let tester = Vec3::new(new_x, y, new_z);
-                for c in 0..3 {
-                    if tester.get(c) > max.get(c) {
-                        max.set(c, tester.get(c))
-                    }
-                    if tester.get(c) < min.get(c) {
-                        min.set(c, tester.get(c))
-                    }
-                }
+                max = Vec3::max(tester, max);
+                min = Vec3::min(tester, min);
             }
         }
     }
