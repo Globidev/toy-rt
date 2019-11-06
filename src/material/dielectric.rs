@@ -25,10 +25,20 @@ impl Material for Dielectric {
 
         if let Some(refracted) = crate::refract(r_in.direction, outward_normal, ni_over_nt) {
             if prob >= crate::schlick(cosine, self.ref_idx) {
-                return Some((Ray::new(rec.p, refracted), attenuation))
+                let scattered = Ray {
+                    origin: rec.p,
+                    direction: refracted,
+                    time: 0.,
+                };
+                return Some((scattered, attenuation))
             }
         }
 
-        Some((Ray::new(rec.p, reflected), attenuation))
+        let scattered = Ray {
+            origin: rec.p,
+            direction: reflected,
+            time: 0.,
+        };
+        Some((scattered, attenuation))
     }
 }

@@ -17,7 +17,11 @@ impl<T> Lambertian<T> {
 impl<T: ParallelTexture> Material for Lambertian<T> {
     fn scatter(&self, r_in: &Ray, rec: &HitRecord) -> Option<(Ray, Vec3)> {
         let target = rec.p + rec.normal + crate::random_in_unit_sphere(rand::thread_rng());
-        let scattered = Ray::new(rec.p, target - rec.p).with_time(r_in.time);
+        let scattered = Ray {
+            origin: rec.p,
+            direction: target - rec.p,
+            time: r_in.time,
+        };
         let attenuation = self.albedo.value(rec.u, rec.v, rec.p);
         Some((scattered, attenuation))
     }

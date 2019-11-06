@@ -22,7 +22,11 @@ impl<T: ParallelHit> Hit for RotateY<T> {
         direction.set(0, self.cos_theta * ray.direction.x() - self.sin_theta * ray.direction.z());
         direction.set(2, self.sin_theta * ray.direction.x() + self.cos_theta * ray.direction.z());
 
-        let rotated_ray = Ray::new(origin, direction).with_time(ray.time);
+        let rotated_ray = Ray {
+            origin,
+            direction,
+            time: ray.time,
+        };
 
         let mut rec = self.hittable.hit(&rotated_ray, t_min, t_max)?;
 
