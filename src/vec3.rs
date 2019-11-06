@@ -3,7 +3,7 @@ use packed_simd::{f32x4, shuffle};
 
 use rand::Rng;
 
-#[derive(Clone, Copy)]
+#[derive(Debug, Clone, Copy, Default)]
 pub struct Vec3(f32x4);
 
 impl Vec3 {
@@ -208,5 +208,11 @@ impl Neg for Vec3 {
 
     fn neg(self) -> Self::Output {
         Vec3(-self.0)
+    }
+}
+
+impl From<(f32, f32, f32)> for Vec3 {
+    fn from((x, y, z): (f32, f32, f32)) -> Self {
+        Self::new(x, y, z)
     }
 }

@@ -17,8 +17,8 @@ mod vec3;
 mod aabb;
 mod perlin;
 
-use camera::Camera;
-use hit::{Hit, HitList, Sphere, MovingSphere, XYRect, XZRect, YZRect, FlipNormals, HitBox, Translate, RotateY, ConstantMedium, BVHNode};
+use camera::CameraBuilder;
+use hit::{Hit, Sphere, MovingSphere, XYRect, XZRect, YZRect, FlipNormals, HitBox, Translate, RotateY, ConstantMedium, BVHNode};
 use material::{Metal, Dielectric, Lambertian, DiffuseLight, Isotropic};
 use texture::{ConstantTexture, CheckerTexture, NoiseTexture, ImageTexture};
 use ray::Ray;
@@ -494,32 +494,13 @@ fn run() -> image::RgbImage {
 
     let now = Instant::now();
 
-    // let look_from = Vec3::new(278., 278., -800.);
-    let look_from = Vec3::new(478., 278., -600.);
-    let look_at = Vec3::new(278., 278., 0.);
+    let camera = CameraBuilder::default()
+        .look_from((278., 278., -800.))
+        .look_at((278., 278., 0.))
+        .dimensions(WIDTH as f32, HEIGHT as f32)
+        .finish();
 
-    // let look_from = Vec3::new(13., 10., 3.);
-    // let look_at = Vec3::new(0., 0., 0.);
-
-    let dist_to_focus = 10.0;
-    let aperture = 0.0;
-    let vfov = 40.0;
-    // let vfov = 20.0;
-
-    let camera = Camera::new(
-        look_from, look_at,
-        Vec3::new(0., 1., 0.),
-        vfov,
-        WIDTH as f32 / HEIGHT as f32,
-        aperture,
-        dist_to_focus,
-        0.0, 1.0,
-    );
-
-    // let world = cornell_box();
-    // let world = cornell_smoke();
-    let world = final_scene();
-    // let world = simple_light();
+    let world = cornell_box();
 
     let progress = ProgressBar::new((WIDTH * HEIGHT) as u64)
         .with_style(ProgressStyle::default_bar().template("{pos:>7}/{len:7} {bar:40.cyan/yellow} - [{elapsed_precise}] [{eta_precise}]"));
