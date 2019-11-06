@@ -7,30 +7,18 @@ pub struct AABB {
     pub max: Vec3,
 }
 
-use crate::{ffmin, ffmax};
-
 impl AABB {
-    pub fn hit(&self, ray: &Ray, mut tmin: f32, mut tmax: f32) -> bool {
-        for a in 0..3 {
-            let t0 = ffmin(
-                (self.min.get(a) - ray.origin.get(a)) / ray.direction.get(a),
-                (self.max.get(a) - ray.origin.get(a)) / ray.direction.get(a),
-            );
+    pub fn hit(&self, ray: &Ray, tmin: f32, tmax: f32) -> bool {
+        let min = (self.min - ray.origin) / ray.direction;
+        let max = (self.max - ray.origin) / ray.direction;
 
-            let t1 = ffmax(
-                (self.min.get(a) - ray.origin.get(a)) / ray.direction.get(a),
-                (self.max.get(a) - ray.origin.get(a)) / ray.direction.get(a),
-            );
+        let mins = min.min(max);
+        let maxs = min.max(max);
 
-            tmin = ffmax(t0, tmin);
-            tmax = ffmin(t1, tmax);
+        let tmin = mins.max_element(tmin);
+        let tmax = maxs.min_element(tmax);
 
-            if tmax <= tmin {
-                return false;
-            }
-        }
-
-        true
+        tmax > tmin
     }
 
     pub fn surrounding_box(box0: Self, box1: Self) -> Self {

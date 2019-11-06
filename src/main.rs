@@ -95,14 +95,6 @@ pub fn get_sphere_uv(p: Vec3) -> (f32, f32) {
     (u, v)
 }
 
-pub fn ffmin(a: f32, b: f32) -> f32 {
-    if a < b { a } else { b }
-}
-
-pub fn ffmax(a: f32, b: f32) -> f32 {
-    if a > b { a } else { b }
-}
-
 fn random_scene() -> impl Hit {
     let rng = thread_rng();
     let n = 500;

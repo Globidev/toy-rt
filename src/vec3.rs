@@ -74,6 +74,14 @@ impl Vec3 {
     pub fn max(self, other: Self) -> Vec3 {
         Self(self.0.max(other.0))
     }
+
+    pub fn min_element(self, fourth: f32) -> f32 {
+        unsafe { self.0.replace_unchecked(3, fourth).min_element() }
+    }
+
+    pub fn max_element(self, fourth: f32) -> f32 {
+        unsafe { self.0.replace_unchecked(3, fourth).max_element() }
+    }
 }
 
 #[cfg(test)]
