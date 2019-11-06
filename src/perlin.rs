@@ -80,7 +80,7 @@ fn perlin_generate_perm() -> [usize; 256] {
 fn permute(slice: &mut [usize]) {
     let mut rng = thread_rng();
 
-    for i in (1..=slice.len()-1).rev() {
+    for i in (1..slice.len()).rev() {
         let target = rng.gen_range(0, i + 1);
         slice.swap(i, target)
     }
