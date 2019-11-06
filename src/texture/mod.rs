@@ -5,11 +5,14 @@ pub trait Texture {
 }
 
 mod constant;
-mod checker;
-mod noise;
-mod image;
+pub use constant::Constant;
 
-pub use constant::ConstantTexture;
-pub use checker::CheckerTexture;
-pub use noise::NoiseTexture;
-pub use self::image::ImageTexture;
+mod checker;
+pub use checker::Checker;
+
+mod noise;
+pub use noise::Noise;
+
+mod image;
+pub use self::image::Image;
+
