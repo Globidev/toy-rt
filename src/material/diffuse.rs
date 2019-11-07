@@ -5,7 +5,13 @@ use crate::hit::HitRecord;
 use crate::prelude::ParallelTexture;
 
 pub struct DiffuseLight<T> {
-    pub emit: T,
+    emit: T,
+}
+
+impl<T: ParallelTexture> DiffuseLight<T> {
+    pub fn new(emit: T) -> Self {
+        Self { emit }
+    }
 }
 
 impl<T: ParallelTexture> Material for DiffuseLight<T> {

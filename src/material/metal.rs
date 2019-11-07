@@ -4,8 +4,8 @@ use crate::ray::Ray;
 use crate::hit::HitRecord;
 
 pub struct Metal {
-    pub albedo: Vec3,
-    pub fuzz: f32,
+    albedo: Vec3,
+    fuzz: f32,
 }
 
 impl Metal {

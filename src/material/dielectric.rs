@@ -4,7 +4,13 @@ use crate::ray::Ray;
 use crate::hit::HitRecord;
 
 pub struct Dielectric {
-    pub ref_idx: f32,
+    ref_idx: f32,
+}
+
+impl Dielectric {
+    pub fn new(ref_idx: f32) -> Self {
+        Self { ref_idx }
+    }
 }
 
 impl Material for Dielectric {

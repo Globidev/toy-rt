@@ -5,7 +5,13 @@ use crate::hit::HitRecord;
 use crate::prelude::ParallelTexture;
 
 pub struct Isotropic<T> {
-    pub albedo: T
+    albedo: T
+}
+
+impl<T: ParallelTexture> Isotropic<T> {
+    pub fn new(albedo: T) -> Self {
+        Self { albedo }
+    }
 }
 
 impl<T: ParallelTexture> Material for Isotropic<T> {
