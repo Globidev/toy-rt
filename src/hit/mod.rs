@@ -20,6 +20,13 @@ pub trait Hit {
     {
         Combine { a: self, b: other }
     }
+
+    fn normals_flipped(self) -> FlipNormals<Self>
+    where
+        Self: Sized + Send + Sync
+    {
+        FlipNormals::new(self)
+    }
 }
 
 impl<T: Hit + ?Sized> Hit for Box<T> {
