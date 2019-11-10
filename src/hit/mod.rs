@@ -18,14 +18,28 @@ pub trait Hit {
     where
         Self: Sized
     {
-        Combine { a: self, b: other }
+        Combine::new(self, other)
     }
 
-    fn normals_flipped(self) -> FlipNormals<Self>
+    fn flip_normals(self) -> FlipNormals<Self>
     where
         Self: Sized + Send + Sync
     {
         FlipNormals::new(self)
+    }
+
+    fn translate(self, offset: impl Into<Vec3>) -> Translate<Self>
+    where
+        Self: Sized + Send + Sync
+    {
+        Translate::new(self, offset.into())
+    }
+
+    fn rotate_y(self, angle: f32) -> RotateY<Self>
+    where
+        Self: Sized + Send + Sync
+    {
+        RotateY::new(self, angle)
     }
 }
 

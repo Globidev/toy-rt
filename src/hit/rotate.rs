@@ -11,6 +11,23 @@ pub struct RotateY<T: Hit> {
     bbox: Option<AABB>,
 }
 
+impl<T: Hit> RotateY<T> {
+    pub fn new(hittable: T, angle: f32) -> Self {
+        let radians = (std::f32::consts::PI / 180.) * angle;
+        let sin_theta = radians.sin();
+        let cos_theta = radians.cos();
+        let bbox = hittable.bounding_box(0., 1.)
+            .map(|bbox| compute_bbox(bbox, cos_theta, sin_theta));
+
+        Self {
+            hittable,
+            sin_theta,
+            cos_theta,
+            bbox
+        }
+    }
+}
+
 impl<T: Hit> Hit for RotateY<T> {
     fn hit(&self, ray: &Ray, t_min: f32, t_max: f32) -> Option<HitRecord<'_>> {
         let mut origin = ray.origin;
@@ -47,23 +64,6 @@ impl<T: Hit> Hit for RotateY<T> {
 
     fn bounding_box(&self, _t0: f32, _t1: f32) -> Option<AABB> {
         self.bbox.clone()
-    }
-}
-
-impl<T: Hit> RotateY<T> {
-    pub fn new(hittable: T, angle: f32) -> Self {
-        let radians = (std::f32::consts::PI / 180.) * angle;
-        let sin_theta = radians.sin();
-        let cos_theta = radians.cos();
-        let bbox = hittable.bounding_box(0., 1.)
-            .map(|bbox| compute_bbox(bbox, cos_theta, sin_theta));
-
-        Self {
-            hittable,
-            sin_theta,
-            cos_theta,
-            bbox
-        }
     }
 }
 

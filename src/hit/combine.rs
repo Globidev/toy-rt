@@ -4,8 +4,14 @@ use crate::aabb::AABB;
 use crate::prelude::Hit;
 
 pub struct Combine<T: Hit, U: Hit> {
-    pub a: T,
-    pub b: U,
+    a: T,
+    b: U,
+}
+
+impl<T: Hit, U: Hit> Combine<T, U> {
+    pub fn new(a: T, b: U) -> Self {
+        Self { a, b }
+    }
 }
 
 impl<T: Hit, U: Hit> Hit for Combine<T, U> {
