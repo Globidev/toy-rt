@@ -1,20 +1,26 @@
-use crate::hit::{Hit, HitRecord};
+use crate::hit::HitRecord;
 use crate::ray::Ray;
 use crate::aabb::AABB;
-use crate::prelude::ParallelHit;
+use crate::prelude::Hit;
 
-pub struct FlipNormals<T> {
-    pub hittable: T,
+pub struct FlipNormals<T: Hit> {
+    wrapped: T,
 }
 
-impl<T: ParallelHit> Hit for FlipNormals<T> {
+impl<T: Hit> FlipNormals<T> {
+    pub fn new(wrapped: T) -> Self {
+        Self { wrapped }
+    }
+}
+
+impl<T: Hit> Hit for FlipNormals<T> {
     fn hit(&self, ray: &Ray, t_min: f32, t_max: f32) -> Option<HitRecord<'_>> {
-        let mut rec = self.hittable.hit(ray, t_min, t_max)?;
+        let mut rec = self.wrapped.hit(ray, t_min, t_max)?;
         rec.normal = -rec.normal;
         Some(rec)
     }
 
     fn bounding_box(&self, t0: f32, t1: f32) -> Option<AABB> {
-        self.hittable.bounding_box(t0, t1)
+        self.wrapped.bounding_box(t0, t1)
     }
 }

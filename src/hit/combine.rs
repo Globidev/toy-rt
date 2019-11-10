@@ -1,14 +1,14 @@
-use crate::hit::{Hit, HitRecord};
+use crate::hit::HitRecord;
 use crate::ray::Ray;
 use crate::aabb::AABB;
-use crate::prelude::ParallelHit;
+use crate::prelude::Hit;
 
-pub struct Combine<T, U> {
+pub struct Combine<T: Hit, U: Hit> {
     pub a: T,
     pub b: U,
 }
 
-impl<T: ParallelHit, U: ParallelHit> Hit for Combine<T, U> {
+impl<T: Hit, U: Hit> Hit for Combine<T, U> {
     fn hit(&self, ray: &Ray, t_min: f32, t_max: f32) -> Option<HitRecord> {
         match self.a.hit(ray, t_min, t_max) {
             Some(rec) => Some(self.b.hit(ray, t_min, rec.t).unwrap_or(rec)),

@@ -2,9 +2,9 @@ use crate::hit::{Hit, HitRecord};
 use crate::vec3::Vec3;
 use crate::ray::Ray;
 use crate::aabb::AABB;
-use crate::prelude::ParallelMaterial;
+use crate::prelude::Material;
 
-pub struct XYRect<T> {
+pub struct XYRect<T: Material> {
     pub x0: f32,
     pub x1: f32,
     pub y0: f32,
@@ -13,7 +13,7 @@ pub struct XYRect<T> {
     pub material: T,
 }
 
-pub struct XZRect<T> {
+pub struct XZRect<T: Material> {
     pub x0: f32,
     pub x1: f32,
     pub z0: f32,
@@ -22,7 +22,7 @@ pub struct XZRect<T> {
     pub material: T,
 }
 
-pub struct YZRect<T> {
+pub struct YZRect<T: Material> {
     pub y0: f32,
     pub y1: f32,
     pub z0: f32,
@@ -31,7 +31,7 @@ pub struct YZRect<T> {
     pub material: T,
 }
 
-impl<T: ParallelMaterial> Hit for XYRect<T> {
+impl<T: Material> Hit for XYRect<T> {
     fn hit(&self, ray: &Ray, t_min: f32, t_max: f32) -> Option<HitRecord<'_>> {
         let t = (self.k - ray.origin.z()) / ray.direction.z();
         if t < t_min || t > t_max {
@@ -62,7 +62,7 @@ impl<T: ParallelMaterial> Hit for XYRect<T> {
     }
 }
 
-impl<T: ParallelMaterial> Hit for XZRect<T> {
+impl<T: Material> Hit for XZRect<T> {
     fn hit(&self, ray: &Ray, t_min: f32, t_max: f32) -> Option<HitRecord<'_>> {
         let t = (self.k - ray.origin.y()) / ray.direction.y();
         if t < t_min || t > t_max {
@@ -93,7 +93,7 @@ impl<T: ParallelMaterial> Hit for XZRect<T> {
     }
 }
 
-impl<T: ParallelMaterial> Hit for YZRect<T> {
+impl<T: Material> Hit for YZRect<T> {
     fn hit(&self, ray: &Ray, t_min: f32, t_max: f32) -> Option<HitRecord<'_>> {
         let t = (self.k - ray.origin.x()) / ray.direction.x();
         if t < t_min || t > t_max {

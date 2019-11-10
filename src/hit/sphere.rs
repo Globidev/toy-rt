@@ -2,15 +2,15 @@ use crate::hit::{Hit, HitRecord};
 use crate::vec3::Vec3;
 use crate::ray::Ray;
 use crate::aabb::AABB;
-use crate::prelude::ParallelMaterial;
+use crate::prelude::Material;
 
-pub struct Sphere<T> {
+pub struct Sphere<T: Material> {
     pub center: Vec3,
     pub radius: f32,
     pub material: T,
 }
 
-impl<T: ParallelMaterial> Hit for Sphere<T> {
+impl<T: Material> Hit for Sphere<T> {
     fn hit(&self, ray: &Ray, t_min: f32, t_max: f32) -> Option<HitRecord<'_>> {
         let oc = ray.origin - self.center;
         let a = Vec3::dot(ray.direction, ray.direction);

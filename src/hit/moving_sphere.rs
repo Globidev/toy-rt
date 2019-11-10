@@ -2,9 +2,9 @@ use crate::hit::{Hit, HitRecord};
 use crate::vec3::Vec3;
 use crate::ray::Ray;
 use crate::aabb::AABB;
-use crate::prelude::ParallelMaterial;
+use crate::prelude::Material;
 
-pub struct MovingSphere<T> {
+pub struct MovingSphere<T: Material> {
     pub center0: Vec3,
     pub center1: Vec3,
     pub time0: f32,
@@ -13,13 +13,13 @@ pub struct MovingSphere<T> {
     pub material: T,
 }
 
-impl<T> MovingSphere<T> {
+impl<T: Material> MovingSphere<T> {
     fn center(&self, time: f32) -> Vec3 {
         self.center0 + ((time - self.time0) / (self.time1 - self.time0)) * (self.center1 - self.center0)
     }
 }
 
-impl<T: ParallelMaterial> Hit for MovingSphere<T> {
+impl<T: Material> Hit for MovingSphere<T> {
     fn hit(&self, ray: &Ray, t_min: f32, t_max: f32) -> Option<HitRecord<'_>> {
         let oc = ray.origin - self.center(ray.time);
         let a = Vec3::dot(ray.direction, ray.direction);

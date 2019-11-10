@@ -1,15 +1,15 @@
-use crate::hit::{Hit, HitRecord};
+use crate::hit::HitRecord;
 use crate::vec3::Vec3;
 use crate::ray::Ray;
 use crate::aabb::AABB;
-use crate::prelude::ParallelHit;
+use crate::prelude::Hit;
 
-pub struct Translate<T> {
+pub struct Translate<T: Hit> {
     pub hittable: T,
     pub offset: Vec3,
 }
 
-impl<T: ParallelHit> Hit for Translate<T> {
+impl<T: Hit> Hit for Translate<T> {
     fn hit(&self, ray: &Ray, t_min: f32, t_max: f32) -> Option<HitRecord<'_>> {
         let moved_ray = Ray {
             origin: ray.origin - self.offset,

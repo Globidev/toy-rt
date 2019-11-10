@@ -1,11 +1,11 @@
-use crate::hit::{Hit, HitRecord};
+use crate::hit::{HitRecord};
 use crate::ray::Ray;
 use crate::aabb::AABB;
-use crate::prelude::ParallelHit;
+use crate::prelude::Hit;
 
-pub struct HitList<T>(Vec<T>);
+pub struct HitList<T: Hit>(Vec<T>);
 
-impl<T: ParallelHit> Hit for HitList<T> {
+impl<T: Hit> Hit for HitList<T> {
     fn hit(&self, ray: &Ray, t_min: f32, t_max: f32) -> Option<HitRecord> {
         let mut closest_so_far = t_max;
 

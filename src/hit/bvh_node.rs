@@ -1,10 +1,10 @@
-use crate::hit::{Hit, HitRecord};
+use crate::hit::HitRecord;
 use crate::ray::Ray;
 use crate::aabb::AABB;
 use rand::{thread_rng, seq::SliceRandom};
 use std::sync::Arc;
 use std::cmp::Ordering;
-use crate::prelude::ParallelHit;
+use crate::prelude::{Hit, ParallelHit};
 
 pub struct BVHNode {
     left: Arc<dyn ParallelHit>,
