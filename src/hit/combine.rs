@@ -1,7 +1,4 @@
-use crate::hit::HitRecord;
-use crate::ray::Ray;
-use crate::aabb::AABB;
-use crate::prelude::Hit;
+use crate::prelude::{Hit, AABB, HitRecord, Ray};
 
 pub struct Combine<T: Hit, U: Hit> {
     a: T,

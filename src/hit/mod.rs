@@ -1,5 +1,4 @@
-use crate::{ray::Ray, vec3::Vec3};
-use crate::{aabb::AABB, material::Material};
+use crate::prelude::{Material, AABB, Ray, Vec3};
 
 pub struct HitRecord<'mat> {
     pub t: f32,
@@ -23,21 +22,21 @@ pub trait Hit {
 
     fn flip_normals(self) -> FlipNormals<Self>
     where
-        Self: Sized + Send + Sync
+        Self: Sized
     {
         FlipNormals::new(self)
     }
 
     fn translate(self, offset: impl Into<Vec3>) -> Translate<Self>
     where
-        Self: Sized + Send + Sync
+        Self: Sized
     {
         Translate::new(self, offset.into())
     }
 
     fn rotate_y(self, angle: f32) -> RotateY<Self>
     where
-        Self: Sized + Send + Sync
+        Self: Sized
     {
         RotateY::new(self, angle)
     }
@@ -54,25 +53,34 @@ impl<T: Hit + ?Sized> Hit for Box<T> {
 
 #[macro_use]
 mod combine;
-mod hitlist;
-mod sphere;
-mod moving_sphere;
-mod bvh_node;
-mod rect;
-mod flip_normals;
-mod r#box;
-mod translate;
-mod rotate;
-mod constant_medium;
-
-pub use hitlist::HitList;
-pub use sphere::Sphere;
-pub use moving_sphere::MovingSphere;
-pub use bvh_node::BVHNode;
-pub use rect::{XYRect, XZRect, YZRect};
-pub use flip_normals::FlipNormals;
-pub use r#box::HitBox;
-pub use translate::Translate;
-pub use rotate::{RotateY};
-pub use constant_medium::ConstantMedium;
 pub use combine::Combine;
+
+mod hitlist;
+pub use hitlist::HitList;
+
+mod sphere;
+pub use sphere::Sphere;
+
+mod moving_sphere;
+pub use moving_sphere::MovingSphere;
+
+mod bvh_node;
+pub use bvh_node::BVHNode;
+
+mod rect;
+pub use rect::{XYRect, XZRect, YZRect};
+
+mod flip_normals;
+pub use flip_normals::FlipNormals;
+
+mod r#box;
+pub use r#box::HitBox;
+
+mod translate;
+pub use translate::Translate;
+
+mod rotate;
+pub use rotate::RotateY;
+
+mod constant_medium;
+pub use constant_medium::ConstantMedium;

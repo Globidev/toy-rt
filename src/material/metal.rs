@@ -1,7 +1,4 @@
-use crate::vec3::Vec3;
-use crate::material::Material;
-use crate::ray::Ray;
-use crate::hit::HitRecord;
+use crate::prelude::{Vec3, Material, Ray, HitRecord};
 
 pub struct Metal {
     albedo: Vec3,

@@ -1,6 +1,8 @@
 pub use crate::{
     vec3::Vec3,
-    hit::Hit,
+    ray::Ray,
+    aabb::AABB,
+    hit::{Hit, HitRecord},
     texture::Texture,
     material::Material,
 };

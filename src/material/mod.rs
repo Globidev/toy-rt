@@ -1,6 +1,4 @@
-use crate::ray::Ray;
-use crate::hit::HitRecord;
-use crate::vec3::Vec3;
+use crate::prelude::{Ray, HitRecord, Vec3};
 use std::sync::Arc;
 
 pub trait Material {

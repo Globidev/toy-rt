@@ -1,7 +1,4 @@
-use crate::hit::HitRecord;
-use crate::ray::Ray;
-use crate::aabb::AABB;
-use crate::prelude::Hit;
+use crate::prelude::{Hit, AABB, HitRecord, Ray};
 
 pub struct FlipNormals<T: Hit> {
     wrapped: T,

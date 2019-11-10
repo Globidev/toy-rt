@@ -1,8 +1,5 @@
-use crate::hit::{Hit, HitRecord, XYRect, XZRect, YZRect};
-use crate::vec3::Vec3;
-use crate::ray::Ray;
-use crate::aabb::AABB;
-use crate::prelude::{ParallelHit, ParallelMaterial};
+use crate::hit::{XYRect, XZRect, YZRect};
+use crate::prelude::{Hit, ParallelHit, ParallelMaterial, HitRecord, AABB, Ray, Vec3};
 
 pub struct HitBox<T> {
     pmin: Vec3,

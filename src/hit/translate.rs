@@ -1,8 +1,4 @@
-use crate::hit::HitRecord;
-use crate::vec3::Vec3;
-use crate::ray::Ray;
-use crate::aabb::AABB;
-use crate::prelude::Hit;
+use crate::prelude::{Hit, AABB, HitRecord, Ray, Vec3};
 
 pub struct Translate<T: Hit> {
     wrapped: T,

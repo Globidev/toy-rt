@@ -1,8 +1,4 @@
-use crate::vec3::Vec3;
-use crate::material::Material;
-use crate::ray::Ray;
-use crate::hit::HitRecord;
-use crate::prelude::Texture;
+use crate::prelude::{Texture, Material, HitRecord, Ray, Vec3};
 
 pub struct Isotropic<T: Texture> {
     albedo: T

@@ -1,8 +1,4 @@
-use crate::hit::{Hit, HitRecord};
-use crate::vec3::Vec3;
-use crate::ray::Ray;
-use crate::aabb::AABB;
-use crate::prelude::Material;
+use crate::prelude::{Material, Hit, AABB, HitRecord, Ray, Vec3};
 
 pub struct MovingSphere<T: Material> {
     pub center0: Vec3,

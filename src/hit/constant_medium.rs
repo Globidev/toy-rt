@@ -1,8 +1,4 @@
-use crate::hit::HitRecord;
-use crate::vec3::Vec3;
-use crate::ray::Ray;
-use crate::aabb::AABB;
-use crate::prelude::{Hit, Material};
+use crate::prelude::{Material, Hit, AABB, HitRecord, Ray, Vec3};
 
 pub struct ConstantMedium<T: Hit, U: Material> {
     pub boundary: T,

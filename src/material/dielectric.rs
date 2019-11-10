@@ -1,7 +1,4 @@
-use crate::vec3::Vec3;
-use crate::material::Material;
-use crate::ray::Ray;
-use crate::hit::HitRecord;
+use crate::prelude::{Material, HitRecord, Ray, Vec3};
 
 pub struct Dielectric {
     ref_idx: f32,
