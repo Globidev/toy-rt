@@ -1,5 +1,5 @@
 use crate::hit::{XYRect, XZRect, YZRect};
-use crate::prelude::{Hit, ParallelHit, ParallelMaterial, HitRecord, AABB, Ray, Vec3};
+use crate::prelude::{Hit, Material, HitRecord, AABB, Ray, Vec3};
 
 pub struct HitBox<T> {
     pmin: Vec3,
@@ -7,9 +7,9 @@ pub struct HitBox<T> {
     list: HitBoxCombined<T>,
 }
 
-type HitBoxCombined<T> = impl ParallelHit;
+type HitBoxCombined<T> = impl Hit;
 
-impl<T: ParallelMaterial + Clone> HitBox<T> {
+impl<T: Material + Clone> HitBox<T> {
     pub fn new(p0: Vec3, p1: Vec3, mat: T) -> Self {
         Self {
             pmin: p0,
@@ -30,7 +30,7 @@ impl<T: ParallelMaterial + Clone> HitBox<T> {
     }
 }
 
-impl<T: ParallelMaterial> Hit for HitBox<T> {
+impl<T: Material> Hit for HitBox<T> {
     fn hit(&self, ray: &Ray, t_min: f32, t_max: f32) -> Option<HitRecord<'_>> {
         self.list.hit(ray, t_min, t_max)
     }

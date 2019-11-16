@@ -18,12 +18,11 @@ mod aabb;
 mod perlin;
 
 use camera::CameraBuilder;
-use hit::{Hit, Sphere, MovingSphere, XYRect, XZRect, YZRect, FlipNormals, HitBox, Translate, RotateY, ConstantMedium, BVHNode};
+use hit::{Hit, Sphere, MovingSphere, XYRect, XZRect, YZRect, HitBox, ConstantMedium, BVHNode};
 use material::{Metal, Dielectric, Lambertian, DiffuseLight, Isotropic};
 use texture::{Constant, Checker, Noise, Image};
 use ray::Ray;
 use vec3::Vec3;
-use perlin::Perlin;
 use prelude::ParallelHit;
 
 const WIDTH: usize = 300;
