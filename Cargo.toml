@@ -1,12 +1,5 @@
-[package]
-name = "toy-ray-tracer"
-version = "0.1.0"
-authors = ["Guillaume Depardon <guillaume.depardon@gmail.com>"]
-edition = "2018"
-
-[dependencies]
-rand = "0.7"
-rayon = "1.2"
-indicatif = { version = "0.12", features = ["with_rayon"] }
-image = "0.22"
-packed_simd = "0.3"
+[workspace]
+members = [
+    "trt-core",
+    "trt-render"
+]

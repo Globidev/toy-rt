@@ -1,0 +1,10 @@
+[package]
+name = "trt-core"
+version = "0.1.0"
+authors = ["Guillaume Depardon <guillaume.depardon@gmail.com>"]
+edition = "2018"
+
+[dependencies]
+rand = "0.7"
+packed_simd = "0.3"
+image = "0.22"
