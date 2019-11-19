@@ -8,7 +8,7 @@ use std::time;
 
 use trt_core::camera::CameraBuilder;
 use trt_core::hit::{Hit, Sphere, MovingSphere, RectBuilder, HitBox, ConstantMedium, BVHNode};
-use trt_core::material::{MaterialBuilder, MaterialBuilderExt, Metal, Dielectric, Lambertian, DiffuseLight, Isotropic};
+use trt_core::material::{MaterialBuilder, MaterialBuilderExt, Metal, Dielectric, Lambertian, Diffuse, Isotropic};
 use trt_core::texture::{Constant, Checker, Noise, Image};
 use trt_core::vec3::Vec3;
 use trt_core::prelude::ParallelHit;
@@ -95,26 +95,6 @@ fn random_scene() -> impl Hit {
     BVHNode::new(&mut objects, 0., 1.)
 }
 
-fn two_spheres() -> impl Hit {
-    let checker = || Checker::new(
-        Constant::new(Vec3::new(0.2, 0.3, 0.1)),
-        Constant::new(Vec3::new(0.9, 0.9, 0.9)),
-    );
-
-    combine![
-        Sphere {
-            center: Vec3::new(0., -10., 0.),
-            radius: 10.,
-            material: Lambertian::new(checker()),
-        },
-        Sphere {
-            center: Vec3::new(0., 10., 0.),
-            radius: 10.,
-            material: Lambertian::new(checker()),
-        },
-    ]
-}
-
 fn two_perlin_spheres() -> impl Hit {
     let pertext = Noise::from_scale(5.);
 
@@ -160,7 +140,7 @@ fn simple_light() -> impl Hit {
         Sphere {
             center: Vec3::new(0., 7., 0.),
             radius: 2.,
-            material: DiffuseLight::new(Constant::new(Vec3::new(4., 4., 4.))),
+            material: Diffuse::colored((4, 4, 4)),
         },
         RectBuilder
             .x(3..=5)
@@ -197,9 +177,9 @@ fn cornell_box() -> impl Hit {
 }
 
 fn cornell_smoke() -> impl Hit {
-    let red = Lambertian::new(Constant::new(Vec3::new(0.65, 0.05, 0.05)));
+    let red = (0.65, 0.05, 0.05);
     let white = Arc::new(Lambertian::new(Constant::new(Vec3::new(0.73, 0.73, 0.73))));
-    let green = Lambertian::new(Constant::new(Vec3::new(0.12, 0.45, 0.15)));
+    let green = (0.12, 0.45, 0.15);
 
     let b1 = HitBox::new(Vec3::new(0., 0., 0.), Vec3::new(165., 165., 165.), white.clone())
         .rotate_y(-18.)
@@ -210,8 +190,8 @@ fn cornell_smoke() -> impl Hit {
         .translate((265., 0., 295.));
 
     combine![
-        RectBuilder.y(0..=555).z(0..=555).x(555).material(green).flip_normals(),
-        RectBuilder.y(0..=555).z(0..=555).x(0).material(red),
+        RectBuilder.y(0..=555).z(0..=555).x(555).matte(green).flip_normals(),
+        RectBuilder.y(0..=555).z(0..=555).x(0).matte(red),
         RectBuilder.x(0..=555).z(0..=555).y(555).material(white.clone()).flip_normals(),
         RectBuilder.x(0..=555).z(0..=555).y(0).material(white.clone()),
         RectBuilder.x(0..=555).y(0..=555).z(555).material(white.clone()).flip_normals(),

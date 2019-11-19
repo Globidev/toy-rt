@@ -27,7 +27,7 @@ mod lambertian;
 pub use lambertian::Lambertian;
 
 mod diffuse;
-pub use diffuse::DiffuseLight;
+pub use diffuse::Diffuse;
 
 mod isotropic;
 pub use isotropic::Isotropic;

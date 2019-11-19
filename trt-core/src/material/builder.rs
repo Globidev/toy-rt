@@ -1,5 +1,5 @@
 use crate::prelude::Vec3;
-use crate::material::{Metal, Dielectric, DiffuseLight};
+use crate::material::{Metal, Dielectric, Diffuse, Lambertian};
 use crate::texture::Constant;
 
 pub trait MaterialBuilder<Mat>: Sized {
@@ -18,9 +18,16 @@ pub trait MaterialBuilderExt {
 
     fn diffuse_color(self, color: impl Into<Vec3>) -> Self::Finished
     where
-        Self: MaterialBuilder<DiffuseLight<Constant>>,
+        Self: MaterialBuilder<Diffuse<Constant>>,
     {
-        self.material(DiffuseLight::new(Constant::new(color.into())))
+        self.material(Diffuse::colored(color))
+    }
+
+    fn matte(self, color: impl Into<Vec3>) -> Self::Finished
+    where
+        Self: MaterialBuilder<Lambertian<Constant>>,
+    {
+        self.material(Lambertian::colored(color))
     }
 
     fn metallic(self, albedo: impl Into<Vec3>) -> Self::Finished

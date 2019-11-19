@@ -1,12 +1,21 @@
 use crate::prelude::{Texture, Material, HitRecord, Ray, Vec3};
+use crate::texture::Constant;
 
-pub struct Lambertian<T: Texture> {
+pub struct Lambertian<T> {
     albedo: T,
 }
 
 impl<T: Texture> Lambertian<T> {
     pub fn new(albedo: T) -> Self {
         Self { albedo }
+    }
+}
+
+pub struct UnboundedTx;
+
+impl Lambertian<UnboundedTx> {
+    pub fn colored(color: impl Into<Vec3>) -> Lambertian<Constant> {
+        Lambertian::new(Constant::new(color.into()))
     }
 }
 
