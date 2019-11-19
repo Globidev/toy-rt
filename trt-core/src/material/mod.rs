@@ -31,3 +31,6 @@ pub use diffuse::DiffuseLight;
 
 mod isotropic;
 pub use isotropic::Isotropic;
+
+pub mod builder;
+pub use builder::{MaterialBuilder, MaterialBuilderExt};

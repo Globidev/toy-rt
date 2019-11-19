@@ -4,7 +4,7 @@ pub use crate::{
     aabb::AABB,
     hit::{Hit, HitRecord},
     texture::Texture,
-    material::Material,
+    material::{Material, MaterialBuilder, MaterialBuilderExt},
     dimension::{Dimension, X, Y, Z},
 };
 

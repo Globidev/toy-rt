@@ -1,5 +1,5 @@
+use crate::prelude::{Hit, Material, MaterialBuilder, HitRecord, AABB, Ray, Vec3};
 use crate::hit::RectBuilder;
-use crate::prelude::{Hit, Material, HitRecord, AABB, Ray, Vec3};
 
 pub struct HitBox<T> {
     pmin: Vec3,
