@@ -1,19 +1,18 @@
-use crate::prelude::{Dimension, X, Y, Z};
+use crate::prelude::{Dimension, X, Y, Z, Asf32};
 
 use std::ops::{Add, Sub, Mul, Div, AddAssign, MulAssign, DivAssign, Neg};
 use packed_simd::{f32x4, shuffle};
-
 use rand::Rng;
 
 #[derive(Debug, Clone, Copy, Default)]
 pub struct Vec3(f32x4);
 
 impl Vec3 {
-    pub fn new(x: f32, y: f32, z: f32) -> Self {
-        Self(f32x4::new(x, y, z, 0.))
+    pub fn new(x: impl Asf32, y: impl Asf32, z: impl Asf32) -> Self {
+        Self(f32x4::new(x.as_(), y.as_(), z.as_(), 0.))
     }
 
-    pub fn splat(xyz: f32) -> Self {
+    pub fn splat(xyz: impl Asf32) -> Self {
         Self::new(xyz, xyz, xyz)
     }
 
@@ -221,8 +220,8 @@ impl Neg for Vec3 {
     }
 }
 
-impl From<(f32, f32, f32)> for Vec3 {
-    fn from((x, y, z): (f32, f32, f32)) -> Self {
+impl<A: Asf32, B: Asf32, C: Asf32> From<(A, B, C)> for Vec3 {
+    fn from((x, y, z): (A, B, C)) -> Self {
         Self::new(x, y, z)
     }
 }

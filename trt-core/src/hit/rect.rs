@@ -1,4 +1,4 @@
-use crate::prelude::{Material, Hit, AABB, HitRecord, Ray, Vec3, Dimension, X, Y, Z};
+use crate::prelude::{Material, Hit, AABB, HitRecord, Ray, Vec3, Dimension, X, Y, Z, Asf32};
 use std::{ops::RangeInclusive, marker::PhantomData};
 
 type DimRange = RangeInclusive<f32>;
@@ -61,8 +61,11 @@ pub struct RectBuilder;
 
 macro_rules! builder_method {
     ($name:ident, $tag:ty) => {
-        pub fn $name(self, range: DimRange) -> OneBoundedRectBuilder<$tag> {
-            OneBoundedRectBuilder { range, tag: PhantomData }
+        pub fn $name(self, range: RangeInclusive<impl Asf32>) -> OneBoundedRectBuilder<$tag> {
+            OneBoundedRectBuilder {
+                range: range.start().as_()..=range.end().as_(),
+                tag: PhantomData
+            }
         }
     }
 }
@@ -80,8 +83,12 @@ pub struct OneBoundedRectBuilder<D> {
 
 macro_rules! one_bound_builder_method {
     ($name:ident, $tag1:ty, $tag2:ty) => {
-        pub fn $name(self, range: DimRange) -> TwoBoundedRectBuilder<$tag1, $tag2> {
-            TwoBoundedRectBuilder { d1_range: self.range, d2_range: range, tag: PhantomData }
+        pub fn $name(self, range: RangeInclusive<impl Asf32>) -> TwoBoundedRectBuilder<$tag1, $tag2> {
+            TwoBoundedRectBuilder {
+                d1_range: self.range,
+                d2_range: range.start().as_()..=range.end().as_(),
+                tag: PhantomData
+            }
         }
     }
 }
@@ -109,8 +116,13 @@ pub struct TwoBoundedRectBuilder<D1, D2> {
 
 macro_rules! two_bound_builder_method {
     ($name:ident, $tag1:ty, $tag2:ty, $tag3:ty) => {
-        pub fn $name(self, $name: f32) -> ThreeBoundedRectBuilder<$tag1, $tag2, $tag3> {
-            ThreeBoundedRectBuilder { d1_range: self.d1_range, d2_range: self.d2_range, d3: $name, tag: PhantomData }
+        pub fn $name(self, $name: impl Asf32) -> ThreeBoundedRectBuilder<$tag1, $tag2, $tag3> {
+            ThreeBoundedRectBuilder {
+                d1_range: self.d1_range,
+                d2_range: self.d2_range,
+                d3: $name.as_(),
+                tag: PhantomData
+            }
         }
     }
 }

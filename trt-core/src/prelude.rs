@@ -10,3 +10,6 @@ pub use crate::{
 
 pub trait ParallelHit: Hit + Send + Sync { }
 impl<T: Hit + Send + Sync> ParallelHit for T { }
+
+pub trait Asf32: num_traits::AsPrimitive<f32> { }
+impl<T: num_traits::AsPrimitive<f32>> Asf32 for T { }
