@@ -3,6 +3,7 @@
 
 use rand::{random, Rng};
 
+pub mod dimension;
 pub mod prelude;
 pub mod hit;
 pub mod material;

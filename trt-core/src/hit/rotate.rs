@@ -1,4 +1,4 @@
-use crate::prelude::{Hit, AABB, HitRecord, Ray, Vec3};
+use crate::prelude::{Hit, AABB, HitRecord, Ray, Vec3, X, Z};
 
 pub struct RotateY<T: Hit> {
     hittable: T,
@@ -26,14 +26,13 @@ impl<T: Hit> RotateY<T> {
 
 impl<T: Hit> Hit for RotateY<T> {
     fn hit(&self, ray: &Ray, t_min: f32, t_max: f32) -> Option<HitRecord<'_>> {
-        let mut origin = ray.origin;
-        let mut direction = ray.direction;
+        let origin = ray.origin
+            .set::<X>(self.cos_theta * ray.origin.x() - self.sin_theta * ray.origin.z())
+            .set::<Z>(self.sin_theta * ray.origin.x() + self.cos_theta * ray.origin.z());
 
-        origin.set(0, self.cos_theta * ray.origin.x() - self.sin_theta * ray.origin.z());
-        origin.set(2, self.sin_theta * ray.origin.x() + self.cos_theta * ray.origin.z());
-
-        direction.set(0, self.cos_theta * ray.direction.x() - self.sin_theta * ray.direction.z());
-        direction.set(2, self.sin_theta * ray.direction.x() + self.cos_theta * ray.direction.z());
+        let direction = ray.direction
+            .set::<X>(self.cos_theta * ray.direction.x() - self.sin_theta * ray.direction.z())
+            .set::<Z>(self.sin_theta * ray.direction.x() + self.cos_theta * ray.direction.z());
 
         let rotated_ray = Ray {
             origin,
@@ -43,14 +42,13 @@ impl<T: Hit> Hit for RotateY<T> {
 
         let mut rec = self.hittable.hit(&rotated_ray, t_min, t_max)?;
 
-        let mut p = rec.p;
-        let mut normal = rec.normal;
+        let p = rec.p
+            .set::<X>(self.cos_theta * rec.p.x() + self.sin_theta * rec.p.z())
+            .set::<Z>(-self.sin_theta * rec.p.x() + self.cos_theta * rec.p.z());
 
-        p.set(0, self.cos_theta * rec.p.x() + self.sin_theta * rec.p.z());
-        p.set(2, -self.sin_theta * rec.p.x() + self.cos_theta * rec.p.z());
-
-        normal.set(0, self.cos_theta * rec.normal.x() + self.sin_theta * rec.normal.z());
-        normal.set(2, -self.sin_theta * rec.normal.x() + self.cos_theta * rec.normal.z());
+        let normal = rec.normal
+            .set::<X>(self.cos_theta * rec.normal.x() + self.sin_theta * rec.normal.z())
+            .set::<Z>(-self.sin_theta * rec.normal.x() + self.cos_theta * rec.normal.z());
 
         rec.p = p;
         rec.normal = normal;

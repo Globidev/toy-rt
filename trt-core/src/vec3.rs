@@ -1,3 +1,5 @@
+use crate::prelude::{Dimension, X, Y, Z};
+
 use std::ops::{Add, Sub, Mul, Div, AddAssign, MulAssign, DivAssign, Neg};
 use packed_simd::{f32x4, shuffle};
 
@@ -19,20 +21,20 @@ impl Vec3 {
         Self(f32x4::from_slice_aligned(&rng.gen::<[f32; 4]>()))
     }
 
-    pub fn x(&self) -> f32 { unsafe { self.0.extract_unchecked(0) } }
-    pub fn y(&self) -> f32 { unsafe { self.0.extract_unchecked(1) } }
-    pub fn z(&self) -> f32 { unsafe { self.0.extract_unchecked(2) } }
+    pub fn x(&self) -> f32 { self.get::<X>() }
+    pub fn y(&self) -> f32 { self.get::<Y>() }
+    pub fn z(&self) -> f32 { self.get::<Z>() }
 
     pub fn r(&self) -> f32 { self.x() }
     pub fn g(&self) -> f32 { self.y() }
     pub fn b(&self) -> f32 { self.z() }
 
-    pub fn set(&mut self, idx: usize, value: f32) {
-        self.0 = unsafe { self.0.replace_unchecked(idx, value) }
+    pub fn set<D: Dimension>(self, value: f32) -> Self {
+        Self(unsafe { self.0.replace_unchecked(D::INDEX, value) })
     }
 
-    pub fn get(&self, idx: usize) -> f32 {
-        unsafe { self.0.extract_unchecked(idx) }
+    pub fn get<D: Dimension>(&self) -> f32 {
+        unsafe { self.0.extract_unchecked(D::INDEX) }
     }
 
     pub fn len(&self) -> f32 {

@@ -5,6 +5,7 @@ pub use crate::{
     hit::{Hit, HitRecord},
     texture::Texture,
     material::Material,
+    dimension::{Dimension, X, Y, Z},
 };
 
 pub trait ParallelHit: Hit + Send + Sync { }
