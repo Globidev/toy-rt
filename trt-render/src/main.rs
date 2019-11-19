@@ -8,7 +8,7 @@ use std::time;
 
 use trt_core::camera::CameraBuilder;
 use trt_core::hit::{Hit, Sphere, MovingSphere, RectBuilder, HitBox, ConstantMedium, BVHNode};
-use trt_core::material::{Metal, Dielectric, Lambertian, DiffuseLight, Isotropic};
+use trt_core::material::{MaterialBuilder, MaterialBuilderExt, Metal, Dielectric, Lambertian, DiffuseLight, Isotropic};
 use trt_core::texture::{Constant, Checker, Noise, Image};
 use trt_core::vec3::Vec3;
 use trt_core::prelude::ParallelHit;
@@ -89,7 +89,7 @@ fn random_scene() -> impl Hit {
             .x(-5..=5)
             .z(-50..=5)
             .y(20)
-            .material(DiffuseLight::new(Constant::new(Vec3::new(5.0, 5.0, 5.0))))
+            .metallic((1, 1, 1))
     ));
 
     BVHNode::new(&mut objects, 0., 1.)
@@ -136,7 +136,7 @@ fn two_perlin_spheres() -> impl Hit {
             .x(-5..=5)
             .z(-50..=5)
             .y(20)
-            .material(DiffuseLight::new(Constant::new(Vec3::new(5.0, 5.0, 5.0))))
+            .diffuse_color((5, 5, 5))
     ]
 }
 
@@ -166,7 +166,7 @@ fn simple_light() -> impl Hit {
             .x(3..=5)
             .y(1..=3)
             .z(-2)
-            .material(DiffuseLight::new(Constant::new(Vec3::new(4., 4., 4.))))
+            .diffuse_color((4, 4, 4))
     ]
 }
 
@@ -174,7 +174,6 @@ fn cornell_box() -> impl Hit {
     let red = Lambertian::new(Constant::new(Vec3::new(0.65, 0.05, 0.05)));
     let white = || Lambertian::new(Constant::new(Vec3::new(0.73, 0.73, 0.73)));
     let green = Lambertian::new(Constant::new(Vec3::new(0.12, 0.45, 0.15)));
-    let light = DiffuseLight::new(Constant::new(Vec3::new(15.0, 15.0, 15.0)));
 
     let oreo_img = Image::load("./assets/oreo.jpg")
         .expect("Failed to load image");
@@ -187,7 +186,7 @@ fn cornell_box() -> impl Hit {
         RectBuilder.x(0..=555).z(0..=555).y(555).material(white()).flip_normals(),
         RectBuilder.x(0..=555).z(0..=555).y(0).material(white()),
         RectBuilder.x(0..=555).y(0..=555).z(555).material(white()).flip_normals(),
-        RectBuilder.x(113..=443).z(127..=432).y(554).material(light),
+        RectBuilder.x(113..=443).z(127..=432).y(554).diffuse_color((15, 15, 15)),
         HitBox::new(Vec3::new(0., 0., 0.), Vec3::new(165., 165., 165.), img_text.clone())
             .rotate_y(-18.)
             .translate((130., 0., 65.)),
@@ -201,7 +200,6 @@ fn cornell_smoke() -> impl Hit {
     let red = Lambertian::new(Constant::new(Vec3::new(0.65, 0.05, 0.05)));
     let white = Arc::new(Lambertian::new(Constant::new(Vec3::new(0.73, 0.73, 0.73))));
     let green = Lambertian::new(Constant::new(Vec3::new(0.12, 0.45, 0.15)));
-    let light = DiffuseLight::new(Constant::new(Vec3::new(7.0, 7.0, 7.0)));
 
     let b1 = HitBox::new(Vec3::new(0., 0., 0.), Vec3::new(165., 165., 165.), white.clone())
         .rotate_y(-18.)
@@ -217,7 +215,7 @@ fn cornell_smoke() -> impl Hit {
         RectBuilder.x(0..=555).z(0..=555).y(555).material(white.clone()).flip_normals(),
         RectBuilder.x(0..=555).z(0..=555).y(0).material(white.clone()),
         RectBuilder.x(0..=555).y(0..=555).z(555).material(white.clone()).flip_normals(),
-        RectBuilder.x(113..=443).z(127..=432).y(554).material(light),
+        RectBuilder.x(113..=443).z(127..=432).y(554).diffuse_color((7, 7, 7)),
         ConstantMedium {
             boundary: b1,
             density: 0.01,
@@ -264,7 +262,6 @@ fn final_scene() -> impl Hit {
         }))
     }
 
-    let light = DiffuseLight::new(Constant::new(Vec3::new(7., 7., 7.)));
     let center = Vec3::new(400., 400., 200.);
     let boundary = || Sphere {
         center: Vec3::new(360., 150., 145.),
@@ -279,7 +276,7 @@ fn final_scene() -> impl Hit {
             .x(123..=423)
             .z(147..=412)
             .y(554)
-            .material(light),
+            .diffuse_color((7, 7, 7)),
         MovingSphere {
             center0: center,
             center1: center + Vec3::new(30., 0., 0.),

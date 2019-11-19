@@ -1,4 +1,5 @@
 use crate::prelude::{Material, Hit, AABB, HitRecord, Ray, Vec3, Dimension, X, Y, Z, Asf32};
+use crate::material::MaterialBuilder;
 use std::{ops::RangeInclusive, marker::PhantomData};
 
 type DimRange = RangeInclusive<f32>;
@@ -146,13 +147,15 @@ pub struct ThreeBoundedRectBuilder<D1, D2, D3> {
     tag: PhantomData<(D1, D2, D3)>,
 }
 
-impl<D1, D2, D3> ThreeBoundedRectBuilder<D1, D2, D3> {
-    pub fn material<M: Material>(self, mat: M) -> Rect<D1, D2, D3, M> {
+impl<D1, D2, D3, Mat> MaterialBuilder<Mat> for ThreeBoundedRectBuilder<D1, D2, D3> {
+    type Finished = Rect<D1, D2, D3, Mat>;
+
+    fn material(self, material: Mat) -> Self::Finished {
         Rect {
             d1_range: self.d1_range,
             d2_range: self.d2_range,
             d3: self.d3,
-            material: mat,
+            material,
             tag: PhantomData,
         }
     }
