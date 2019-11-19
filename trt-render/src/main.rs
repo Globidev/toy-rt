@@ -1,5 +1,3 @@
-#![feature(test)]
-#![feature(type_alias_impl_trait)]
 use rand::{random, thread_rng, Rng};
 use rand::seq::SliceRandom;
 use indicatif::{ParallelProgressIterator, ProgressStyle, ProgressBar};
@@ -9,7 +7,7 @@ use std::sync::Arc;
 use std::time;
 
 use trt_core::camera::CameraBuilder;
-use trt_core::hit::{Hit, Sphere, MovingSphere, XYRect, XZRect, YZRect, HitBox, ConstantMedium, BVHNode};
+use trt_core::hit::{Hit, Sphere, MovingSphere, RectBuilder, HitBox, ConstantMedium, BVHNode};
 use trt_core::material::{Metal, Dielectric, Lambertian, DiffuseLight, Isotropic};
 use trt_core::texture::{Constant, Checker, Noise, Image};
 use trt_core::vec3::Vec3;
@@ -86,14 +84,13 @@ fn random_scene() -> impl Hit {
         material: Metal::new(Vec3::new(0.7, 0.6, 0.5), 0.0),
     }));
 
-    objects.push(Arc::new(XZRect {
-        x0: -5.,
-        x1: 5.,
-        z0: -50.,
-        z1: 5.,
-        k: 20.,
-        material: DiffuseLight::new(Constant::new(Vec3::new(5.0, 5.0, 5.0))),
-    }));
+    objects.push(Arc::new(
+        RectBuilder
+            .x(-5..=5)
+            .z(-50..=5)
+            .y(20)
+            .material(DiffuseLight::new(Constant::new(Vec3::new(5.0, 5.0, 5.0))))
+    ));
 
     BVHNode::new(&mut objects, 0., 1.)
 }
@@ -135,14 +132,11 @@ fn two_perlin_spheres() -> impl Hit {
             radius: 2.,
             material: Lambertian::new(earth_img)
         },
-        XZRect {
-            x0: -5.,
-            x1: 5.,
-            z0: -50.,
-            z1: 5.,
-            k: 20.,
-            material: DiffuseLight::new(Constant::new(Vec3::new(5.0, 5.0, 5.0))),
-        },
+        RectBuilder
+            .x(-5..=5)
+            .z(-50..=5)
+            .y(20)
+            .material(DiffuseLight::new(Constant::new(Vec3::new(5.0, 5.0, 5.0))))
     ]
 }
 
@@ -168,14 +162,11 @@ fn simple_light() -> impl Hit {
             radius: 2.,
             material: DiffuseLight::new(Constant::new(Vec3::new(4., 4., 4.))),
         },
-        XYRect {
-            x0: 3.,
-            x1: 5.,
-            y0: 1.,
-            y1: 3.,
-            k: -2.,
-            material: DiffuseLight::new(Constant::new(Vec3::new(4., 4., 4.))),
-        },
+        RectBuilder
+            .x(3..=5)
+            .y(1..=3)
+            .z(-2)
+            .material(DiffuseLight::new(Constant::new(Vec3::new(4., 4., 4.))))
     ]
 }
 
@@ -191,12 +182,12 @@ fn cornell_box() -> impl Hit {
     let img_text = Arc::new(Lambertian::new(oreo_img));
 
     combine![
-        YZRect { y0: 0., y1: 555., z0: 0., z1: 555., k: 555., material: green }.flip_normals(),
-        YZRect { y0: 0., y1: 555., z0: 0., z1: 555., k: 0., material: red },
-        XZRect { x0: 113., x1: 443., z0: 127., z1: 432., k: 554., material: light },
-        XZRect { x0: 0., x1: 555., z0: 0., z1: 555., k: 555., material: white() }.flip_normals(),
-        XZRect { x0: 0., x1: 555., z0: 0., z1: 555., k: 0., material: white() },
-        XYRect { x0: 0., x1: 555., y0: 0., y1: 555., k: 555., material: white() }.flip_normals(),
+        RectBuilder.y(0..=555).z(0..=555).x(555).material(green).flip_normals(),
+        RectBuilder.y(0..=555).z(0..=555).x(0).material(red),
+        RectBuilder.x(0..=555).z(0..=555).y(555).material(white()).flip_normals(),
+        RectBuilder.x(0..=555).z(0..=555).y(0).material(white()),
+        RectBuilder.x(0..=555).y(0..=555).z(555).material(white()).flip_normals(),
+        RectBuilder.x(113..=443).z(127..=432).y(554).material(light),
         HitBox::new(Vec3::new(0., 0., 0.), Vec3::new(165., 165., 165.), img_text.clone())
             .rotate_y(-18.)
             .translate((130., 0., 65.)),
@@ -221,12 +212,12 @@ fn cornell_smoke() -> impl Hit {
         .translate((265., 0., 295.));
 
     combine![
-        YZRect { y0: 0., y1: 555., z0: 0., z1: 555., k: 555., material: green }.flip_normals(),
-        YZRect { y0: 0., y1: 555., z0: 0., z1: 555., k: 0., material: red },
-        XZRect { x0: 113., x1: 443., z0: 127., z1: 432., k: 554., material: light },
-        XZRect { x0: 0., x1: 555., z0: 0., z1: 555., k: 555., material: white.clone() }.flip_normals(),
-        XZRect { x0: 0., x1: 555., z0: 0., z1: 555., k: 0., material: white.clone() },
-        XYRect { x0: 0., x1: 555., y0: 0., y1: 555., k: 555., material: white }.flip_normals(),
+        RectBuilder.y(0..=555).z(0..=555).x(555).material(green).flip_normals(),
+        RectBuilder.y(0..=555).z(0..=555).x(0).material(red),
+        RectBuilder.x(0..=555).z(0..=555).y(555).material(white.clone()).flip_normals(),
+        RectBuilder.x(0..=555).z(0..=555).y(0).material(white.clone()),
+        RectBuilder.x(0..=555).y(0..=555).z(555).material(white.clone()).flip_normals(),
+        RectBuilder.x(113..=443).z(127..=432).y(554).material(light),
         ConstantMedium {
             boundary: b1,
             density: 0.01,
@@ -284,7 +275,11 @@ fn final_scene() -> impl Hit {
 
     combine![
         BVHNode::new(&mut boxlist, 0., 1.),
-        XZRect { x0: 123., x1: 423., z0: 147., z1: 412., k: 554., material: light },
+        RectBuilder
+            .x(123..=423)
+            .z(147..=412)
+            .y(554)
+            .material(light),
         MovingSphere {
             center0: center,
             center1: center + Vec3::new(30., 0., 0.),
@@ -331,44 +326,6 @@ fn final_scene() -> impl Hit {
         BVHNode::new(&mut boxlist2, 0., 1.)
             .rotate_y(15.)
             .translate((-100., 270., 395.)),
-    ]
-}
-
-fn cornell_loki() -> impl Hit {
-    let mut rng = thread_rng();
-
-    let white = || Lambertian::new(Constant::new(Vec3::new(0.73, 0.73, 0.73)));
-    let light = DiffuseLight::new(Constant::new(Vec3::new(3.0, 3.0, 3.0)));
-    let light_under = DiffuseLight::new(Constant::new(Vec3::new(10., 10., 10.)));
-
-    let images = (0..=64)
-        .flat_map(|i| {
-            let file_name = format!("./assets/loki_{}.jpg", i);
-            let image = Image::load(file_name).ok()?;
-            Some(Arc::new(Lambertian::new(image)))
-        })
-        .collect::<Vec<_>>();
-
-    dbg!(images.len());
-
-    let mut random_image = || images.choose(&mut rng).unwrap();
-
-    combine![
-        YZRect { y0: 0., y1: 555., z0: 0., z1: 555., k: 555., material: random_image().clone() }.flip_normals(),
-        YZRect { y0: 0., y1: 555., z0: 0., z1: 555., k: 0., material: random_image().clone() },
-        XZRect { x0: 113., x1: 443., z0: 50., z1: 500., k: 554., material: light },
-        XZRect { x0: 0., x1: 555., z0: 0., z1: 555., k: 555., material: white() }.flip_normals(),
-        XZRect { x0: 0., x1: 555., z0: 0., z1: 555., k: 0., material: random_image().clone() },
-        XZRect { x0: 100., x1: 450., z0: 0., z1: 50., k: 1., material: light_under },
-        XYRect { x0: 0., x1: 555., y0: 0., y1: 555., k: 555., material: random_image().clone() }.flip_normals(),
-
-        HitBox::new(Vec3::new(0., 0., 0.), Vec3::new(165., 165., 1.), random_image().clone())
-            .rotate_y(-18.)
-            .translate((50., 0., 150.)),
-
-        HitBox::new(Vec3::new(0., 0., 0.), Vec3::new(165., 330., 165.), random_image().clone())
-            .rotate_y(15.)
-            .translate((265., 0., 295.)),
     ]
 }
 
