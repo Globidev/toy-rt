@@ -68,7 +68,7 @@ mod bvh_node;
 pub use bvh_node::BVHNode;
 
 mod rect;
-pub use rect::{XYRect, XZRect, YZRect};
+pub use rect::{Rect, RectBuilder};
 
 mod flip_normals;
 pub use flip_normals::FlipNormals;

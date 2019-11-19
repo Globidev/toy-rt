@@ -1,4 +1,4 @@
-use crate::hit::{XYRect, XZRect, YZRect};
+use crate::hit::RectBuilder;
 use crate::prelude::{Hit, Material, HitRecord, AABB, Ray, Vec3};
 
 pub struct HitBox<T> {
@@ -19,13 +19,18 @@ impl<T: Material + Clone> HitBox<T> {
     }
 
     fn build_list(p0: Vec3, p1: Vec3, mat: T) -> HitBoxCombined<T> {
+        let (x0, y0, z0) = (p0.x(), p0.y(), p0.z());
+        let (x1, y1, z1) = (p1.x(), p1.y(), p1.z());
+
         combine!(
-            XYRect { x0: p0.x(), x1: p1.x(), y0: p0.y(), y1: p1.y(), k: p1.z(), material: mat.clone() },
-            XYRect { x0: p0.x(), x1: p1.x(), y0: p0.y(), y1: p1.y(), k: p0.z(), material: mat.clone() }.flip_normals(),
-            XZRect { x0: p0.x(), x1: p1.x(), z0: p0.z(), z1: p1.z(), k: p1.y(), material: mat.clone() },
-            XZRect { x0: p0.x(), x1: p1.x(), z0: p0.z(), z1: p1.z(), k: p0.y(), material: mat.clone() }.flip_normals(),
-            YZRect { y0: p0.y(), y1: p1.y(), z0: p0.z(), z1: p1.z(), k: p1.x(), material: mat.clone() },
-            YZRect { y0: p0.y(), y1: p1.y(), z0: p0.z(), z1: p1.z(), k: p0.x(), material: mat }.flip_normals(),
+            RectBuilder.x(x0..=x1).y(y0..=y1).z(z1).material(mat.clone()),
+            RectBuilder.x(x0..=x1).y(y0..=y1).z(z0).material(mat.clone()).flip_normals(),
+
+            RectBuilder.x(x0..=x1).z(z0..=z1).y(y1).material(mat.clone()),
+            RectBuilder.x(x0..=x1).z(z0..=z1).y(y0).material(mat.clone()).flip_normals(),
+
+            RectBuilder.y(y0..=y1).z(z0..=z1).x(x1).material(mat.clone()),
+            RectBuilder.y(y0..=y1).z(z0..=z1).x(x0).material(mat.clone()).flip_normals(),
         )
     }
 }
