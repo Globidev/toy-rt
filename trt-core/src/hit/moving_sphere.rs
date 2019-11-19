@@ -24,17 +24,14 @@ impl<T: Material> Hit for MovingSphere<T> {
         let discriminant = b * b - a * c;
 
         if discriminant > 0. {
-            let temp = (-b - discriminant.sqrt()) / a;
-            if temp < t_max && temp > t_min {
-                let p = ray.point_at_parameter(temp);
-                let normal = (p - self.center(ray.time)) / self.radius;
-                return Some(HitRecord { t: temp, p, normal, mat: &self.material, u: 0., v: 0. })
-            }
-            let temp = (-b + discriminant.sqrt()) / a;
-            if temp < t_max && temp > t_min {
-                let p = ray.point_at_parameter(temp);
-                let normal = (p - self.center(ray.time)) / self.radius;
-                return Some(HitRecord { t: temp, p, normal, mat: &self.material, u: 0., v: 0. })
+            let disc_sqrt = discriminant.sqrt();
+
+            for &solution in &[(-b - disc_sqrt) / a, (-b + disc_sqrt) / a] {
+                if solution < t_max && solution > t_min {
+                    let p = ray.point_at_parameter(solution);
+                    let normal = (p - self.center(ray.time)) / self.radius;
+                    return Some(HitRecord { t: solution, p, normal, mat: &self.material, u: 0., v: 0. })
+                }
             }
         }
 
