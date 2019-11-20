@@ -8,7 +8,7 @@ use std::time;
 
 use trt_core::camera::CameraBuilder;
 use trt_core::hit::{Hit, Sphere, MovingSphere, RectBuilder, HitBox, ConstantMedium, BVHNode};
-use trt_core::material::{MaterialBuilder, MaterialBuilderExt, Metal, Dielectric, Lambertian, Diffuse, Isotropic};
+use trt_core::material::{MaterialBuilder, MaterialBuilderExt, Lambertian, Isotropic};
 use trt_core::texture::{Constant, Checker, Noise, Image};
 use trt_core::vec3::Vec3;
 use trt_core::prelude::ParallelHit;
@@ -28,11 +28,11 @@ fn random_scene() -> impl Hit {
         Constant::new(Vec3::new(0.3, 0.75, 0.9)),
     );
 
-    objects.push(Arc::new(Sphere {
-        center: Vec3::new(0., -1000., 0.),
-        radius: 1000.,
-        material: Lambertian::new(checker),
-    }));
+    objects.push(Arc::new(Sphere::builder()
+        .center((0, -1_000, 0))
+        .radius(1_000)
+        .material(Lambertian::new(checker))
+    ));
 
     for a in -10..10 {
         for b in -10..10 {
@@ -41,48 +41,54 @@ fn random_scene() -> impl Hit {
 
             if (center - Vec3::new(4., 0.2, 0.)).len() > 0.9 {
                 if choose_mat < 0.5 {
-                    objects.push(Arc::new(Sphere {
-                        center,
-                        radius: 0.2,
-                        material: Lambertian::new(Constant::new(Vec3::random(rng) * Vec3::random(rng)))
-                    }));
+                    objects.push(Arc::new(
+                        Sphere::builder()
+                            .center(center)
+                            .radius(0.2)
+                            .matte(Vec3::random(rng) * Vec3::random(rng))
+                    ));
                 } else if choose_mat < 0.90 {
-                    objects.push(Arc::new(Sphere {
-                        center,
-                        radius: 0.2,
-                        material: Metal::new(
-                            (Vec3::random(rng) + Vec3::splat(1.)) * 0.5,
-                            0.5 * random::<f32>()
-                        )
-                    }));
+                    let albedo = (Vec3::random(rng) + Vec3::splat(1.)) * 0.5;
+                    let fuzz = 0.5 * random::<f32>();
+
+                    objects.push(Arc::new(
+                        Sphere::builder()
+                            .center(center)
+                            .radius(0.2)
+                            .metallic_fuzzed(albedo, fuzz)
+                    ));
                 } else {
-                    objects.push(Arc::new(Sphere {
-                        center,
-                        radius: 0.2,
-                        material: Dielectric::new(1.5),
-                    }));
+                    objects.push(Arc::new(
+                        Sphere::builder()
+                            .center(center)
+                            .radius(0.2)
+                            .dielectric(1.5)
+                    ));
                 };
             }
         }
     }
 
-    objects.push(Arc::new(Sphere {
-        center: Vec3::new(0., 1., 0.),
-        radius: 1.,
-        material: Dielectric::new(1.5),
-    }));
+    objects.push(Arc::new(
+        Sphere::builder()
+            .center((0, 1, 0))
+            .radius(1)
+            .dielectric(1.5)
+    ));
 
-    objects.push(Arc::new(Sphere {
-        center: Vec3::new(-4., 1., 0.),
-        radius: 1.,
-        material: Lambertian::new(Constant::new(Vec3::new(0.4, 0.2, 0.1))),
-    }));
+    objects.push(Arc::new(
+        Sphere::builder()
+            .center((-4, 1, 0))
+            .radius(1)
+            .matte((0.4, 0.2, 0.1))
+    ));
 
-    objects.push(Arc::new(Sphere {
-        center: Vec3::new(4., 1., 0.),
-        radius: 1.,
-        material: Metal::new(Vec3::new(0.7, 0.6, 0.5), 0.0),
-    }));
+    objects.push(Arc::new(
+        Sphere::builder()
+            .center((4, 1, 0))
+            .radius(1)
+            .metallic((0.7, 0.6, 0.5))
+    ));
 
     objects.push(Arc::new(
         RectBuilder
@@ -102,16 +108,14 @@ fn two_perlin_spheres() -> impl Hit {
         .expect("Failed to load image");
 
     combine![
-        Sphere {
-            center: Vec3::new(0., -1000., 0.),
-            radius: 1000.,
-            material: Lambertian::new(pertext),
-        },
-        Sphere {
-            center: Vec3::new(0., 2., 0.),
-            radius: 2.,
-            material: Lambertian::new(earth_img)
-        },
+        Sphere::builder()
+            .center((0, -1_000, 0))
+            .radius(1_000)
+            .material(Lambertian::new(pertext)),
+        Sphere::builder()
+            .center((0, 2, 0))
+            .radius(2)
+            .material(Lambertian::new(earth_img)),
         RectBuilder
             .x(-5..=5)
             .z(-50..=5)
@@ -127,21 +131,18 @@ fn simple_light() -> impl Hit {
         .expect("Failed to load image");
 
     combine![
-        Sphere {
-            center: Vec3::new(0., -1000., 0.),
-            radius: 1000.,
-            material: Lambertian::new(pertext())
-        },
-        Sphere {
-            center: Vec3::new(0., 2., 0.),
-            radius: 2.,
-            material: Lambertian::new(earth_img)
-        },
-        Sphere {
-            center: Vec3::new(0., 7., 0.),
-            radius: 2.,
-            material: Diffuse::colored((4, 4, 4)),
-        },
+        Sphere::builder()
+            .center((0, -1_000, 0))
+            .radius(1_000)
+            .material(Lambertian::new(pertext())),
+        Sphere::builder()
+            .center((0, 2, 0))
+            .radius(2)
+            .material(Lambertian::new(earth_img)),
+        Sphere::builder()
+            .center((0, 7, 0))
+            .radius(2)
+            .diffuse_color((4, 4, 4)),
         RectBuilder
             .x(3..=5)
             .y(1..=3)
@@ -213,7 +214,7 @@ fn final_scene() -> impl Hit {
     let mut boxlist = Vec::<Arc<dyn ParallelHit>>::new();
     let mut boxlist2 = Vec::<Arc<dyn ParallelHit>>::new();
 
-    let white = || Lambertian::new(Constant::new(Vec3::new(0.73, 0.73, 0.73)));
+    let white = (0.73, 0.73, 0.73);
     let ground = Arc::new(Lambertian::new(Constant::new(Vec3::new(0.48, 0.83, 0.53))));
 
     let nb = 20;
@@ -235,19 +236,18 @@ fn final_scene() -> impl Hit {
 
     let ns = 1000;
     for _ in 0..ns {
-        boxlist2.push(Arc::new(Sphere {
-            center: Vec3::new(165. * random::<f32>(), 165. * random::<f32>(), 165. * random::<f32>()),
-            radius: 10.,
-            material: white(),
-        }))
+        boxlist2.push(Arc::new(Sphere::builder()
+            .center(Vec3::random(thread_rng()) * 165.)
+            .radius(10)
+            .matte(white)
+        ))
     }
 
     let center = Vec3::new(400., 400., 200.);
-    let boundary = || Sphere {
-        center: Vec3::new(360., 150., 145.),
-        radius: 70.,
-        material: Dielectric::new(1.5),
-    };
+    let boundary = || Sphere::builder()
+        .center((360, 150, 145))
+        .radius(70)
+        .dielectric(1.5);
     let pertext = Noise::from_scale(0.1);
 
     combine![
@@ -257,24 +257,19 @@ fn final_scene() -> impl Hit {
             .z(147..=412)
             .y(554)
             .diffuse_color((7, 7, 7)),
-        MovingSphere {
-            center0: center,
-            center1: center + Vec3::new(30., 0., 0.),
-            time0: 0.,
-            time1: 1.,
-            radius: 50.,
-            material: Lambertian::new(Constant::new(Vec3::new(0.7, 0.3, 0.1)))
-        },
-        Sphere {
-            center: Vec3::new(260., 150., 45.),
-            radius: 50.,
-            material: Dielectric::new(1.5),
-        },
-        Sphere {
-            center: Vec3::new(0., 150., 145.),
-            radius: 50.,
-            material: Metal::new(Vec3::new(0.8, 0.8, 0.9), 10.),
-        },
+        MovingSphere::builder()
+            .center_from(center)
+            .center_to(center + Vec3::new(30, 0, 0))
+            .radius(50)
+            .matte((0.7, 0.3, 0.1)),
+        Sphere::builder()
+            .center((260, 150, 45))
+            .radius(50)
+            .dielectric(1.5),
+        Sphere::builder()
+            .center((0, 150, 145))
+            .radius(50)
+            .metallic_fuzzed((0.8, 0.8, 0.9), 10),
         boundary(),
         ConstantMedium {
             boundary: boundary(),
@@ -282,24 +277,18 @@ fn final_scene() -> impl Hit {
             phase_function: Isotropic::new(Constant::new(Vec3::new(0.2, 0.4, 0.9)))
         },
         ConstantMedium {
-            boundary: Sphere {
-                center: Vec3::new(0., 0., 0.),
-                radius: 5000.,
-                material: Dielectric::new(1.5),
-            },
+            boundary: Sphere::builder().radius(5_000).dielectric(1.5),
             density: 0.0001,
             phase_function: Isotropic::new(Constant::new(Vec3::new(1.0, 1.0, 1.0))),
         },
-        Sphere {
-            center: Vec3::new(400., 200., 400.),
-            radius: 100.,
-            material: Lambertian::new(globibot_img),
-        },
-        Sphere {
-            center: Vec3::new(220., 280., 300.),
-            radius: 80.,
-            material: Lambertian::new(pertext),
-        },
+        Sphere::builder()
+            .center((400, 200, 400))
+            .radius(100)
+            .material(Lambertian::new(globibot_img)),
+        Sphere::builder()
+            .center((220, 280, 300))
+            .radius(80)
+            .material(Lambertian::new(pertext)),
         BVHNode::new(&mut boxlist2, 0., 1.)
             .rotate_y(15.)
             .translate((-100., 270., 395.)),

@@ -1,17 +1,26 @@
-use crate::prelude::{Material, Hit, AABB, HitRecord, Ray, Vec3};
+use crate::prelude::{Material, Hit, AABB, HitRecord, Ray, Vec3, Asf32};
+use crate::material::MaterialBuilder;
 
-pub struct MovingSphere<T: Material> {
-    pub center0: Vec3,
-    pub center1: Vec3,
-    pub time0: f32,
-    pub time1: f32,
-    pub radius: f32,
-    pub material: T,
+pub struct MovingSphere<T> {
+    center0: Vec3,
+    center1: Vec3,
+    time0: f32,
+    time1: f32,
+    radius: f32,
+    material: T,
 }
 
 impl<T: Material> MovingSphere<T> {
     fn center(&self, time: f32) -> Vec3 {
         self.center0 + ((time - self.time0) / (self.time1 - self.time0)) * (self.center1 - self.center0)
+    }
+}
+
+pub struct UnboundedMat;
+
+impl MovingSphere<UnboundedMat> {
+    pub fn builder() -> MovingSphereBuilder {
+        MovingSphereBuilder::default()
     }
 }
 
@@ -51,5 +60,50 @@ impl<T: Material> Hit for MovingSphere<T> {
         };
 
         Some(AABB::surrounding_box(box0, box1))
+    }
+}
+
+#[derive(Default)]
+pub struct MovingSphereBuilder {
+    center0: Option<Vec3>,
+    center1: Option<Vec3>,
+    time_frame: Option<(f32, f32)>,
+    radius: Option<f32>,
+}
+
+impl MovingSphereBuilder {
+    pub fn center_from(mut self, center: impl Into<Vec3>) -> Self {
+        self.center0 = Some(center.into());
+        self
+    }
+
+    pub fn center_to(mut self, center: impl Into<Vec3>) -> Self {
+        self.center1 = Some(center.into());
+        self
+    }
+
+    pub fn radius(mut self, radius: impl Asf32) -> Self {
+        self.radius = Some(radius.as_());
+        self
+    }
+
+    pub fn time_frame(mut self, t0: f32, t1: f32) -> Self {
+        self.time_frame = Some((t0, t1));
+        self
+    }
+}
+
+impl<Mat> MaterialBuilder<Mat> for MovingSphereBuilder {
+    type Finished = MovingSphere<Mat>;
+
+    fn material(self, material: Mat) -> Self::Finished {
+        let (time0, time1) = self.time_frame.unwrap_or((0., 1.));
+
+        MovingSphere {
+            center0: self.center0.unwrap_or_default(),
+            center1: self.center1.unwrap_or_default(),
+            radius: self.radius.unwrap_or_default(),
+            time0, time1, material,
+        }
     }
 }

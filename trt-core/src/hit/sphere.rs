@@ -1,12 +1,21 @@
-use crate::prelude::{Material, Hit, AABB, HitRecord, Ray, Vec3};
+use crate::prelude::{Material, Hit, AABB, HitRecord, Ray, Vec3, Asf32};
+use crate::material::MaterialBuilder;
 
-pub struct Sphere<T: Material> {
-    pub center: Vec3,
-    pub radius: f32,
-    pub material: T,
+pub struct Sphere<Mat> {
+    center: Vec3,
+    radius: f32,
+    material: Mat,
 }
 
-impl<T: Material> Hit for Sphere<T> {
+pub struct UnboundedMat;
+
+impl Sphere<UnboundedMat> {
+    pub fn builder() -> SphereBuilder {
+        SphereBuilder::default()
+    }
+}
+
+impl<Mat: Material> Hit for Sphere<Mat> {
     fn hit(&self, ray: &Ray, t_min: f32, t_max: f32) -> Option<HitRecord<'_>> {
         let oc = ray.origin - self.center;
         let a = Vec3::dot(ray.direction, ray.direction);
@@ -35,5 +44,35 @@ impl<T: Material> Hit for Sphere<T> {
             min: self.center - Vec3::splat(radius),
             max: self.center + Vec3::splat(radius),
         })
+    }
+}
+
+#[derive(Default)]
+pub struct SphereBuilder {
+    center: Option<Vec3>,
+    radius: Option<f32>,
+}
+
+impl SphereBuilder {
+    pub fn center(mut self, center: impl Into<Vec3>) -> Self {
+        self.center = Some(center.into());
+        self
+    }
+
+    pub fn radius(mut self, radius: impl Asf32) -> Self {
+        self.radius = Some(radius.as_());
+        self
+    }
+}
+
+impl<Mat> MaterialBuilder<Mat> for SphereBuilder {
+    type Finished = Sphere<Mat>;
+
+    fn material(self, material: Mat) -> Self::Finished {
+        Sphere {
+            center: self.center.unwrap_or_default(),
+            radius: self.radius.unwrap_or_default(),
+            material,
+        }
     }
 }
