@@ -1,5 +1,4 @@
 use rand::{random, thread_rng, Rng};
-use rand::seq::SliceRandom;
 use indicatif::{ParallelProgressIterator, ProgressStyle, ProgressBar};
 use rayon::prelude::*;
 
@@ -16,9 +15,9 @@ use trt_core::combine;
 
 const WIDTH: usize = 300;
 const HEIGHT: usize = 300;
-const RAYS_PER_PX: usize = 50_0;
+const RAYS_PER_PX: usize = 5_00;
 
-fn random_scene() -> impl Hit {
+pub fn random_scene() -> impl Hit {
     let mut rng = thread_rng();
     let n = 500;
     let mut objects = Vec::<Arc<dyn ParallelHit>>::with_capacity(n);
@@ -101,7 +100,7 @@ fn random_scene() -> impl Hit {
     BVHNode::new(&mut objects, 0., 1.)
 }
 
-fn two_perlin_spheres() -> impl Hit {
+pub fn two_perlin_spheres() -> impl Hit {
     let pertext = Noise::from_scale(5.);
 
     let earth_img = Image::load("./assets/earthmap.jpg")
@@ -124,7 +123,7 @@ fn two_perlin_spheres() -> impl Hit {
     ]
 }
 
-fn simple_light() -> impl Hit {
+pub fn simple_light() -> impl Hit {
     let pertext = || Noise::from_scale(4.);
 
     let earth_img = Image::load("./assets/earthmap.jpg")
@@ -151,7 +150,7 @@ fn simple_light() -> impl Hit {
     ]
 }
 
-fn cornell_box() -> impl Hit {
+pub fn cornell_box() -> impl Hit {
     let red = Lambertian::colored((0.65, 0.05, 0.05));
     let white = || Lambertian::colored((0.73, 0.73, 0.73));
     let green = Lambertian::colored((0.12, 0.45, 0.15));
@@ -177,7 +176,7 @@ fn cornell_box() -> impl Hit {
     ]
 }
 
-fn cornell_smoke() -> impl Hit {
+pub fn cornell_smoke() -> impl Hit {
     let red = (0.65, 0.05, 0.05);
     let white = Arc::new(Lambertian::colored((0.73, 0.73, 0.73)));
     let green = (0.12, 0.45, 0.15);
@@ -229,9 +228,9 @@ fn final_scene() -> impl Hit {
     let ns = 1000;
     for _ in 0..ns {
         boxlist2.push(Arc::new(Sphere::builder()
-            .center(Vec3::random(thread_rng()) * 165.)
-            .radius(10)
-            .matte(white)
+            .center((random::<f32>() * 165., random::<f32>() * 165. , random::<f32>() * 165.))
+            .radius(20)
+            .metallic(white)
         ))
     }
 

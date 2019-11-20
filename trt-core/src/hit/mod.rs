@@ -1,4 +1,4 @@
-use crate::prelude::{Material, Texture, AABB, Ray, Vec3};
+use crate::prelude::{Material, AABB, Ray, Vec3};
 use crate::material::Isotropic;
 use crate::texture::Constant;
 

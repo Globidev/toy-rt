@@ -34,21 +34,15 @@ fn color(ray: &Ray, world: &impl Hit, depth: u32) -> Vec3 {
 }
 
 pub fn random_in_unit_sphere(mut rng: impl Rng) -> Vec3 {
-    loop {
-        let p = 2.0 * Vec3::random(&mut rng) - Vec3::splat(1.);
-        if Vec3::dot(p, p) < 1.0 {
-            break p;
-        }
-    }
+    std::iter::repeat_with(|| 2.0 * Vec3::random(&mut rng) - Vec3::splat(1.))
+        .find(|p| Vec3::dot(*p, *p) < 1.0)
+        .unwrap()
 }
 
 pub fn random_in_unit_disk(mut rng: impl Rng) -> Vec3 {
-    loop {
-        let p = 2.0 * Vec3::new(rng.gen(), rng.gen(), 0.) - Vec3::new(1., 1., 0.);
-        if Vec3::dot(p, p) < 1.0 {
-            break p;
-        }
-    }
+    std::iter::repeat_with(|| 2.0 * Vec3::new(rng.gen::<f32>(), rng.gen::<f32>(), 0.) - Vec3::new(1., 1., 0.))
+        .find(|p| Vec3::dot(*p, *p) < 1.0)
+        .unwrap()
 }
 
 pub fn reflect(v: Vec3, n: Vec3) -> Vec3 {
