@@ -1,4 +1,6 @@
-use crate::prelude::{Material, AABB, Ray, Vec3};
+use crate::prelude::{Material, Texture, AABB, Ray, Vec3};
+use crate::material::Isotropic;
+use crate::texture::Constant;
 
 pub struct HitRecord<'mat> {
     pub t: f32,
@@ -39,6 +41,14 @@ pub trait Hit {
         Self: Sized
     {
         RotateY::new(self, angle)
+    }
+
+    fn constant_medium(self, density: f32, color: impl Into<Vec3>)
+        -> ConstantMedium<Self, Isotropic<Constant>>
+    where
+        Self: Sized
+    {
+        ConstantMedium::new_iso(self, density, Constant::new(color.into()))
     }
 }
 

@@ -1,12 +1,25 @@
-use crate::prelude::{Material, Hit, AABB, HitRecord, Ray, Vec3};
+use crate::prelude::{Material, Texture, Hit, AABB, HitRecord, Ray, Vec3};
+use crate::material::Isotropic;
 
-pub struct ConstantMedium<T: Hit, U: Material> {
-    pub boundary: T,
-    pub density: f32,
-    pub phase_function: U,
+pub struct ConstantMedium<T: Hit, Mat: Material> {
+    boundary: T,
+    density: f32,
+    phase_function: Mat,
 }
 
-impl<T: Hit, U: Material> Hit for ConstantMedium<T, U> {
+impl<T: Hit, Mat: Material> ConstantMedium<T, Mat> {
+    pub fn new(boundary: T, density: f32, phase_function: Mat) -> Self {
+        Self { boundary, density, phase_function }
+    }
+}
+
+impl<T: Hit, Tx: Texture> ConstantMedium<T, Isotropic<Tx>> {
+    pub fn new_iso(boundary: T, density: f32, texture: Tx) -> Self {
+        Self::new(boundary, density, Isotropic::new(texture))
+    }
+}
+
+impl<T: Hit, Mat: Material> Hit for ConstantMedium<T, Mat> {
     fn hit(&self, ray: &Ray, t_min: f32, t_max: f32) -> Option<HitRecord<'_>> {
         let f_max = std::f32::MAX;
 

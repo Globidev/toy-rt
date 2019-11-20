@@ -6,12 +6,12 @@ use rayon::prelude::*;
 use std::sync::Arc;
 use std::time;
 
+use trt_core::prelude::*;
+
 use trt_core::camera::CameraBuilder;
-use trt_core::hit::{Hit, Sphere, MovingSphere, RectBuilder, HitBox, ConstantMedium, BVHNode};
-use trt_core::material::{MaterialBuilder, MaterialBuilderExt, Lambertian, Isotropic};
+use trt_core::hit::{Sphere, MovingSphere, RectBuilder, HitBox, BVHNode};
+use trt_core::material::Lambertian;
 use trt_core::texture::{Constant, Checker, Noise, Image};
-use trt_core::vec3::Vec3;
-use trt_core::prelude::ParallelHit;
 use trt_core::combine;
 
 const WIDTH: usize = 300;
@@ -152,9 +152,9 @@ fn simple_light() -> impl Hit {
 }
 
 fn cornell_box() -> impl Hit {
-    let red = Lambertian::new(Constant::new(Vec3::new(0.65, 0.05, 0.05)));
-    let white = || Lambertian::new(Constant::new(Vec3::new(0.73, 0.73, 0.73)));
-    let green = Lambertian::new(Constant::new(Vec3::new(0.12, 0.45, 0.15)));
+    let red = Lambertian::colored((0.65, 0.05, 0.05));
+    let white = || Lambertian::colored((0.73, 0.73, 0.73));
+    let green = Lambertian::colored((0.12, 0.45, 0.15));
 
     let oreo_img = Image::load("./assets/oreo.jpg")
         .expect("Failed to load image");
@@ -179,7 +179,7 @@ fn cornell_box() -> impl Hit {
 
 fn cornell_smoke() -> impl Hit {
     let red = (0.65, 0.05, 0.05);
-    let white = Arc::new(Lambertian::new(Constant::new(Vec3::new(0.73, 0.73, 0.73))));
+    let white = Arc::new(Lambertian::colored((0.73, 0.73, 0.73)));
     let green = (0.12, 0.45, 0.15);
 
     let b1 = HitBox::new(Vec3::new(0., 0., 0.), Vec3::new(165., 165., 165.), white.clone())
@@ -197,16 +197,8 @@ fn cornell_smoke() -> impl Hit {
         RectBuilder.x(0..=555).z(0..=555).y(0).material(white.clone()),
         RectBuilder.x(0..=555).y(0..=555).z(555).material(white.clone()).flip_normals(),
         RectBuilder.x(113..=443).z(127..=432).y(554).diffuse_color((7, 7, 7)),
-        ConstantMedium {
-            boundary: b1,
-            density: 0.01,
-            phase_function: Isotropic::new(Constant::new(Vec3::new(1., 1., 1.))),
-        },
-        ConstantMedium {
-            boundary: b2,
-            density: 0.01,
-            phase_function: Isotropic::new(Constant::new(Vec3::new(0., 0., 0.))),
-        },
+        b1.constant_medium(0.01, (1, 1, 1)),
+        b2.constant_medium(0.01, (0, 0, 0)),
     ]
 }
 
@@ -215,7 +207,7 @@ fn final_scene() -> impl Hit {
     let mut boxlist2 = Vec::<Arc<dyn ParallelHit>>::new();
 
     let white = (0.73, 0.73, 0.73);
-    let ground = Arc::new(Lambertian::new(Constant::new(Vec3::new(0.48, 0.83, 0.53))));
+    let ground = Arc::new(Lambertian::colored((0.48, 0.83, 0.53)));
 
     let nb = 20;
     for i in 0..nb {
@@ -244,7 +236,7 @@ fn final_scene() -> impl Hit {
     }
 
     let center = Vec3::new(400., 400., 200.);
-    let boundary = || Sphere::builder()
+    let sphere = || Sphere::builder()
         .center((360, 150, 145))
         .radius(70)
         .dielectric(1.5);
@@ -270,17 +262,12 @@ fn final_scene() -> impl Hit {
             .center((0, 150, 145))
             .radius(50)
             .metallic_fuzzed((0.8, 0.8, 0.9), 10),
-        boundary(),
-        ConstantMedium {
-            boundary: boundary(),
-            density: 0.2,
-            phase_function: Isotropic::new(Constant::new(Vec3::new(0.2, 0.4, 0.9)))
-        },
-        ConstantMedium {
-            boundary: Sphere::builder().radius(5_000).dielectric(1.5),
-            density: 0.0001,
-            phase_function: Isotropic::new(Constant::new(Vec3::new(1.0, 1.0, 1.0))),
-        },
+        sphere(),
+        sphere().constant_medium(0.2, (0.2, 0.4, 0.9)),
+        Sphere::builder()
+            .radius(5_000)
+            .dielectric(1.5)
+            .constant_medium(0.0001, (1, 1, 1)),
         Sphere::builder()
             .center((400, 200, 400))
             .radius(100)
