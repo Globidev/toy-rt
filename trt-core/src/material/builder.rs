@@ -1,4 +1,4 @@
-use crate::prelude::Vec3;
+use crate::prelude::{Vec3, Asf32};
 use crate::material::{Metal, Dielectric, Diffuse, Lambertian};
 use crate::texture::Constant;
 
@@ -34,7 +34,14 @@ pub trait MaterialBuilderExt {
     where
         Self: MaterialBuilder<Metal>,
     {
-        self.material(Metal::new(albedo.into(), 0_f32))
+        self.metallic_fuzzed(albedo, 0_f32)
+    }
+
+    fn metallic_fuzzed(self, albedo: impl Into<Vec3>, fuzz: impl Asf32) -> Self::Finished
+    where
+        Self: MaterialBuilder<Metal>,
+    {
+        self.material(Metal::new(albedo.into(), fuzz.as_()))
     }
 }
 
