@@ -1,5 +1,6 @@
 use crate::prelude::{Texture, Material, HitRecord, Ray, Vec3};
 use crate::texture::Constant;
+use crate::utils::random_in_unit_sphere;
 
 pub struct Lambertian<T> {
     albedo: T,
@@ -21,7 +22,7 @@ impl Lambertian<UnboundedTx> {
 
 impl<T: Texture> Material for Lambertian<T> {
     fn scatter(&self, r_in: &Ray, rec: &HitRecord) -> Option<(Ray, Vec3)> {
-        let target = rec.p + rec.normal + crate::random_in_unit_sphere(rand::thread_rng());
+        let target = rec.p + rec.normal + random_in_unit_sphere(rand::thread_rng());
         let scattered = Ray {
             origin: rec.p,
             direction: target - rec.p,

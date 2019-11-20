@@ -22,7 +22,7 @@ impl<T: Material + Clone> HitBox<T> {
         let (x0, y0, z0) = (p0.x(), p0.y(), p0.z());
         let (x1, y1, z1) = (p1.x(), p1.y(), p1.z());
 
-        combine!(
+        world![
             RectBuilder.x(x0..=x1).y(y0..=y1).z(z1).material(mat.clone()),
             RectBuilder.x(x0..=x1).y(y0..=y1).z(z0).material(mat.clone()).flip_normals(),
 
@@ -31,7 +31,7 @@ impl<T: Material + Clone> HitBox<T> {
 
             RectBuilder.y(y0..=y1).z(z0..=z1).x(x1).material(mat.clone()),
             RectBuilder.y(y0..=y1).z(z0..=z1).x(x0).material(mat.clone()).flip_normals(),
-        )
+        ]
     }
 }
 

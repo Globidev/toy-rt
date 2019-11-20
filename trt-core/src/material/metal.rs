@@ -1,4 +1,5 @@
 use crate::prelude::{Vec3, Material, Ray, HitRecord};
+use crate::utils::{reflect, random_in_unit_sphere};
 
 pub struct Metal {
     albedo: Vec3,
@@ -16,10 +17,10 @@ impl Metal {
 
 impl Material for Metal {
     fn scatter(&self, r_in: &Ray, rec: &HitRecord) -> Option<(Ray, Vec3)> {
-        let reflected = crate::reflect(r_in.direction.unit(), rec.normal);
+        let reflected = reflect(r_in.direction.unit(), rec.normal);
         let scattered = Ray {
             origin: rec.p,
-            direction: reflected + self.fuzz * crate::random_in_unit_sphere(rand::thread_rng()),
+            direction: reflected + self.fuzz * random_in_unit_sphere(rand::thread_rng()),
             time: 0.
         };
         let attenuation = self.albedo;

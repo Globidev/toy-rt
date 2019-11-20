@@ -1,5 +1,5 @@
-use crate::vec3::Vec3;
-use crate::ray::Ray;
+use crate::prelude::{Vec3, Ray};
+use crate::utils::random_in_unit_disk;
 use rand::{Rng, thread_rng};
 
 pub struct Camera {
@@ -22,7 +22,7 @@ impl Camera {
     pub fn get_ray(&self, s: f32, t: f32) -> Ray {
         let mut rng = thread_rng();
 
-        let rd = self.lens_radius * crate::random_in_unit_disk(&mut rng);
+        let rd = self.lens_radius * random_in_unit_disk(&mut rng);
         let offset = self.u * rd.x() + self.v * rd.y();
         let time = rng.gen_range(self.time_frame.0, self.time_frame.1);
 

@@ -61,7 +61,14 @@ impl<T: Hit + ?Sized> Hit for Box<T> {
     }
 }
 
-#[macro_use]
+#[macro_export]
+macro_rules! world {
+    ($hit:expr) => { $hit };
+    ($hit:expr, $($hits:expr),* $(,)?) => {
+        $hit.combine(world!($($hits),*))
+    }
+}
+
 mod combine;
 pub use combine::Combine;
 

@@ -26,11 +26,3 @@ impl<T: Hit, U: Hit> Hit for Combine<T, U> {
         Some(AABB::surrounding_box(bbox_a, bbox_b))
     }
 }
-
-#[macro_export]
-macro_rules! combine {
-    ($hit:expr) => { $hit };
-    ($hit:expr, $($hits:expr),* $(,)?) => {
-        $hit.combine(combine!($($hits),*))
-    }
-}

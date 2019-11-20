@@ -11,11 +11,12 @@ use trt_core::camera::CameraBuilder;
 use trt_core::hit::{Sphere, MovingSphere, RectBuilder, HitBox, BVHNode};
 use trt_core::material::Lambertian;
 use trt_core::texture::{Constant, Checker, Noise, Image};
-use trt_core::combine;
+use trt_core::world;
+use trt_core::scene::Scene;
 
 const WIDTH: usize = 300;
 const HEIGHT: usize = 300;
-const RAYS_PER_PX: usize = 5_00;
+const RAYS_PER_PX: usize = 50_0;
 
 pub fn random_scene() -> impl Hit {
     let mut rng = thread_rng();
@@ -106,7 +107,7 @@ pub fn two_perlin_spheres() -> impl Hit {
     let earth_img = Image::load("./assets/earthmap.jpg")
         .expect("Failed to load image");
 
-    combine![
+    world![
         Sphere::builder()
             .center((0, -1_000, 0))
             .radius(1_000)
@@ -129,7 +130,7 @@ pub fn simple_light() -> impl Hit {
     let earth_img = Image::load("./assets/earthmap.jpg")
         .expect("Failed to load image");
 
-    combine![
+    world![
         Sphere::builder()
             .center((0, -1_000, 0))
             .radius(1_000)
@@ -160,7 +161,7 @@ pub fn cornell_box() -> impl Hit {
 
     let img_text = Arc::new(Lambertian::new(oreo_img));
 
-    combine![
+    world![
         RectBuilder.y(0..=555).z(0..=555).x(555).material(green).flip_normals(),
         RectBuilder.y(0..=555).z(0..=555).x(0).material(red),
         RectBuilder.x(0..=555).z(0..=555).y(555).material(white()).flip_normals(),
@@ -189,7 +190,7 @@ pub fn cornell_smoke() -> impl Hit {
         .rotate_y(15.)
         .translate((265., 0., 295.));
 
-    combine![
+    world![
         RectBuilder.y(0..=555).z(0..=555).x(555).matte(green).flip_normals(),
         RectBuilder.y(0..=555).z(0..=555).x(0).matte(red),
         RectBuilder.x(0..=555).z(0..=555).y(555).material(white.clone()).flip_normals(),
@@ -230,7 +231,7 @@ fn final_scene() -> impl Hit {
         boxlist2.push(Arc::new(Sphere::builder()
             .center((random::<f32>() * 165., random::<f32>() * 165. , random::<f32>() * 165.))
             .radius(20)
-            .metallic(white)
+            .matte(white)
         ))
     }
 
@@ -241,7 +242,7 @@ fn final_scene() -> impl Hit {
         .dielectric(1.5);
     let pertext = Noise::from_scale(0.1);
 
-    combine![
+    world![
         BVHNode::new(&mut boxlist, 0., 1.),
         RectBuilder
             .x(123..=423)
@@ -292,7 +293,13 @@ fn run() -> image::RgbImage {
         .dimensions(WIDTH as f32, HEIGHT as f32)
         .finish();
 
-    let world = final_scene();
+    let scene = Scene {
+        camera,
+        width: WIDTH,
+        height: HEIGHT,
+        world: final_scene(),
+        ray_per_px: RAYS_PER_PX,
+    };
 
     let progress = ProgressBar::new((WIDTH * HEIGHT) as u64)
         .with_style(ProgressStyle::default_bar().template("{pos:>7}/{len:7} {bar:40.cyan/yellow} - [{elapsed_precise}] [{eta_precise}]"));
@@ -301,11 +308,9 @@ fn run() -> image::RgbImage {
         .into_par_iter()
         .rev()
         .flat_map(|j| (0..WIDTH).into_par_iter().map(move |i| (i, j)))
-        .map(|(i, j)| {
-            trt_core::render(&world, (i, j), (WIDTH, HEIGHT), &camera, RAYS_PER_PX)
-        })
+        .map(|(i, j)| scene.pixel_color((i, j)))
         .progress_with(progress)
-        .flat_map(|trt_core::Color(r, g, b)| {
+        .flat_map(|Color(r, g, b)| {
             use rayon::iter::once;
 
             once(r).chain(once(g)).chain(once(b))

@@ -1,4 +1,5 @@
 use crate::prelude::{Material, HitRecord, Ray, Vec3};
+use crate::utils::{reflect, refract, schlick};
 
 pub struct Dielectric {
     ref_idx: f32,
@@ -12,7 +13,7 @@ impl Dielectric {
 
 impl Material for Dielectric {
     fn scatter(&self, r_in: &Ray, rec: &HitRecord) -> Option<(Ray, Vec3)> {
-        let reflected = crate::reflect(r_in.direction, rec.normal);
+        let reflected = reflect(r_in.direction, rec.normal);
         let attenuation = Vec3::splat(1.);
 
         let (outward_normal, ni_over_nt, cosine) =
@@ -26,8 +27,8 @@ impl Material for Dielectric {
 
         let prob = rand::random::<f32>();
 
-        if let Some(refracted) = crate::refract(r_in.direction, outward_normal, ni_over_nt) {
-            if prob >= crate::schlick(cosine, self.ref_idx) {
+        if let Some(refracted) = refract(r_in.direction, outward_normal, ni_over_nt) {
+            if prob >= schlick(cosine, self.ref_idx) {
                 let scattered = Ray {
                     origin: rec.p,
                     direction: refracted,

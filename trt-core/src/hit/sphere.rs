@@ -1,5 +1,6 @@
 use crate::prelude::{Material, Hit, AABB, HitRecord, Ray, Vec3, Asf32};
 use crate::material::MaterialBuilder;
+use crate::utils::sphere_uv;
 
 pub struct Sphere<Mat> {
     center: Vec3,
@@ -29,7 +30,7 @@ impl<Mat: Material> Hit for Sphere<Mat> {
                 if solution < t_max && solution > t_min {
                     let p = ray.point_at_parameter(solution);
                     let normal = (p - self.center) / self.radius;
-                    let (u, v) = crate::get_sphere_uv((p - self.center) / self.radius);
+                    let (u, v) = sphere_uv((p - self.center) / self.radius);
                     return Some(HitRecord { t: solution, p, normal, mat: &self.material, u, v })
                 }
             }
