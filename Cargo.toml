@@ -1,5 +1,6 @@
 [workspace]
 members = [
     "trt-core",
-    "trt-render"
+    "trt-render",
+    "trt-wasm",
 ]
