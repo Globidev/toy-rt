@@ -1,4 +1,4 @@
-use rand::{Rng, thread_rng};
+use crate::utils::{Rng, thread_rng};
 use crate::vec3::Vec3;
 
 pub struct Perlin {

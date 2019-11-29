@@ -1,6 +1,5 @@
 use crate::prelude::{Vec3, Ray};
-use crate::utils::random_in_unit_disk;
-use rand::{Rng, thread_rng};
+use crate::utils::{random_in_unit_disk, Rng, thread_rng};
 
 pub struct Camera {
     origin: Vec3,

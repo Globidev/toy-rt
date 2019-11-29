@@ -1,6 +1,6 @@
 use crate::prelude::{Hit, Ray, Vec3};
 
-use rand::Rng;
+pub use rand::{Rng, thread_rng, seq::SliceRandom};
 
 pub fn compute_color(ray: &Ray, world: &impl Hit, depth: u32) -> Vec3 {
     if let Some(rec) = world.hit(ray, 0.001, std::f32::MAX) {

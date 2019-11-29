@@ -1,6 +1,6 @@
 use crate::prelude::{Hit, ParallelHit, AABB, HitRecord, Ray};
 
-use rand::{thread_rng, seq::SliceRandom};
+use crate::utils::{thread_rng, SliceRandom};
 use std::sync::Arc;
 use std::cmp::Ordering;
 
