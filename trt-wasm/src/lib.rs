@@ -21,15 +21,21 @@ pub struct Scene(SceneImpl<Box<dyn Hit>>);
 
 #[wasm_bindgen]
 impl Scene {
-    pub fn new() -> Self {
+    pub fn new(source: &str) -> Self {
         const WIDTH: usize = 300;
         const HEIGHT: usize = 300;
-        const RAYS_PER_PX: usize = 25;
+        const RAYS_PER_PX: usize = 500;
 
         let camera = CameraBuilder::default()
             // .look_from((478, 278, -600))
-            .look_from((278, 278, -800))
-            .look_at((278, 278, 0))
+            // .look_at((278, 278, 0))
+
+            // .look_from((278, 278, -800))
+            // .look_at((278, 278, 0))
+
+            .look_at((0, 0, 0))
+            .look_from((0, 0, -200))
+
             .dimensions(WIDTH as f32, HEIGHT as f32)
             .finish();
 
@@ -37,11 +43,21 @@ impl Scene {
             camera,
             width: WIDTH,
             height: HEIGHT,
-            world: Box::new(cornell_smoke()) as _,
+            world: Box::new(trt_dsl::eval_scene(source)) as _,
+            // world: Box::new(final_scene()) as _,
             ray_per_px: RAYS_PER_PX,
         };
 
         Self(scene)
+    }
+
+    pub fn row_color(&self, y: usize) -> Vec<u32> {
+        (0..300)
+            .map(|x| {
+                let Color(r, g, b) = self.0.pixel_color((x, y));
+                u32::from_be_bytes([0, r, g, b])
+            })
+            .collect()
     }
 
     pub fn pixel_color(&self, x: usize, y: usize) -> u32 {
@@ -70,9 +86,6 @@ fn final_scene() -> impl Hit {
             boxlist.push(Arc::new(HitBox::new(Vec3::new(x0, y0, z0), Vec3::new(x1, y1, z1), ground.clone())));
         }
     }
-
-    // let globibot_img = Image::load("./assets/globibot.png")
-    //     .expect("Failed to load image");
 
     let ns = 1000;
     for _ in 0..ns {
