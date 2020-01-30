@@ -3,4 +3,5 @@ members = [
     "trt-core",
     "trt-render",
     "trt-wasm",
+    "trt-dsl",
 ]
