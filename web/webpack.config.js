@@ -1,7 +1,7 @@
 const CopyWebpackPlugin = require("copy-webpack-plugin");
 const path = require('path');
 
-module.exports = {
+const browserConfig = {
   entry: "./src/bootstrap.ts",
 
   module: {
@@ -10,10 +10,6 @@ module.exports = {
         test: /\.tsx?$/,
         use: 'ts-loader',
         exclude: /node_modules/,
-      },
-      {
-        test: /\.wasm$/,
-        type: "webassembly/experimental"
       },
       {
         test: /\.(svg|png|md)$/,
@@ -50,3 +46,27 @@ module.exports = {
     ]
   },
 };
+
+const workerConfig = {
+  entry: './src/worker.ts',
+  target: 'webworker',
+  output: {
+    path: path.resolve(__dirname, "dist"),
+    filename: "worker.js"
+  },
+  module: {
+    rules: [
+      {
+        test: /\.tsx?$/,
+        use: 'ts-loader',
+        exclude: /node_modules/,
+      },
+    ],
+  },
+  // resolve: {
+  //   extensions: ['.tsx', '.ts', '.js']
+  // },
+  mode: "development",
+}
+
+module.exports = [browserConfig, workerConfig]
