@@ -10,3 +10,4 @@ edition = "2018"
 trt-core = { path = "../trt-core" }
 rustpython-vm = { git = "https://github.com/RustPython/RustPython" }
 rustpython-compiler = { git = "https://github.com/RustPython/RustPython" }
+thiserror = "1.0"
