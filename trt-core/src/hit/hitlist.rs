@@ -2,6 +2,12 @@ use crate::prelude::{Hit, AABB, HitRecord, Ray};
 
 pub struct HitList<T: Hit>(Vec<T>);
 
+impl<T: Hit> HitList<T> {
+    pub fn new(list: Vec<T>) -> Self {
+        Self(list)
+    }
+}
+
 impl<T: Hit> Hit for HitList<T> {
     fn hit(&self, ray: &Ray, t_min: f32, t_max: f32) -> Option<HitRecord> {
         let mut closest_so_far = t_max;
