@@ -48,7 +48,7 @@ impl<Mat: Material> Hit for Sphere<Mat> {
     }
 }
 
-#[derive(Default)]
+#[derive(Debug, Clone, Default)]
 pub struct SphereBuilder {
     center: Option<Vec3>,
     radius: Option<f32>,

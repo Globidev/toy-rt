@@ -76,7 +76,7 @@ mod hitlist;
 pub use hitlist::HitList;
 
 mod sphere;
-pub use sphere::Sphere;
+pub use sphere::{Sphere, SphereBuilder};
 
 mod moving_sphere;
 pub use moving_sphere::MovingSphere;
