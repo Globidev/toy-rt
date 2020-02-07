@@ -8,7 +8,7 @@ use trt_core::texture::Noise;
 use trt_core::world;
 use rand::random;
 
-use std::sync::Arc;
+use std::{rc::Rc, sync::Arc};
 
 #[wasm_bindgen]
 pub fn setup_panic_hook() {
@@ -16,45 +16,19 @@ pub fn setup_panic_hook() {
 }
 
 #[wasm_bindgen]
-pub struct Scene(SceneImpl<HitList<Box<dyn Hit>>>);
+pub struct Scene(Rc<SceneImpl<HitList<Rc<dyn Hit>>>>);
 
 #[wasm_bindgen]
 impl Scene {
     pub fn new(source: &str) -> Self {
-        // const WIDTH: usize = 300;
-        // const HEIGHT: usize = 300;
-        // const RAYS_PER_PX: usize = 200;
-
-        // let camera = CameraBuilder::default()
-        //     // .look_from((478, 278, -600))
-        //     // .look_at((278, 278, 0))
-
-        //     .look_from((278, 278, -800))
-        //     .look_at((278, 278, 0))
-
-        //     // .look_at((0, 0, 0))
-        //     // .look_from((0, 0, -200))
-
-        //     .dimensions(WIDTH as f32, HEIGHT as f32)
-        //     .finish();
-
-        let vm = trt_dsl::new_vm().expect("Failed to init vm");
+        let vm = trt_dsl::new_vm().expect("Failed to init VM");
         let scene = trt_dsl::eval_scene(&vm, source).expect("Failed to eval scene");
-
-        // let scene = SceneImpl {
-        //     camera,
-        //     width: WIDTH,
-        //     height: HEIGHT,
-        //     // world: Box::new(trt_dsl::eval_scene(&vm, source).expect("Failed to eval scene")) as _,
-        //     world: Box::new(cornell_smoke()) as _,
-        //     ray_per_px: RAYS_PER_PX,
-        // };
 
         Self(scene)
     }
 
     pub fn row_color(&self, y: usize) -> Vec<u32> {
-        (0..300)
+        (0..self.0.width)
             .map(|x| {
                 let Color(r, g, b) = self.0.pixel_color((x, y));
                 u32::from_be_bytes([0, r, g, b])
@@ -65,6 +39,14 @@ impl Scene {
     pub fn pixel_color(&self, x: usize, y: usize) -> u32 {
         let Color(r, g, b) = self.0.pixel_color((x, y));
         u32::from_be_bytes([0, r, g, b])
+    }
+
+    pub fn width(&self) -> u32 {
+        self.0.width as _
+    }
+
+    pub fn height(&self) -> u32 {
+        self.0.height as _
     }
 }
 
