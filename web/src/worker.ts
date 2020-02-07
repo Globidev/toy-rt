@@ -1,5 +1,6 @@
 import("trt")
   .then(wasm => {
+    wasm.setup_panic_hook();
     var scene: import('trt').Scene | null = null
 
     self.postMessage({ type: "ready" })
