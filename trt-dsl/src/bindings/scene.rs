@@ -1,4 +1,9 @@
-use trt_core::{hit::RectBuilder, prelude::*};
+use trt_core::{
+    camera::CameraBuilder,
+    hit::{HitList, RectBuilder},
+    prelude::*,
+    scene::Scene,
+};
 
 use rustpython_vm::{
     self as rpy,
@@ -6,23 +11,24 @@ use rustpython_vm::{
     pyobject::{PyResult, PyValue},
 };
 
-use std::fmt;
-use std::cell::RefCell;
-use rpy::{pyobject::PyObjectRef, obj::objlist::PyList};
 use super::sphere::PySphere;
+use rpy::{obj::objlist::PyList, pyobject::PyObjectRef};
+use std::{cell::RefCell, fmt};
+
+pub type DynScene = Scene<HitList<Box<dyn Hit>>>;
 
 #[rpy::pyclass(name = "Scene")]
-pub struct PyScene(RefCell<Vec<Box<dyn Hit>>>);
+pub struct PyScene(RefCell<Option<DynScene>>);
 
 impl fmt::Debug for PyScene {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "<Scene of {} objects>", self.0.borrow().len())
+        write!(f, "<Scene>")
     }
 }
 
 impl PyScene {
-    pub fn take(&self) -> Vec<Box<dyn Hit>> {
-        std::mem::take(self.0.borrow_mut().as_mut())
+    pub fn take(&self) -> DynScene {
+        std::mem::take(&mut *self.0.borrow_mut()).expect("Attempted to move out of an empty scene")
     }
 }
 
@@ -34,7 +40,10 @@ impl PyValue for PyScene {
 
 #[derive(Debug, rpy::FromArgs)]
 struct PySceneArgs {
-    world: PyObjectRef
+    world: PyObjectRef,
+    width: usize,
+    height: usize,
+    rays_per_px: usize,
 }
 
 #[rpy::pyimpl]
@@ -43,7 +52,8 @@ impl PyScene {
     fn tp_new(_cls: PyClassRef, args: PySceneArgs, _vm: &rpy::VirtualMachine) -> PyResult<Self> {
         let as_py_list = args.world.downcast::<PyList>()?;
 
-        let mut world: Vec<_> = as_py_list.elements
+        let mut world: Vec<_> = as_py_list
+            .elements
             .borrow()
             .iter()
             .map(|py_obj| {
@@ -60,6 +70,20 @@ impl PyScene {
                 .diffuse_color((7, 7, 7)),
         ));
 
-        Ok(Self(RefCell::new(world)))
+        let camera = CameraBuilder::default()
+            .look_from((278, 278, -800))
+            .look_at((278, 278, 0))
+            .dimensions(args.width as f32, args.height as f32)
+            .finish();
+
+        let scene = Scene {
+            camera,
+            width: args.width,
+            height: args.height,
+            world: HitList::new(world),
+            ray_per_px: args.rays_per_px,
+        };
+
+        Ok(Self(RefCell::new(Some(scene))))
     }
 }
