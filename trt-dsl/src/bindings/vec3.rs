@@ -2,8 +2,8 @@ use trt_core::prelude::Vec3;
 
 use rustpython_vm as rpy;
 use rpy::{
-    pyobject::{PyObjectRef, PyResult, TryFromObject},
-    obj::objtuple::PyTuple,
+    pyobject::{PyObjectRef, PyResult, TryFromObject, TryIntoRef},
+    obj::objtuple::{PyTupleRef},
     VirtualMachine,
 };
 
@@ -21,12 +21,13 @@ impl PyVec3 {
 
 impl TryFromObject for PyVec3 {
     fn try_from_object(vm: &VirtualMachine, obj: PyObjectRef) -> PyResult<Self> {
-        let as_py_tuple = obj.downcast::<PyTuple>()?;
+        let as_py_tuple: PyTupleRef = obj.try_into_ref(vm)?;
+        let as_slice = as_py_tuple.as_slice();
 
         let vec3 = Vec3::new(
-            FloatLike::try_from_object(vm, as_py_tuple.fast_getitem(0))?.as_f32(),
-            FloatLike::try_from_object(vm, as_py_tuple.fast_getitem(1))?.as_f32(),
-            FloatLike::try_from_object(vm, as_py_tuple.fast_getitem(2))?.as_f32(),
+            FloatLike::try_from_object(vm, as_slice[0].clone())?.as_f32(),
+            FloatLike::try_from_object(vm, as_slice[1].clone())?.as_f32(),
+            FloatLike::try_from_object(vm, as_slice[2].clone())?.as_f32(),
         );
 
         Ok(Self(vec3))

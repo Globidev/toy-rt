@@ -7,11 +7,11 @@ use trt_core::{
 use rustpython_vm::{
     self as rpy,
     obj::objtype::PyClassRef,
-    pyobject::{PyResult, PyValue},
+    pyobject::{PyResult, PyValue, TryIntoRef},
 };
 
 use super::{camera::PyCamera, sphere::PySphere};
-use rpy::{obj::objlist::PyList, pyobject::PyObjectRef};
+use rpy::{obj::objlist::PyListRef, pyobject::{PyRef, PyObjectRef}};
 use std::{cell::RefCell, fmt};
 
 pub type DynScene = Scene<HitList<Box<dyn Hit>>>;
@@ -49,25 +49,24 @@ struct PySceneArgs {
 #[rpy::pyimpl]
 impl PyScene {
     #[pyslot(new)]
-    fn tp_new(_cls: PyClassRef, args: PySceneArgs, _vm: &rpy::VirtualMachine) -> PyResult<Self> {
-        let pyworld = args.world.downcast::<PyList>()?;
-        let pycamera = args.camera.downcast::<PyCamera>()?;
+    fn tp_new(_cls: PyClassRef, args: PySceneArgs, vm: &rpy::VirtualMachine) -> PyResult<Self> {
+        let pyworld: PyListRef = args.world.try_into_ref(vm)?;
+        let pycamera: PyRef<PyCamera> = args.camera.try_into_ref(vm)?;
 
         let mut world: Vec<_> = pyworld
-            .elements
-            .borrow()
+            .borrow_elements()
             .iter()
             .map(|py_obj| {
-                let as_sphere = py_obj.clone().downcast::<PySphere>()?;
+                let as_sphere: PyRef<PySphere> = py_obj.clone().try_into_ref(vm)?;
                 Ok(Box::new((*as_sphere).clone().into_hit()) as Box<dyn Hit>)
             })
             .collect::<PyResult<_>>()?;
 
         world.push(Box::new(
             RectBuilder
-                .x(-50..=50)
-                .z(-50..=50)
-                .y(50)
+                .x(-100..=100)
+                .z(-100..=100)
+                .y(500)
                 .diffuse_color((7, 7, 7)),
         ));
 

@@ -1,29 +1,27 @@
 mod bindings;
 
-use rustpython_vm::{self as rpy, pyobject::PyObjectRef};
+use rustpython_vm::{self as rpy, exceptions::PyBaseExceptionRef};
 
 use bindings::scene::{PyScene, DynScene};
 use rustpython_compiler::{compile::Mode as CompileMode, error::CompileError};
+use rpy::{PySettings, pyobject::PyObjectRef, InitParameter};
 
 #[derive(Debug, thiserror::Error)]
 pub enum EvalError {
-    #[error("Error compiling snippet: {0}")]
-    Compile(CompileError),
-    #[error("Error initializing python module: {0}")]
-    InitModule(PyObjectRef),
-    #[error("Error executing scene code: {0}")]
-    Exec(PyObjectRef),
-    #[error("Error evaluating scene code: {0}")]
-    Eval(PyObjectRef),
+    #[error("Failed to compile: {0}")]
+    Compile(#[from] CompileError),
+    #[error("Python exception: {0:?}")]
+    Exception(PyBaseExceptionRef),
+    #[error("Error executing scene code: {0:?}")]
+    DowncastError(PyObjectRef),
 }
 
 impl EvalError {
     pub fn pretty_print(&self, vm: &rpy::VirtualMachine) -> String {
         match self {
             EvalError::Compile(c) => c.to_string(),
-            EvalError::InitModule(p) | EvalError::Exec(p) | EvalError::Eval(p) => {
-                vm.to_pystr(p).unwrap()
-            }
+            EvalError::Exception(e) => vm.to_pystr(e).unwrap(),
+            EvalError::DowncastError(p) => vm.to_pystr(p).unwrap(),
         }
     }
 }
@@ -36,24 +34,27 @@ pub fn eval_scene(vm: &rpy::VirtualMachine, source: &str) -> Result<DynScene, Ev
         .map_err(EvalError::Compile)?;
 
     vm.run_code_obj(code, scope.clone())
-        .map_err(EvalError::Exec)?;
+        .map_err(EvalError::Exception)?;
 
     let code = vm
         .compile("scene()", CompileMode::Eval, "test".to_string())
         .map_err(EvalError::Compile)?;
 
-    let result = vm.run_code_obj(code, scope).map_err(EvalError::Eval)?;
+    let result = vm.run_code_obj(code, scope).map_err(EvalError::Exception)?;
 
-    let py_scene = result.downcast::<PyScene>().map_err(EvalError::Eval)?;
+    let py_scene = result.downcast::<PyScene>().map_err(EvalError::DowncastError)?;
     let scene = py_scene.take();
 
     Ok(scene)
 }
 
 pub fn new_vm() -> Result<rpy::VirtualMachine, EvalError> {
-    let vm = rpy::VirtualMachine::default();
+    let mut settings = PySettings::default();
+    settings.initialization_parameter = InitParameter::InitializeInternal;
 
-    bindings::init_module(&vm).map_err(EvalError::InitModule)?;
+    let vm = rpy::VirtualMachine::new(settings);
+
+    bindings::init_module(&vm).map_err(EvalError::Exception)?;
 
     Ok(vm)
 }

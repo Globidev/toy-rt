@@ -14,16 +14,16 @@ use rustpython_vm::{
 };
 
 pub fn init_module(vm: &VirtualMachine) -> PyResult<()> {
+    rpy::import::init_importlib(&vm, rpy::InitParameter::InitializeInternal)?;
+
     vm.stdlib_inits
         .borrow_mut()
         .insert(TRT_MODULE_NAME.to_owned(), Box::new(make_trt_module));
 
-    rpy::import::init_importlib(&vm, false)?;
-
     let builtin_names: PyTupleRef = vm.get_attribute(vm.sys_module.clone(), "builtin_module_names")?
         .try_into_ref(&vm)?;
 
-    let mut new_builtins = builtin_names.elements.clone();
+    let mut new_builtins = builtin_names.as_slice().to_owned();
     new_builtins.push(vm.new_str(TRT_MODULE_NAME.to_owned()));
 
     vm.set_attr(&vm.sys_module, "builtin_module_names", vm.ctx.new_tuple(new_builtins))?;
