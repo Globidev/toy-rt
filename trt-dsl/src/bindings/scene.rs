@@ -1,5 +1,4 @@
 use trt_core::{
-    camera::CameraBuilder,
     hit::{HitList, RectBuilder},
     prelude::*,
     scene::Scene,
@@ -11,7 +10,7 @@ use rustpython_vm::{
     pyobject::{PyResult, PyValue},
 };
 
-use super::sphere::PySphere;
+use super::{camera::PyCamera, sphere::PySphere};
 use rpy::{obj::objlist::PyList, pyobject::PyObjectRef};
 use std::{cell::RefCell, fmt};
 
@@ -41,6 +40,7 @@ impl PyValue for PyScene {
 #[derive(Debug, rpy::FromArgs)]
 struct PySceneArgs {
     world: PyObjectRef,
+    camera: PyObjectRef,
     width: usize,
     height: usize,
     rays_per_px: usize,
@@ -50,9 +50,10 @@ struct PySceneArgs {
 impl PyScene {
     #[pyslot(new)]
     fn tp_new(_cls: PyClassRef, args: PySceneArgs, _vm: &rpy::VirtualMachine) -> PyResult<Self> {
-        let as_py_list = args.world.downcast::<PyList>()?;
+        let pyworld = args.world.downcast::<PyList>()?;
+        let pycamera = args.camera.downcast::<PyCamera>()?;
 
-        let mut world: Vec<_> = as_py_list
+        let mut world: Vec<_> = pyworld
             .elements
             .borrow()
             .iter()
@@ -70,9 +71,8 @@ impl PyScene {
                 .diffuse_color((7, 7, 7)),
         ));
 
-        let camera = CameraBuilder::default()
-            .look_from((278, 278, -800))
-            .look_at((278, 278, 0))
+        let camera = (*pycamera).clone()
+            .builder()
             .dimensions(args.width as f32, args.height as f32)
             .finish();
 

@@ -23,7 +23,7 @@ impl PySphere {
 
 impl PyValue for PySphere {
     fn class(vm: &rpy::VirtualMachine) -> PyClassRef {
-        vm.class("trt", "Sphere")
+        vm.class(super::TRT_MODULE_NAME, "Sphere")
     }
 }
 
