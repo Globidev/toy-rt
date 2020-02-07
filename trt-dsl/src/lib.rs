@@ -4,7 +4,8 @@ use rustpython_vm::{self as rpy, exceptions::PyBaseExceptionRef};
 
 use bindings::scene::{PyScene, DynScene};
 use rustpython_compiler::{compile::Mode as CompileMode, error::CompileError};
-use rpy::{PySettings, pyobject::PyObjectRef, InitParameter};
+use rpy::{PySettings, pyobject::{TryIntoRef, PyRef}, InitParameter};
+use std::rc::Rc;
 
 #[derive(Debug, thiserror::Error)]
 pub enum EvalError {
@@ -12,8 +13,6 @@ pub enum EvalError {
     Compile(#[from] CompileError),
     #[error("Python exception: {0:?}")]
     Exception(PyBaseExceptionRef),
-    #[error("Error executing scene code: {0:?}")]
-    DowncastError(PyObjectRef),
 }
 
 impl EvalError {
@@ -21,12 +20,12 @@ impl EvalError {
         match self {
             EvalError::Compile(c) => c.to_string(),
             EvalError::Exception(e) => vm.to_pystr(e).unwrap(),
-            EvalError::DowncastError(p) => vm.to_pystr(p).unwrap(),
+            // EvalError::DowncastError(p) => vm.to_pystr(p).unwrap(),
         }
     }
 }
 
-pub fn eval_scene(vm: &rpy::VirtualMachine, source: &str) -> Result<DynScene, EvalError> {
+pub fn eval_scene(vm: &rpy::VirtualMachine, source: &str) -> Result<Rc<DynScene>, EvalError> {
     let scope = vm.new_scope_with_builtins();
 
     let code = vm
@@ -42,10 +41,9 @@ pub fn eval_scene(vm: &rpy::VirtualMachine, source: &str) -> Result<DynScene, Ev
 
     let result = vm.run_code_obj(code, scope).map_err(EvalError::Exception)?;
 
-    let py_scene = result.downcast::<PyScene>().map_err(EvalError::DowncastError)?;
-    let scene = py_scene.take();
+    let py_scene: PyRef<PyScene> = result.try_into_ref(vm).map_err(EvalError::Exception)?;
 
-    Ok(scene)
+    Ok(py_scene.shared())
 }
 
 pub fn new_vm() -> Result<rpy::VirtualMachine, EvalError> {
