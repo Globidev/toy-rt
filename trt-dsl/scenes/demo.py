@@ -25,4 +25,8 @@ def scene():
         "width": 200,
         "height": 200,
         "rays_per_px": 200,
+        "camera": trt.Camera(
+            look_at=(25, 0, 0),
+            look_from=(25, 0, -120),
+        )
     })
