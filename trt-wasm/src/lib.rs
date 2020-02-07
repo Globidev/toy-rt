@@ -2,8 +2,7 @@ use wasm_bindgen::prelude::*;
 
 use trt_core::prelude::*;
 use trt_core::scene::Scene as SceneImpl;
-use trt_core::camera::CameraBuilder;
-use trt_core::hit::{Sphere, MovingSphere, RectBuilder, HitBox, BVHNode};
+use trt_core::hit::{Sphere, MovingSphere, RectBuilder, HitBox, BVHNode, HitList};
 use trt_core::material::Lambertian;
 use trt_core::texture::Noise;
 use trt_core::world;
@@ -17,36 +16,39 @@ pub fn setup_panic_hook() {
 }
 
 #[wasm_bindgen]
-pub struct Scene(SceneImpl<Box<dyn Hit>>);
+pub struct Scene(SceneImpl<HitList<Box<dyn Hit>>>);
 
 #[wasm_bindgen]
 impl Scene {
     pub fn new(source: &str) -> Self {
-        const WIDTH: usize = 300;
-        const HEIGHT: usize = 300;
-        const RAYS_PER_PX: usize = 500;
+        // const WIDTH: usize = 300;
+        // const HEIGHT: usize = 300;
+        // const RAYS_PER_PX: usize = 200;
 
-        let camera = CameraBuilder::default()
-            // .look_from((478, 278, -600))
-            // .look_at((278, 278, 0))
+        // let camera = CameraBuilder::default()
+        //     // .look_from((478, 278, -600))
+        //     // .look_at((278, 278, 0))
 
-            // .look_from((278, 278, -800))
-            // .look_at((278, 278, 0))
+        //     .look_from((278, 278, -800))
+        //     .look_at((278, 278, 0))
 
-            .look_at((0, 0, 0))
-            .look_from((0, 0, -200))
+        //     // .look_at((0, 0, 0))
+        //     // .look_from((0, 0, -200))
 
-            .dimensions(WIDTH as f32, HEIGHT as f32)
-            .finish();
+        //     .dimensions(WIDTH as f32, HEIGHT as f32)
+        //     .finish();
 
-        let scene = SceneImpl {
-            camera,
-            width: WIDTH,
-            height: HEIGHT,
-            world: Box::new(trt_dsl::eval_scene(source)) as _,
-            // world: Box::new(final_scene()) as _,
-            ray_per_px: RAYS_PER_PX,
-        };
+        let vm = trt_dsl::new_vm().expect("Failed to init vm");
+        let scene = trt_dsl::eval_scene(&vm, source).expect("Failed to eval scene");
+
+        // let scene = SceneImpl {
+        //     camera,
+        //     width: WIDTH,
+        //     height: HEIGHT,
+        //     // world: Box::new(trt_dsl::eval_scene(&vm, source).expect("Failed to eval scene")) as _,
+        //     world: Box::new(cornell_smoke()) as _,
+        //     ray_per_px: RAYS_PER_PX,
+        // };
 
         Self(scene)
     }
