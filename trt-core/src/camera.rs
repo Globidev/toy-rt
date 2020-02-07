@@ -35,6 +35,7 @@ impl Camera {
     }
 }
 
+#[derive(Debug, Clone)]
 pub struct CameraBuilder {
     look_from: Vec3,
     look_at: Vec3,
