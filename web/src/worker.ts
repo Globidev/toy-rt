@@ -14,7 +14,7 @@ import("trt")
           if (scene == null) { return }
           const row = e.data.row
           const colors = scene.row_color(row);
-          self.postMessage({ type: 'row', colors, row })
+          self.postMessage({ type: 'row', colors, row, height: scene.height() })
           break
 
         default: break
