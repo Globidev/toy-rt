@@ -1,16 +1,9 @@
-use trt_core::prelude::*;
-
-use rustpython_vm as rpy;
-use rpy::{
-    pyobject::{PyResult, PyObjectRef},
-    obj::objdict::PyDict,
-    obj::objlist::PyList,
-};
-
-use rustpython_compiler::{compile::Mode as CompileMode, error::CompileError};
-use bindings::scene::PyScene;
-
 mod bindings;
+
+use rustpython_vm::{self as rpy, pyobject::PyObjectRef};
+
+use bindings::scene::{PyScene, DynScene};
+use rustpython_compiler::{compile::Mode as CompileMode, error::CompileError};
 
 #[derive(Debug, thiserror::Error)]
 pub enum EvalError {
@@ -28,44 +21,39 @@ impl EvalError {
     pub fn pretty_print(&self, vm: &rpy::VirtualMachine) -> String {
         match self {
             EvalError::Compile(c) => c.to_string(),
-            EvalError::InitModule(p)
-            | EvalError::Exec(p)
-            | EvalError::Eval(p) => {
+            EvalError::InitModule(p) | EvalError::Exec(p) | EvalError::Eval(p) => {
                 vm.to_pystr(p).unwrap()
-            },
+            }
         }
     }
 }
 
-pub fn eval_scene(vm: &rpy::VirtualMachine, source: &str) -> Result<impl Hit, EvalError> {
-
+pub fn eval_scene(vm: &rpy::VirtualMachine, source: &str) -> Result<DynScene, EvalError> {
     let scope = vm.new_scope_with_builtins();
 
-    let code = vm.compile(source, CompileMode::Exec, "test".to_string())
+    let code = vm
+        .compile(source, CompileMode::Exec, "test".to_string())
         .map_err(EvalError::Compile)?;
 
     vm.run_code_obj(code, scope.clone())
         .map_err(EvalError::Exec)?;
 
-    let code = vm.compile("scene()", CompileMode::Eval, "test".to_string())
+    let code = vm
+        .compile("scene()", CompileMode::Eval, "test".to_string())
         .map_err(EvalError::Compile)?;
 
-    let result = vm.run_code_obj(code, scope)
-        .map_err(EvalError::Eval)?;
+    let result = vm.run_code_obj(code, scope).map_err(EvalError::Eval)?;
 
-    let scene = result.downcast::<PyScene>()
-        .map_err(EvalError::Eval)?;
+    let py_scene = result.downcast::<PyScene>().map_err(EvalError::Eval)?;
+    let scene = py_scene.take();
 
-    let world = scene.take();
-
-    Ok(trt_core::hit::HitList::new(world))
+    Ok(scene)
 }
 
 pub fn new_vm() -> Result<rpy::VirtualMachine, EvalError> {
     let vm = rpy::VirtualMachine::default();
 
-    bindings::init_module(&vm)
-        .map_err(EvalError::InitModule)?;
+    bindings::init_module(&vm).map_err(EvalError::InitModule)?;
 
     Ok(vm)
 }
@@ -81,5 +69,16 @@ mod tests {
             panic!("{}", e.pretty_print(&vm))
         }
     }
+
+    #[test]
+    fn dynamic_scene() {
+        let vm = new_vm().expect("Failed to init vm");
+        let source =
+            std::fs::read_to_string("/home/globi/dev/toy-ray-tracer/trt-dsl/scenes/dynamic.py")
+                .expect("Failed to open dynamic scene");
+        let res = eval_scene(&vm, &source);
+        if let Err(e) = res {
+            panic!("{}", e.pretty_print(&vm))
+        }
     }
 }
