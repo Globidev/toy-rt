@@ -21,5 +21,8 @@ def scene():
     )
 
     return trt.Scene(**{
-        "world": spheres + [ground]
+        "world": spheres + [ground],
+        "width": 200,
+        "height": 200,
+        "rays_per_px": 200,
     })
