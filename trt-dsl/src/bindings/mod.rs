@@ -3,6 +3,7 @@ pub mod sphere;
 pub mod vec3;
 pub mod float;
 pub mod scene;
+pub mod rect;
 
 const TRT_MODULE_NAME: &str = "trt";
 
@@ -12,6 +13,31 @@ use rustpython_vm::{
     obj::objtuple::PyTupleRef,
     VirtualMachine
 };
+use std::{fmt, rc::Rc, ops::Deref};
+use trt_core::hit::Hit;
+
+#[derive(Clone)]
+pub struct SharedHit(Rc<dyn Hit>);
+
+impl fmt::Debug for SharedHit {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "<SharedHit object>")
+    }
+}
+
+impl Deref for SharedHit {
+    type Target = Rc<dyn Hit>;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
+impl SharedHit {
+    pub fn new<T: Hit + 'static>(hit: T) -> Self {
+        Self(Rc::new(hit))
+    }
+}
 
 pub fn init_module(vm: &VirtualMachine) -> PyResult<()> {
     rpy::import::init_importlib(&vm, rpy::InitParameter::InitializeInternal)?;
@@ -36,5 +62,6 @@ fn make_trt_module(vm: &VirtualMachine) -> PyObjectRef {
         "Sphere" => sphere::PySphere::make_class(&vm.ctx),
         "Scene" => scene::PyScene::make_class(&vm.ctx),
         "Camera" => camera::PyCamera::make_class(&vm.ctx),
+        "Rect" => rect::PyRect::make_class(&vm.ctx),
     })
 }
