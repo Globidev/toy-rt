@@ -1,3 +1,4 @@
+pub mod camera;
 pub mod sphere;
 pub mod vec3;
 pub mod float;
@@ -34,5 +35,6 @@ fn make_trt_module(vm: &VirtualMachine) -> PyObjectRef {
     rpy::py_module!(vm, TRT_MODULE_NAME, {
         "Sphere" => sphere::PySphere::make_class(&vm.ctx),
         "Scene" => scene::PyScene::make_class(&vm.ctx),
+        "Camera" => camera::PyCamera::make_class(&vm.ctx),
     })
 }
