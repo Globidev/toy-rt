@@ -1,5 +1,5 @@
 use trt_core::{
-    hit::{HitList, RectBuilder},
+    hit::HitList,
     prelude::*,
     scene::Scene,
 };
@@ -64,27 +64,13 @@ impl PyScene {
         let pyworld: PyListRef = args.world.try_into_ref(vm)?;
         let pycamera: PyRef<PyCamera> = args.camera.try_into_ref(vm)?;
 
-        let mut world: Vec<_> = pyworld
+        let world: Vec<_> = pyworld
             .borrow_elements()
             .iter()
             .map(|py_obj| {
                 extract_hit(vm, py_obj.clone()).map(|s| (*s).clone())
             })
             .collect::<PyResult<_>>()?;
-
-        // world.push(Box::new(
-        //     RectBuilder
-        //         .x(-100..=100)
-        //         .z(-100..=100)
-        //         .y(500)
-        //         .diffuse_color((7, 7, 7)),
-        // ));
-        world.push(Rc::new(
-            RectBuilder.x(113..=443).z(127..=432).y(554).diffuse_color((7, 7, 7))
-        ));
-        // world.push(Box::new(
-        //     RectBuilder.x(0..=555).z(0..=555).y(555).matte((1,1,1)).flip_normals(),
-        // ));
 
         let camera = (*pycamera).clone()
             .builder()

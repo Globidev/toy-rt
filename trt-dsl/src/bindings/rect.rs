@@ -9,7 +9,7 @@ use rustpython_vm::{
     pyobject::{PyResult, PyValue, TryFromObject},
 };
 
-use super::{float::FloatLike, vec3::PyVec3, SharedHit};
+use super::{float::FloatLike, SharedHit, material::PyMaterial};
 use std::{ops::RangeInclusive};
 use rpy::{obj::objtuple::PyTupleRef, pyobject::PyObjectRef};
 
@@ -34,7 +34,7 @@ struct PyRectArgs {
     x: PyObjectRef,
     y: PyObjectRef,
     z: PyObjectRef,
-    color: PyVec3,
+    material: PyMaterial,
 }
 
 #[derive(Debug)]
@@ -79,23 +79,23 @@ impl PyRect {
         let x = float_or_range(vm, args.x)?;
         let y = float_or_range(vm, args.y)?;
         let z = float_or_range(vm, args.z)?;
-        let color = args.color.into_vec();
+        let material = args.material.shared_material();
 
         let rect = match x {
             FloatOrRange::Float(x) => {
                 let y_range = y.range().ok_or_else(|| vm.new_value_error(format!("")))?;
                 let z_range = z.range().ok_or_else(|| vm.new_value_error(format!("")))?;
-                SharedHit::new(RectBuilder.y(y_range).z(z_range).x(x).matte(color)) as _
+                SharedHit::new(RectBuilder.y(y_range).z(z_range).x(x).material(material)) as _
             },
             FloatOrRange::Range(x_range) => {
                 match y {
                     FloatOrRange::Float(y) => {
                         let z_range = z.range().ok_or_else(|| vm.new_value_error(format!("")))?;
-                        SharedHit::new(RectBuilder.x(x_range).z(z_range).y(y).matte(color)) as _
+                        SharedHit::new(RectBuilder.x(x_range).z(z_range).y(y).material(material)) as _
                     },
                     FloatOrRange::Range(y_range) => {
                         let z = z.float().ok_or_else(|| vm.new_value_error(format!("")))?;
-                        SharedHit::new(RectBuilder.x(x_range).y(y_range).z(z).matte(color)) as _
+                        SharedHit::new(RectBuilder.x(x_range).y(y_range).z(z).material(material)) as _
                     },
                 }
             },

@@ -9,7 +9,7 @@ use rustpython_vm::{
     pyobject::{PyResult, PyValue},
 };
 
-use super::{float::FloatLike, vec3::PyVec3, SharedHit};
+use super::{float::FloatLike, vec3::PyVec3, SharedHit, material::PyMaterial};
 
 #[rpy::pyclass(name = "Sphere")]
 #[derive(Debug)]
@@ -31,7 +31,7 @@ impl PyValue for PySphere {
 struct PySphereArgs {
     center: PyVec3,
     radius: FloatLike,
-    color: PyVec3,
+    material: PyMaterial,
 }
 
 #[rpy::pyimpl]
@@ -41,7 +41,7 @@ impl PySphere {
         let sphere = Sphere::builder()
             .radius(args.radius.as_f32())
             .center(args.center.into_vec())
-            .matte(args.color.into_vec());
+            .material(args.material.shared_material());
 
         Ok(Self(SharedHit::new(sphere)))
     }
