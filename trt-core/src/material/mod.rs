@@ -1,5 +1,6 @@
 use crate::prelude::{Ray, HitRecord, Vec3};
 use std::sync::Arc;
+use std::rc::Rc;
 
 pub trait Material {
     fn scatter(&self, r_in: &Ray, rec: &HitRecord) -> Option<(Ray, Vec3)>;
@@ -9,6 +10,15 @@ pub trait Material {
 }
 
 impl<T: Material + ?Sized> Material for Arc<T> {
+    fn scatter(&self, r_in: &Ray, rec: &HitRecord) -> Option<(Ray, Vec3)> {
+        self.as_ref().scatter(r_in, rec)
+    }
+    fn emitted(&self, u: f32, v: f32, p: Vec3) -> Vec3 {
+        self.as_ref().emitted(u, v, p)
+    }
+}
+
+impl<T: Material + ?Sized> Material for Rc<T> {
     fn scatter(&self, r_in: &Ray, rec: &HitRecord) -> Option<(Ray, Vec3)> {
         self.as_ref().scatter(r_in, rec)
     }
