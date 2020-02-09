@@ -55,5 +55,8 @@ body {
 
 #canvas {
     /* position: absolute; */
-    /* border: 1px dashed #bbb */
+}
+
+.canvas-building {
+    border: 1px dashed #bbb
 }
