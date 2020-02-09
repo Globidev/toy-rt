@@ -9,7 +9,7 @@ def scene():
         trt.Sphere(
             center=(-50 + i * 50, 0, 0),
             radius=20,
-            color=color,
+            material=trt.Material.matte(color),
         )
         for i, color in enumerate((red, green, blue))
     ]
@@ -17,13 +17,13 @@ def scene():
     ground = trt.Sphere(
         center=(0, -5050, 0),
         radius=5000,
-        color=(1, 1, 1),
+        material=trt.Material.matte((1, 1, 1)),
     )
 
     ceiling = trt.Sphere(
         center=(0, +5200, 0),
         radius=5000,
-        color=(1, 1, 1),
+        material=trt.Material.matte((1, 1, 1)),
     )
 
     return trt.Scene(**{
