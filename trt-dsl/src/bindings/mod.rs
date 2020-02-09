@@ -4,6 +4,7 @@ pub mod vec3;
 pub mod float;
 pub mod scene;
 pub mod rect;
+pub mod material;
 
 const TRT_MODULE_NAME: &str = "trt";
 
@@ -63,5 +64,6 @@ fn make_trt_module(vm: &VirtualMachine) -> PyObjectRef {
         "Scene" => scene::PyScene::make_class(&vm.ctx),
         "Camera" => camera::PyCamera::make_class(&vm.ctx),
         "Rect" => rect::PyRect::make_class(&vm.ctx),
+        "Material" => material::PyMaterial::make_class(&vm.ctx),
     })
 }
