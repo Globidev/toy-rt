@@ -16,7 +16,8 @@ use trt_core::scene::Scene;
 
 const WIDTH: usize = 300;
 const HEIGHT: usize = 300;
-const RAYS_PER_PX: usize = 50_0;
+const SAMPLES_PER_PX: u32 = 500;
+const RAYS_PER_SAMPLE: u32 = 50;
 
 pub fn random_scene() -> impl Hit {
     let mut rng = thread_rng();
@@ -298,7 +299,8 @@ fn run() -> image::RgbImage {
         width: WIDTH,
         height: HEIGHT,
         world: final_scene(),
-        ray_per_px: RAYS_PER_PX,
+        samples_per_px: SAMPLES_PER_PX,
+        rays_per_sample: RAYS_PER_SAMPLE,
     };
 
     let progress = ProgressBar::new((WIDTH * HEIGHT) as u64)

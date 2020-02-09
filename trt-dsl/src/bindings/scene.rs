@@ -43,7 +43,8 @@ struct PySceneArgs {
     camera: PyObjectRef,
     width: usize,
     height: usize,
-    rays_per_px: usize,
+    samples_per_px: u32,
+    rays_per_sample: u32,
 }
 
 fn extract_hit(vm: &rpy::VirtualMachine, obj: PyObjectRef) -> PyResult<SharedHit> {
@@ -95,7 +96,8 @@ impl PyScene {
             width: args.width,
             height: args.height,
             world: HitList::new(world),
-            ray_per_px: args.rays_per_px,
+            samples_per_px: args.samples_per_px,
+            rays_per_sample: args.rays_per_sample,
         };
 
         Ok(Self(Rc::new(scene)))

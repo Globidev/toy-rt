@@ -2,12 +2,12 @@ use crate::prelude::{Hit, Ray, Vec3};
 
 pub use rand::{Rng, thread_rng, seq::SliceRandom};
 
-pub fn compute_color(ray: &Ray, world: &impl Hit, depth: u32) -> Vec3 {
+pub fn compute_color(ray: &Ray, world: &impl Hit, depth: u32, max_depth: u32) -> Vec3 {
     if let Some(rec) = world.hit(ray, 0.001, std::f32::MAX) {
         let emitted = rec.mat.emitted(rec.u, rec.v, rec.p);
-        if depth < 50 {
+        if depth < max_depth {
             if let Some((scattered, attenuation)) = rec.mat.scatter(ray, &rec) {
-                return emitted + attenuation * compute_color(&scattered, world, depth + 1);
+                return emitted + attenuation * compute_color(&scattered, world, depth + 1, max_depth);
             }
         }
 
