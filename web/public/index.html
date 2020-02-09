@@ -7,25 +7,30 @@
 </head>
 
 <body>
-  <div id="app"></div>
+  <div>
+  <div class="app">
+    <div class="split">
 
-  <div style="display: flex;">
-    <div>
-      <textarea id="code-area" cols="50" rows="10" spellcheck="false"></textarea>
-      <div>
-        <button id="run-btn">Run</button>
+      <div class="editor-container">
+        <div id="editor"></div>
       </div>
+
+      <div class="ctrl-panel">
+        <div class="ctrls">
+          <button id="run-btn">Run</button>
+          <div id="worker-slider-value">Workers: 8</div>
+          <input type="range" id="worker-slider" min="1" max="8" value="8" />
+        </div>
+      </div>
+
+      <div class="canvas-container">
+        <canvas id="canvas" width="800" height="800"></canvas>
+      </div>
+
     </div>
 
-    <div style="width: 100px;"></div>
-    <div>
-      <div id="worker-slider-value">Workers: 1</div>
-      <input type="range" id="worker-slider" min="1" max="8" value="1" />
-    </div>
-    <div>
-      <canvas id="canvas" width="300" height="300"></canvas>
-    </div>
   </div>
+</div>
 
   <noscript>This page contains webassembly and javascript content, please enable javascript in your browser.</noscript>
   <script src="./bundle.js"></script>
