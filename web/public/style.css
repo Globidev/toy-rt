@@ -1,6 +1,7 @@
 body {
     background-color: #36393f;
     color: lightgray;
+    margin: unset;
 }
 
 .app {
