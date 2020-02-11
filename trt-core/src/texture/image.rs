@@ -16,6 +16,18 @@ impl Image {
             _ => Err(ImageLoadError::NotRGB)
         }
     }
+
+    pub fn load_from_memory(data: &[u8]) -> Result<Self, ImageLoadError> {
+        use image::DynamicImage::ImageRgb8;
+
+        let img = image::load_from_memory(data)
+            .map_err(ImageLoadError::OpenError)?;
+
+        match img {
+            ImageRgb8(image) => Ok(Self { image }),
+            _ => Err(ImageLoadError::NotRGB)
+        }
+    }
 }
 
 impl Texture for Image {
