@@ -17,7 +17,7 @@ export function main() {
       name="ace-editor-rendered"
       editorProps={{ $blockScrolling: true }}
       value={source}
-      height="100%"
+      height="80%"
       width="100%"
     />,
     document.getElementById("editor")
