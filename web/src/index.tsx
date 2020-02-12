@@ -1,4 +1,6 @@
 import '../public/style.css';
+//@ts-ignore ????????
+import demoCode from '../public/demo.py';
 
 import React from "react";
 import { render } from "react-dom";
@@ -8,7 +10,7 @@ import "react-ace-builds/webpack-resolver-min";
 export function main() {
   trt.setup_panic_hook();
 
-  let source = window.localStorage.getItem("last-source") || "";
+  let source = window.localStorage.getItem("last-source") || demoCode;
   render(
     <AceEditor
       mode="python"
