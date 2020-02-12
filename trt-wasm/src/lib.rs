@@ -16,17 +16,30 @@ pub fn setup_panic_hook() {
 }
 
 #[wasm_bindgen]
+pub struct PythonVM(trt_dsl::VirtualMachine);
+
+#[wasm_bindgen]
+impl PythonVM {
+    pub fn new() -> Result<PythonVM, JsValue> {
+        let vm = trt_dsl::new_vm()
+            .map_err(|e| format!("Failed to initialize Python VM: {}", e))?;
+
+        Ok(Self(vm))
+    }
+
+    pub fn eval_scene(&self, source: &str) -> Result<Scene, JsValue> {
+        let scene = trt_dsl::eval_scene(&self.0, source)
+            .map_err(|e| format!("Failed to eval scene: {}", e.pretty_print(&self.0)))?;
+
+        Ok(Scene(scene))
+    }
+}
+
+#[wasm_bindgen]
 pub struct Scene(Rc<SceneImpl<HitList<Rc<dyn Hit>>>>);
 
 #[wasm_bindgen]
 impl Scene {
-    pub fn new(source: &str) -> Self {
-        let vm = trt_dsl::new_vm().expect("Failed to init VM");
-        let scene = trt_dsl::eval_scene(&vm, source).expect("Failed to eval scene");
-
-        Self(scene)
-    }
-
     pub fn row_color(&self, y: usize) -> Vec<u32> {
         (0..self.0.width)
             .map(|x| {

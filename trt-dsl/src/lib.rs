@@ -5,6 +5,7 @@ use rustpython_vm::{self as rpy, exceptions::PyBaseExceptionRef};
 use bindings::scene::{PyScene, DynScene};
 use rustpython_compiler::{compile::Mode as CompileMode, error::CompileError};
 use rpy::{PySettings, pyobject::{TryIntoRef, PyRef}, InitParameter};
+pub use rpy::VirtualMachine;
 use std::rc::Rc;
 
 #[derive(Debug, thiserror::Error)]
@@ -19,8 +20,11 @@ impl EvalError {
     pub fn pretty_print(&self, vm: &rpy::VirtualMachine) -> String {
         match self {
             EvalError::Compile(c) => c.to_string(),
-            EvalError::Exception(e) => vm.to_pystr(e).unwrap(),
-            // EvalError::DowncastError(p) => vm.to_pystr(p).unwrap(),
+            EvalError::Exception(e) => {
+                let mut s = Vec::new();
+                rpy::exceptions::write_exception(&mut s, vm, e).unwrap();
+                String::from_utf8(s).unwrap_or_else(|_| format!("{:?}", e))
+            },
         }
     }
 }

@@ -10,7 +10,57 @@ import "react-ace-builds/webpack-resolver-min";
 export function main() {
   trt.setup_panic_hook();
 
+  const pythonVM = trt.PythonVM.new();
+
   let source = window.localStorage.getItem("last-source") || demoCode;
+  const run = () => {
+    window.localStorage.setItem("last-source", source)
+
+    let scene;
+    try {
+      scene = pythonVM.eval_scene(source);
+    } catch (error) {
+      const el = document.getElementById('traceback') as HTMLDivElement;
+      el.innerText = error
+      return
+    }
+
+    canvas.setAttribute("width", scene.width().toString())
+    canvas.setAttribute("height", scene.height().toString())
+
+    canvas.classList.add('canvas-building')
+
+    for (let worker of workers) {
+      worker.postMessage({ type: 'scene', code: source })
+    }
+
+    ctx.clearRect(0, 0, canvas.width, canvas.height)
+
+    let y = scene.height() - 1;
+
+    function dispatchWork() {
+      if (y >= 0) {
+        let currentlyAvailableWorkers = [...availableWorkers];
+        for (let workerId of currentlyAvailableWorkers) {
+          if (workerId >= parseInt(slider.value)) {
+            continue
+          }
+          workers[workerId].postMessage({ type: 'compute', row: y })
+          availableWorkers.delete(workerId)
+          y -= 1
+          if (y < 0) { break }
+        }
+        setTimeout(dispatchWork, 0);
+      } else {
+        console.log(Date.now() - start)
+        canvas.classList.remove('canvas-building')
+      }
+    }
+
+    let start = Date.now();
+    dispatchWork()
+  };
+
   render(
     <AceEditor
       mode="python"
@@ -21,9 +71,22 @@ export function main() {
       value={source}
       height="80%"
       width="100%"
+      ref={(e) => {
+        if (e == null) return
+        // @ts-ignore
+        const editor = e.editor;
+        editor.commands.addCommand({
+          name: "Run",
+          bindKey: { win: "Ctrl-Enter", mac: "Command-Enter" },
+          exec: run
+        });
+      }}
+      enableBasicAutocompletion={true}
     />,
     document.getElementById("editor")
   );
+
+  // console.log(foo)
 
   const runBtn = document.getElementById('run-btn') as HTMLButtonElement;
 
@@ -70,44 +133,7 @@ export function main() {
     workers.push(worker)
   }
 
-  runBtn.onclick = () => {
-    window.localStorage.setItem("last-source", source)
-    let scene = trt.Scene.new(source);
-    canvas.setAttribute("width", scene.width().toString())
-    canvas.setAttribute("height", scene.height().toString())
-
-    canvas.classList.add('canvas-building')
-
-    for (let worker of workers) {
-      worker.postMessage({ type: 'scene', code: source })
-    }
-
-    ctx.clearRect(0, 0, canvas.width, canvas.height)
-
-    let y = scene.height() - 1;
-
-    function dispatchWork() {
-      if (y >= 0) {
-        let currentlyAvailableWorkers = [...availableWorkers];
-        for (let workerId of currentlyAvailableWorkers) {
-          if (workerId >= parseInt(slider.value)) {
-            continue
-          }
-          workers[workerId].postMessage({ type: 'compute', row: y })
-          availableWorkers.delete(workerId)
-          y -= 1
-          if (y < 0) { break }
-        }
-        setTimeout(dispatchWork, 0);
-      } else {
-        console.log(Date.now() - start)
-        canvas.classList.remove('canvas-building')
-      }
-    }
-
-    let start = Date.now();
-    dispatchWork()
-  }
+  runBtn.onclick = run
 
   const sliderValue = document.getElementById('worker-slider-value') as HTMLDivElement;
   slider.oninput = () => {

@@ -2,12 +2,13 @@ import("trt")
   .then(wasm => {
     wasm.setup_panic_hook();
     var scene: import('trt').Scene | null = null
+    const vm = wasm.PythonVM.new();
 
     self.postMessage({ type: "ready" })
     self.onmessage = (e: any) => {
       switch (e.data.type) {
         case "scene":
-          scene = wasm.Scene.new(e.data.code)
+          scene = vm.eval_scene(e.data.code)
           break
 
         case "compute":

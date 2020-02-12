@@ -24,6 +24,12 @@ const browserConfig = {
           'css-loader',
         ],
       },
+      {
+        test: /\.py$/,
+        use: [
+          'raw-loader',
+        ],
+      },
     ],
   },
   resolve: {
