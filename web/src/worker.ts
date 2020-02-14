@@ -1,5 +1,6 @@
 import("trt")
   .then(wasm => {
+    console.log("WORKER LOADED")
     wasm.setup_panic_hook();
     var scene: import('trt').Scene | null = null
     const vm = wasm.PythonVM.new();
@@ -10,6 +11,7 @@ import("trt")
         case "scene":
           scene = vm.eval_scene(e.data.code)
           break
+
 
         case "compute":
           if (scene == null) { return }
@@ -22,4 +24,7 @@ import("trt")
       }
     }
   })
-  .catch(err => console.error("Error importing wasm:", err));
+  .catch(err => {
+    console.error("Error importing wasm:", err);
+    self.postMessage({ type: 'error', why: `Error importing wasm: ${err}` })
+  });

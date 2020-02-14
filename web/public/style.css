@@ -58,6 +58,7 @@ body {
 }
 
 .ctrls {
+    display: none;
     /* position: absolute; */
 }
 

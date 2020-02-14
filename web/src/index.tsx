@@ -114,8 +114,19 @@ export function main() {
 
     worker.onmessage = (e) => {
       switch (e.data.type) {
+        case "error":
+          let loadingCtrls = document.getElementsByClassName('loading-ctrls')[0] as HTMLDivElement;
+          loadingCtrls.innerText = e.data.why
+          break
+
         case "ready":
           availableWorkers.add(i)
+          if (availableWorkers.size == 8) {
+            let ctrls = document.getElementsByClassName('ctrls')[0] as HTMLDivElement;
+            let loadingCtrls = document.getElementsByClassName('loading-ctrls')[0] as HTMLDivElement;
+            ctrls.style.display = "block";
+            loadingCtrls.style.display = "none";
+          }
           break
 
         case "row":
@@ -132,6 +143,7 @@ export function main() {
 
     workers.push(worker)
   }
+
 
   runBtn.onclick = run
 
