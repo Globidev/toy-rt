@@ -10,7 +10,7 @@ use rustpython_vm::{
     pyobject::{PyResult, PyValue, TryIntoRef, TryFromObject},
 };
 
-use super::{camera::PyCamera, sphere::PySphere, rect::PyRect, SharedHit};
+use super::{camera::PyCamera, sphere::PySphere, rect::PyRect, SharedHit, vec3::PyVec3, hitbox::PyHitBox, bvh::PyBVHNode};
 use rpy::{obj::objlist::PyListRef, pyobject::{PyRef, PyObjectRef}};
 use std::{fmt, rc::Rc};
 
@@ -52,8 +52,19 @@ fn extract_hit(vm: &rpy::VirtualMachine, obj: PyObjectRef) -> PyResult<SharedHit
     match <PyRef<PySphere>>::try_from_object(vm, obj.clone()) {
         Ok(r) => Ok(r.shared_hit()),
         Err(_) => {
-            let r = <PyRef<PyRect>>::try_from_object(vm, obj)?;
-            Ok(r.shared_hit())
+            match <PyRef<PyRect>>::try_from_object(vm, obj.clone()) {
+                Ok(r) => Ok(r.shared_hit()),
+                Err(_) => {
+                    match <PyRef<PyBVHNode>>::try_from_object(vm, obj.clone()) {
+                        Ok(r) => Ok(r.shared_hit()),
+                        Err(_) => {
+                            let r = <PyRef<PyHitBox>>::try_from_object(vm, obj)?;
+                            Ok(r.shared_hit())
+                        }
+                    }
+
+                }
+            }
         },
     }
 }
