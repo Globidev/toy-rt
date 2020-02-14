@@ -9,7 +9,7 @@ use rustpython_vm::{
     pyobject::{PyResult, PyValue, TryFromObject},
 };
 
-use super::{float::FloatLike, SharedHit, material::PyMaterial};
+use super::{float::FloatLike, SharedHit, material::PyMaterial, vec3::PyVec3};
 use std::{ops::RangeInclusive};
 use rpy::{obj::objtuple::PyTupleRef, pyobject::PyObjectRef};
 
@@ -105,7 +105,22 @@ impl PyRect {
     }
 
     #[pymethod]
-    fn flip_normals(&self) -> PyRect {
+    fn flip_normals(&self) -> Self {
         Self(SharedHit::new((*self.shared_hit()).clone().flip_normals()))
+    }
+
+    #[pymethod]
+    fn rotate_y(&self, angle: FloatLike) -> Self {
+        Self(SharedHit::new((*self.shared_hit()).clone().rotate_y(angle.as_f32())))
+    }
+
+    #[pymethod]
+    fn translate(&self, offset: PyVec3) -> Self {
+        Self(SharedHit::new((*self.shared_hit()).clone().translate(offset.into_vec())))
+    }
+
+    #[pymethod]
+    fn constant_medium(&self, density: FloatLike, color: PyVec3) -> Self {
+        Self(SharedHit::new((*self.shared_hit()).clone().constant_medium(density.as_f32(), color.into_vec())))
     }
 }
