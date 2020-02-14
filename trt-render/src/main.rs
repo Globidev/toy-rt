@@ -301,6 +301,7 @@ fn run() -> image::RgbImage {
         world: final_scene(),
         samples_per_px: SAMPLES_PER_PX,
         rays_per_sample: RAYS_PER_SAMPLE,
+        ambiant_color: Vec3::splat(0),
     };
 
     let progress = ProgressBar::new((WIDTH * HEIGHT) as u64)

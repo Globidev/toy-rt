@@ -45,6 +45,7 @@ struct PySceneArgs {
     height: usize,
     samples_per_px: u32,
     rays_per_sample: u32,
+    ambiant_color: PyVec3,
 }
 
 fn extract_hit(vm: &rpy::VirtualMachine, obj: PyObjectRef) -> PyResult<SharedHit> {
@@ -84,6 +85,7 @@ impl PyScene {
             world: HitList::new(world),
             samples_per_px: args.samples_per_px,
             rays_per_sample: args.rays_per_sample,
+            ambiant_color: args.ambiant_color.into_vec()
         };
 
         Ok(Self(Rc::new(scene)))

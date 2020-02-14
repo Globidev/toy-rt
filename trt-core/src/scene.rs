@@ -8,6 +8,7 @@ pub struct Scene<World> {
     pub world: World,
     pub samples_per_px: u32,
     pub rays_per_sample: u32,
+    pub ambiant_color: Vec3,
 }
 
 impl<World: Hit> Scene<World> {
@@ -19,7 +20,7 @@ impl<World: Hit> Scene<World> {
 
                 let ray = self.camera.get_ray(u, v);
 
-                current_color + compute_color(&ray, &self.world, 0, self.rays_per_sample)
+                current_color + compute_color(&ray, &self.world, self.ambiant_color, 0, self.rays_per_sample)
             });
 
         (summed_color / self.samples_per_px as f32)
