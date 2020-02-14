@@ -2,6 +2,8 @@ use crate::prelude::{Material, AABB, Ray, Vec3};
 use crate::material::Isotropic;
 use crate::texture::Constant;
 
+use std::{sync::Arc, rc::Rc};
+
 pub struct HitRecord<'mat> {
     pub t: f32,
     pub u: f32,
@@ -70,6 +72,15 @@ impl<T: Hit + ?Sized> Hit for Rc<T> {
     }
 }
 
+impl<T: Hit + ?Sized> Hit for Arc<T> {
+    fn hit(&self, ray: &Ray, t_min: f32, t_max: f32) -> Option<HitRecord<'_>> {
+        self.as_ref().hit(ray, t_min, t_max)
+    }
+    fn bounding_box(&self, t0: f32, t1: f32) -> Option<AABB> {
+        self.as_ref().bounding_box(t0, t1)
+    }
+}
+
 #[macro_export]
 macro_rules! world {
     ($hit:expr) => { $hit };
@@ -110,4 +121,3 @@ pub use rotate::RotateY;
 
 mod constant_medium;
 pub use constant_medium::ConstantMedium;
-use std::rc::Rc;
