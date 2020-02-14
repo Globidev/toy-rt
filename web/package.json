@@ -4,7 +4,7 @@
   "description": "create an app to consume rust-generated wasm packages",
   "main": "index.js",
   "scripts": {
-    "build": "webpack --config webpack.config.js",
+    "build": "webpack -p --mode=production --config webpack.config.js",
     "start": "webpack-dev-server  --host 0.0.0.0"
   },
   "dependencies": {
