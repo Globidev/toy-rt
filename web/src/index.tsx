@@ -13,12 +13,12 @@ export function main() {
   const pythonVM = trt.PythonVM.new();
 
   let source = window.localStorage.getItem("last-source") || demoCode;
-  const run = () => {
+  const run = async () => {
     window.localStorage.setItem("last-source", source)
 
     let scene;
     try {
-      scene = pythonVM.eval_scene(source);
+      scene = await pythonVM.eval(source).build_scene();
     } catch (error) {
       const el = document.getElementById('traceback') as HTMLDivElement;
       el.innerText = error

@@ -1,14 +1,16 @@
+#![feature(type_alias_impl_trait)]
+
 use wasm_bindgen::prelude::*;
 
 use trt_core::prelude::*;
-use trt_core::scene::Scene as SceneImpl;
-use trt_core::hit::{Sphere, MovingSphere, RectBuilder, HitBox, BVHNode, HitList};
+use trt_core::hit::{Sphere, MovingSphere, RectBuilder, HitBox, BVHNode};
 use trt_core::material::Lambertian;
 use trt_core::texture::Noise;
 use trt_core::world;
 use rand::random;
 
-use std::{rc::Rc, sync::Arc};
+use std::{rc::Rc, sync::Arc, future::Future};
+use trt_dsl::DynScene;
 
 #[wasm_bindgen]
 pub fn setup_panic_hook() {
@@ -27,16 +29,32 @@ impl PythonVM {
         Ok(Self(vm))
     }
 
-    pub fn eval_scene(&self, source: &str) -> Result<Scene, JsValue> {
-        let scene = trt_dsl::eval_scene(&self.0, source)
-            .map_err(|e| format!("Failed to eval scene: {}", e.pretty_print(&self.0)))?;
+    fn eval_impl(&self, source: &str) -> Result<SceneFuture, JsValue> {
+        trt_dsl::eval_scene(&self.0, &source)
+            .map_err(|e| format!("Failed to eval scene: {}", e.pretty_print(&self.0)).into())
+    }
 
-        Ok(Scene(scene))
+    pub fn eval(&self, source: &str) -> Result<ScenePromise, JsValue> {
+        let scene = self.eval_impl(source)?;
+
+        Ok(ScenePromise(scene))
     }
 }
 
 #[wasm_bindgen]
-pub struct Scene(Rc<SceneImpl<HitList<Rc<dyn Hit>>>>);
+pub struct ScenePromise(SceneFuture);
+
+#[wasm_bindgen]
+impl ScenePromise {
+    pub async fn build_scene(self) -> Scene {
+        Scene(self.0.await)
+    }
+}
+
+type SceneFuture = impl Future<Output = Rc<DynScene>>;
+
+#[wasm_bindgen]
+pub struct Scene(Rc<DynScene>);
 
 #[wasm_bindgen]
 impl Scene {

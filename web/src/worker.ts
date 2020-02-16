@@ -6,12 +6,11 @@ import("trt")
     const vm = wasm.PythonVM.new();
 
     self.postMessage({ type: "ready" })
-    self.onmessage = (e: any) => {
+    self.onmessage = async (e: any) => {
       switch (e.data.type) {
         case "scene":
-          scene = vm.eval_scene(e.data.code)
+          scene = await vm.eval(e.data.code).build_scene()
           break
-
 
         case "compute":
           if (scene == null) { return }

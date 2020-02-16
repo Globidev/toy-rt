@@ -14,10 +14,12 @@ use super::{camera::PyCamera, sphere::PySphere, rect::PyRect, SharedHit, vec3::P
 use rpy::{obj::objlist::PyListRef, pyobject::{PyRef, PyObjectRef}};
 use std::{fmt, rc::Rc};
 
+use crate::future::PyFuture;
+
 pub type DynScene = Scene<HitList<Rc<dyn Hit>>>;
 
 #[rpy::pyclass(name = "Scene")]
-pub struct PyScene(Rc<DynScene>);
+pub struct PyScene(PyFuture<DynScene>);
 
 impl fmt::Debug for PyScene {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
@@ -26,8 +28,8 @@ impl fmt::Debug for PyScene {
 }
 
 impl PyScene {
-    pub fn shared(&self) -> Rc<DynScene> {
-        self.0.clone()
+    pub fn get(&self) -> &PyFuture<DynScene> {
+        &self.0
     }
 }
 
@@ -99,6 +101,6 @@ impl PyScene {
             ambiant_color: args.ambiant_color.into_vec()
         };
 
-        Ok(Self(Rc::new(scene)))
+        Ok(Self(PyFuture::ready(scene)))
     }
 }

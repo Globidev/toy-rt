@@ -1,12 +1,13 @@
 mod bindings;
+mod future;
 
 use rustpython_vm::{self as rpy, exceptions::PyBaseExceptionRef};
 
-use bindings::scene::{PyScene, DynScene};
+pub use bindings::scene::{PyScene, DynScene};
 use rustpython_compiler::{compile::Mode as CompileMode, error::CompileError};
 use rpy::{PySettings, pyobject::{TryIntoRef, PyRef}, InitParameter};
 pub use rpy::VirtualMachine;
-use std::rc::Rc;
+use std::{rc::Rc, future::Future};
 
 #[derive(Debug, thiserror::Error)]
 pub enum EvalError {
@@ -29,7 +30,7 @@ impl EvalError {
     }
 }
 
-pub fn eval_scene(vm: &rpy::VirtualMachine, source: &str) -> Result<Rc<DynScene>, EvalError> {
+pub fn eval_scene(vm: &rpy::VirtualMachine, source: &str) -> Result<impl Future<Output = Rc<DynScene>>, EvalError> {
     let scope = vm.new_scope_with_builtins();
 
     let code = vm
@@ -47,7 +48,7 @@ pub fn eval_scene(vm: &rpy::VirtualMachine, source: &str) -> Result<Rc<DynScene>
 
     let py_scene: PyRef<PyScene> = result.try_into_ref(vm).map_err(EvalError::Exception)?;
 
-    Ok(py_scene.shared())
+    Ok(py_scene.get().shared())
 }
 
 pub fn new_vm() -> Result<rpy::VirtualMachine, EvalError> {
