@@ -7,26 +7,17 @@ pub struct Image {
 
 impl Image {
     pub fn load(path: impl AsRef<Path>) -> Result<Self, ImageLoadError> {
-        use image::DynamicImage::ImageRgb8;
         let img = image::open(path)
             .map_err(ImageLoadError::OpenError)?;
 
-        match img {
-            ImageRgb8(image) => Ok(Self { image }),
-            _ => Err(ImageLoadError::NotRGB)
-        }
+        Ok(Self { image: img.into_rgb() })
     }
 
     pub fn load_from_memory(data: &[u8]) -> Result<Self, ImageLoadError> {
-        use image::DynamicImage::ImageRgb8;
-
         let img = image::load_from_memory(data)
             .map_err(ImageLoadError::OpenError)?;
 
-        match img {
-            ImageRgb8(image) => Ok(Self { image }),
-            _ => Err(ImageLoadError::NotRGB)
-        }
+        Ok(Self { image: img.into_rgb() })
     }
 }
 
