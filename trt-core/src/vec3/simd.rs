@@ -1,8 +1,7 @@
-use crate::prelude::{Dimension, X, Y, Z, Asf32};
-
-use std::ops::{Add, Sub, Mul, Div, AddAssign, MulAssign, DivAssign, Neg};
+use crate::prelude::{Asf32, Dimension, X, Y, Z};
+use crate::utils::Rng;
 use packed_simd::{f32x4, shuffle};
-use rand::Rng;
+use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Sub};
 
 #[derive(Debug, Clone, Copy, Default)]
 pub struct Vec3(f32x4);
@@ -20,13 +19,25 @@ impl Vec3 {
         Self(f32x4::from_slice_aligned(&rng.gen::<[f32; 4]>()))
     }
 
-    pub fn x(&self) -> f32 { self.get::<X>() }
-    pub fn y(&self) -> f32 { self.get::<Y>() }
-    pub fn z(&self) -> f32 { self.get::<Z>() }
+    pub fn x(&self) -> f32 {
+        self.get::<X>()
+    }
+    pub fn y(&self) -> f32 {
+        self.get::<Y>()
+    }
+    pub fn z(&self) -> f32 {
+        self.get::<Z>()
+    }
 
-    pub fn r(&self) -> f32 { self.x() }
-    pub fn g(&self) -> f32 { self.y() }
-    pub fn b(&self) -> f32 { self.z() }
+    pub fn r(&self) -> f32 {
+        self.x()
+    }
+    pub fn g(&self) -> f32 {
+        self.y()
+    }
+    pub fn b(&self) -> f32 {
+        self.z()
+    }
 
     pub fn set<D: Dimension>(self, value: f32) -> Self {
         Self(unsafe { self.0.replace_unchecked(D::INDEX, value) })
@@ -82,45 +93,6 @@ impl Vec3 {
 
     pub fn max_element(self, fourth: f32) -> f32 {
         unsafe { self.0.replace_unchecked(3, fourth).max_element() }
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    extern crate test;
-    use test::Bencher;
-    use super::Vec3;
-
-    use rand::{rngs::StdRng, SeedableRng};
-
-    #[bench]
-    fn dot(bencher: &mut Bencher) {
-        let mut rng = StdRng::seed_from_u64(0xDEAD_BEEF);
-        let v1 = Vec3::random(&mut rng);
-
-        let vecs = std::iter::repeat_with(|| Vec3::random(&mut rng))
-            .take(10_000)
-            .collect::<Vec<_>>();
-
-        bencher.iter(move ||
-            vecs.iter()
-                .fold(0., |s, &v2| s + v1.dot(v2))
-        )
-    }
-
-    #[bench]
-    fn cross(bencher: &mut Bencher) {
-        let mut rng = StdRng::seed_from_u64(0xDEAD_BEEF);
-        let v1 = Vec3::random(&mut rng);
-
-        let vecs = std::iter::repeat_with(|| Vec3::random(&mut rng))
-            .take(10_000)
-            .collect::<Vec<_>>();
-
-        bencher.iter(move ||
-            vecs.iter()
-                .fold(0., |s, &v2| s + v1.cross(v2).squared_len())
-        )
     }
 }
 
