@@ -38,6 +38,7 @@ def scene():
         "height": 400,
         "samples_per_px": 30,
         "rays_per_sample": 10,
+        "ambiant_color": (0,0,0),
         "camera": Camera(
             look_at=(300, 300, 0),
             look_from=(300, 300, -800),

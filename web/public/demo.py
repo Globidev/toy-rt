@@ -1,45 +1,45 @@
-from trt import Sphere, Rect, Scene, Camera, Material
+from trt import Sphere, Rect, Scene, Camera, Material, BVHNode, HitBox, rand
 
-red = (0.9, 0.3, 0.3)
-green = (0.3, 0.9, 0.3)
-blue = (0.3, 0.3, 0.9)
-white = (0.7, 0.7, 0.7)
+FERRIS_SWEAT = Material.image("https://cdn.discordapp.com/emojis/448264617991602186.png?v=1")
+FERRIS_UNSAFE = Material.image("https://cdn.discordapp.com/emojis/358652666265731072.png?v=1")
+
+def ground():
+    for dx in range(20):
+        for dz in range(40):
+            w = 100
+            x0 = (-1000 + dx * w)
+            z0 = (-2000 + dz * w)
+            x1 = x0 + w
+            z1 = z0 + w
+            choose_mat = rand()
+            if choose_mat < 0.8:
+                mat = Material.metallic((0.48, 0.83, 0.53))
+            else:
+                mat = FERRIS_UNSAFE
+            yield HitBox((x0, 0, z0), (x1, 0.1, z1), mat)
+
+def foam():
+    for _ in range(1000):
+        center = (rand() * 800, rand() * 800, rand() * 800)
+        yield Sphere(center, 50, FERRIS_SWEAT).rotate_y(360 * rand())
+
 
 def scene():
-    spheres = [
-        Sphere(
-            center=(150+ i * 150, 150 + i * 100, 150 + i * 100),
-            radius=80,
-            material=Material.metallic(color),
-        )
-        for i, color in enumerate((red, green, blue))
-    ]
+    ground = BVHNode(list(ground()))
 
-    cornell_box = [
-        # side walls
-        Rect(y=(0, 600), z=(-1000, 600), x=600, material=Material.metallic(red)).flip_normals(),
-        Rect(y=(0, 600), z=(-1000, 600), x=0, material=Material.matte(blue)),
+    foam = BVHNode(list(foam())).translate((100, 200, 2000))
 
-        # ceiling + light
-        Rect(x=(0, 600), z=(-1000, 600), y=600, material=Material.dielectric(0.5)).flip_normals(),
-        Rect(x=(100, 500), z=(-100, 350), y=599, material=Material.diffuse_color((5, 5, 5))),
-        # floor
-        Rect(x=(0, 600), z=(-1000, 600), y=0, material=Material.matte(green)),
-
-        # front
-        Rect(x=(0, 600), y=(0, 600), z=600, material=Material.metallic(white)).flip_normals(),
-        # back
-        Rect(x=(0, 600), y=(0, 600), z=-1000, material=Material.metallic(white)),
-    ]
+    light = Rect(x=(150, 450), z=(200, 400), y=550, material=Material.diffuse_color((8,8,8)))
 
     return Scene(**{
-        "world": cornell_box + spheres,
+        "world": [ground, foam],
         "width": 400,
         "height": 400,
-        "samples_per_px": 150,
-        "rays_per_sample": 10,
+        "samples_per_px": 10,
+        "rays_per_sample": 25,
+        "ambiant_color": (0.98, 0.95, 0.63),
         "camera": Camera(
-            look_at=(300, 300, 0),
-            look_from=(300, 300, -800),
+            look_at=(278, 278, 0),
+            look_from=(378, 278, -1000),
         )
     })

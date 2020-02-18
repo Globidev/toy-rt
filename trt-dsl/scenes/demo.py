@@ -32,6 +32,7 @@ def scene():
         "height": 300,
         "samples_per_px": 20,
         "rays_per_sample": 10,
+        "ambiant_color": (0,0,0),
         "camera": trt.Camera(
             look_at=(-25, 0, 0),
             look_from=(-25, 0, 200),
