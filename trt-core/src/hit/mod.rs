@@ -45,6 +45,20 @@ pub trait Hit {
         RotateY::new(self, angle)
     }
 
+    fn rotate_x(self, angle: f32) -> RotateX<Self>
+    where
+        Self: Sized
+    {
+        RotateX::new(self, angle)
+    }
+
+    fn rotate_z(self, angle: f32) -> RotateZ<Self>
+    where
+        Self: Sized
+    {
+        RotateZ::new(self, angle)
+    }
+
     fn constant_medium(self, density: f32, color: impl Into<Vec3>)
         -> ConstantMedium<Self, Isotropic<Constant>>
     where
@@ -117,7 +131,7 @@ mod translate;
 pub use translate::Translate;
 
 mod rotate;
-pub use rotate::RotateY;
+pub use rotate::{RotateY, RotateX, RotateZ};
 
 mod constant_medium;
 pub use constant_medium::ConstantMedium;
