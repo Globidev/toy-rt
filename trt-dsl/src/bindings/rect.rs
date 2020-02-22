@@ -10,7 +10,7 @@ use rustpython_vm::{
 };
 
 use super::{float::FloatLike, SharedHit, material::PyMaterial, vec3::PyVec3};
-use std::{ops::RangeInclusive};
+use std::{ops::RangeInclusive, rc::Rc};
 use rpy::{obj::objtuple::PyTupleRef, pyobject::PyObjectRef};
 
 #[rpy::pyclass(name = "Rect")]
@@ -79,48 +79,55 @@ impl PyRect {
         let x = float_or_range(vm, args.x)?;
         let y = float_or_range(vm, args.y)?;
         let z = float_or_range(vm, args.z)?;
-        let material = args.material.shared_material();
 
-        let rect = match x {
+        match x {
             FloatOrRange::Float(x) => {
                 let y_range = y.range().ok_or_else(|| vm.new_value_error(format!("")))?;
                 let z_range = z.range().ok_or_else(|| vm.new_value_error(format!("")))?;
-                SharedHit::new(RectBuilder.y(y_range).z(z_range).x(x).material(material)) as _
+
+                let rect_fut = args.material.shared_material()
+                    .map(move |mat| Rc::new(RectBuilder.y(y_range).z(z_range).x(x).material(mat)) as _);
+
+                Ok(Self(SharedHit(rect_fut)))
             },
             FloatOrRange::Range(x_range) => {
                 match y {
                     FloatOrRange::Float(y) => {
                         let z_range = z.range().ok_or_else(|| vm.new_value_error(format!("")))?;
-                        SharedHit::new(RectBuilder.x(x_range).z(z_range).y(y).material(material)) as _
+                        let rect_fut = args.material.shared_material()
+                            .map(move |mat| Rc::new(RectBuilder.x(x_range).z(z_range).y(y).material(mat)) as _);
+
+                        Ok(Self(SharedHit(rect_fut)))
                     },
                     FloatOrRange::Range(y_range) => {
                         let z = z.float().ok_or_else(|| vm.new_value_error(format!("")))?;
-                        SharedHit::new(RectBuilder.x(x_range).y(y_range).z(z).material(material)) as _
+                        let rect_fut = args.material.shared_material()
+                            .map(move |mat| Rc::new(RectBuilder.x(x_range).y(y_range).z(z).material(mat)) as _);
+
+                        Ok(Self(SharedHit(rect_fut)))
                     },
                 }
             },
-        };
-
-        Ok(Self(rect))
+        }
     }
 
     #[pymethod]
     fn flip_normals(&self) -> Self {
-        Self(SharedHit::new((*self.shared_hit()).clone().flip_normals()))
+        Self(self.shared_hit().map(|h| h.flip_normals()))
     }
 
     #[pymethod]
     fn rotate_y(&self, angle: FloatLike) -> Self {
-        Self(SharedHit::new((*self.shared_hit()).clone().rotate_y(angle.as_f32())))
+        Self(self.shared_hit().map(move |h| h.rotate_y(angle.as_f32())))
     }
 
     #[pymethod]
     fn translate(&self, offset: PyVec3) -> Self {
-        Self(SharedHit::new((*self.shared_hit()).clone().translate(offset.into_vec())))
+        Self(self.shared_hit().map(move |h| h.translate(offset.into_vec())))
     }
 
     #[pymethod]
     fn constant_medium(&self, density: FloatLike, color: PyVec3) -> Self {
-        Self(SharedHit::new((*self.shared_hit()).clone().constant_medium(density.as_f32(), color.into_vec())))
+        Self(self.shared_hit().map(move |h| h.constant_medium(density.as_f32(), color.into_vec())))
     }
 }

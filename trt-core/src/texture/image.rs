@@ -44,5 +44,4 @@ impl Texture for Image {
 #[derive(Debug)]
 pub enum ImageLoadError {
     OpenError(image::ImageError),
-    NotRGB
 }

@@ -10,6 +10,9 @@ use rustpython_vm::{
 };
 
 use super::{float::FloatLike, vec3::PyVec3, SharedHit, material::PyMaterial};
+use futures::prelude::*;
+use crate::future::PyFuture;
+use std::rc::Rc;
 
 #[rpy::pyclass(name = "Sphere")]
 #[derive(Debug)]
@@ -38,31 +41,46 @@ struct PySphereArgs {
 impl PySphere {
     #[pyslot(new)]
     fn tp_new(_cls: PyClassRef, args: PySphereArgs, _vm: &rpy::VirtualMachine) -> PyResult<Self> {
-        let sphere = Sphere::builder()
-            .radius(args.radius.as_f32())
-            .center(args.center.into_vec())
-            .material(args.material.shared_material());
+        let sphere_fut = args.material.shared_material().shared()
+            .map(move |mat| {
+                let sphere = Sphere::builder()
+                    .radius(args.radius.as_f32())
+                    .center(args.center.into_vec())
+                    .material(mat);
 
-        Ok(Self(SharedHit::new(sphere)))
+                Rc::new(sphere) as _
+            });
+
+        Ok(Self(SharedHit(PyFuture::new(sphere_fut))))
     }
 
     #[pymethod]
     fn flip_normals(&self) -> Self {
-        Self(SharedHit::new((*self.shared_hit()).clone().flip_normals()))
+        Self(self.shared_hit().map(|h| h.flip_normals()))
+    }
+
+    #[pymethod]
+    fn rotate_x(&self, angle: FloatLike) -> Self {
+        Self(self.shared_hit().map(move |h| h.rotate_x(angle.as_f32())))
     }
 
     #[pymethod]
     fn rotate_y(&self, angle: FloatLike) -> Self {
-        Self(SharedHit::new((*self.shared_hit()).clone().rotate_y(angle.as_f32())))
+        Self(self.shared_hit().map(move |h| h.rotate_y(angle.as_f32())))
+    }
+
+    #[pymethod]
+    fn rotate_z(&self, angle: FloatLike) -> Self {
+        Self(self.shared_hit().map(move |h| h.rotate_z(angle.as_f32())))
     }
 
     #[pymethod]
     fn translate(&self, offset: PyVec3) -> Self {
-        Self(SharedHit::new((*self.shared_hit()).clone().translate(offset.into_vec())))
+        Self(self.shared_hit().map(move |h| h.translate(offset.into_vec())))
     }
 
     #[pymethod]
     fn constant_medium(&self, density: FloatLike, color: PyVec3) -> Self {
-        Self(SharedHit::new((*self.shared_hit()).clone().constant_medium(density.as_f32(), color.into_vec())))
+        Self(self.shared_hit().map(move |h| h.constant_medium(density.as_f32(), color.into_vec())))
     }
 }

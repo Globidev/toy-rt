@@ -7,6 +7,7 @@ pub mod rect;
 pub mod hitbox;
 pub mod bvh;
 pub mod material;
+pub mod shape;
 
 const TRT_MODULE_NAME: &str = "trt";
 
@@ -18,11 +19,12 @@ use rustpython_vm::{
     obj::objtuple::PyTupleRef,
     VirtualMachine
 };
-use std::{fmt, rc::Rc, ops::Deref};
+use std::{fmt, rc::Rc};
 use trt_core::hit::Hit;
+use crate::future::PyFuture;
 
 #[derive(Clone)]
-pub struct SharedHit(Rc<dyn Hit>);
+pub struct SharedHit(PyFuture<Rc<dyn Hit>>);
 
 impl fmt::Debug for SharedHit {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
@@ -30,17 +32,17 @@ impl fmt::Debug for SharedHit {
     }
 }
 
-impl Deref for SharedHit {
-    type Target = Rc<dyn Hit>;
-
-    fn deref(&self) -> &Self::Target {
-        &self.0
-    }
-}
-
 impl SharedHit {
     pub fn new<T: Hit + 'static>(hit: T) -> Self {
-        Self(Rc::new(hit))
+        Self(PyFuture::ready(Rc::new(hit)))
+    }
+
+    pub fn get(&self) -> &PyFuture<Rc<dyn Hit>> {
+        &self.0
+    }
+
+    pub fn map<T: Hit + 'static>(self, f: impl FnOnce(Rc<dyn Hit>) -> T + 'static) -> Self {
+        Self(self.0.map(|x| Rc::new(f(x)) as _))
     }
 }
 
@@ -75,6 +77,7 @@ fn make_trt_module(vm: &VirtualMachine) -> PyObjectRef {
         "BVHNode" => bvh::PyBVHNode::make_class(&vm.ctx),
         "HitBox" => hitbox::PyHitBox::make_class(&vm.ctx),
         "Material" => material::PyMaterial::make_class(&vm.ctx),
+        "Shape" => shape::PyShape::make_class(&vm.ctx),
         "rand" => vm.ctx.new_function(|| {
             RNG.with(|rng_w| {
                 let mut guard = rng_w.borrow_mut();

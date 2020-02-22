@@ -15,11 +15,12 @@ use rpy::{obj::objlist::PyListRef, pyobject::{PyRef, PyObjectRef}};
 use std::{fmt, rc::Rc};
 
 use crate::future::PyFuture;
+use futures::prelude::*;
 
 pub type DynScene = Scene<HitList<Rc<dyn Hit>>>;
 
 #[rpy::pyclass(name = "Scene")]
-pub struct PyScene(PyFuture<DynScene>);
+pub struct PyScene(PyFuture<Rc<DynScene>>);
 
 impl fmt::Debug for PyScene {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
@@ -28,7 +29,7 @@ impl fmt::Debug for PyScene {
 }
 
 impl PyScene {
-    pub fn get(&self) -> &PyFuture<DynScene> {
+    pub fn get(&self) -> &PyFuture<Rc<DynScene>> {
         &self.0
     }
 }
@@ -78,11 +79,11 @@ impl PyScene {
         let pyworld: PyListRef = args.world.try_into_ref(vm)?;
         let pycamera: PyRef<PyCamera> = args.camera.try_into_ref(vm)?;
 
-        let world: Vec<_> = pyworld
+        let world_futures: Vec<_> = pyworld
             .borrow_elements()
             .iter()
             .map(|py_obj| {
-                extract_hit(vm, py_obj.clone()).map(|s| (*s).clone())
+                extract_hit(vm, py_obj.clone()).map(|s| s.get().shared())
             })
             .collect::<PyResult<_>>()?;
 
@@ -91,16 +92,26 @@ impl PyScene {
             .dimensions(args.width as f32, args.height as f32)
             .finish();
 
-        let scene = Scene {
-            camera,
-            width: args.width,
-            height: args.height,
-            world: HitList::new(world),
-            samples_per_px: args.samples_per_px,
-            rays_per_sample: args.rays_per_sample,
-            ambiant_color: args.ambiant_color.into_vec()
-        };
+        let width = args.width;
+        let height = args.height;
+        let samples_per_px = args.samples_per_px;
+        let rays_per_sample = args.rays_per_sample;
+        let ambiant_color = args.ambiant_color.into_vec();
 
-        Ok(Self(PyFuture::ready(scene)))
+        let scene_future = future::join_all(world_futures)
+            .map(move |world| {
+                let scene = Scene {
+                    camera,
+                    width,
+                    height,
+                    world: HitList::new(world),
+                    samples_per_px,
+                    rays_per_sample,
+                    ambiant_color
+                };
+                Rc::new(scene)
+            });
+
+        Ok(Self(PyFuture::new(scene_future)))
     }
 }
