@@ -1,27 +1,23 @@
 pub mod camera;
-pub mod sphere;
 pub mod vec3;
 pub mod float;
 pub mod scene;
-pub mod rect;
-pub mod hitbox;
-pub mod bvh;
 pub mod material;
 pub mod shape;
 
-const TRT_MODULE_NAME: &str = "trt";
+const TRT_MODULE_NAME: &str = "_trt";
 
 use rand::prelude::{Rng, StdRng, SeedableRng};
 use core::cell::RefCell;
 use rustpython_vm::{
     self as rpy,
-    pyobject::{PyObjectRef, PyClassImpl, PyResult, TryIntoRef},
-    obj::objtuple::PyTupleRef,
+    pyobject::{PyObjectRef, PyClassImpl},
     VirtualMachine
 };
 use std::{fmt, rc::Rc};
 use trt_core::hit::Hit;
 use crate::future::PyFuture;
+use rpy::py_compile_bytecode;
 
 #[derive(Clone)]
 pub struct SharedHit(PyFuture<Rc<dyn Hit>>);
@@ -46,22 +42,16 @@ impl SharedHit {
     }
 }
 
-pub fn init_module(vm: &VirtualMachine) -> PyResult<()> {
-    rpy::import::init_importlib(&vm, rpy::InitParameter::InitializeInternal)?;
-
+pub fn init_module(vm: &VirtualMachine) {
     vm.stdlib_inits
         .borrow_mut()
         .insert(TRT_MODULE_NAME.to_owned(), Box::new(make_trt_module));
 
-    let builtin_names: PyTupleRef = vm.get_attribute(vm.sys_module.clone(), "builtin_module_names")?
-        .try_into_ref(&vm)?;
-
-    let mut new_builtins = builtin_names.as_slice().to_owned();
-    new_builtins.push(vm.new_str(TRT_MODULE_NAME.to_owned()));
-
-    vm.set_attr(&vm.sys_module, "builtin_module_names", vm.ctx.new_tuple(new_builtins))?;
-
-    Ok(())
+    vm.frozen.borrow_mut()
+        .extend(py_compile_bytecode!(
+            dir = "src/api",
+            module_name = "trt",
+        ));
 }
 
 thread_local! {
@@ -70,14 +60,10 @@ thread_local! {
 
 fn make_trt_module(vm: &VirtualMachine) -> PyObjectRef {
     rpy::py_module!(vm, TRT_MODULE_NAME, {
-        "Sphere" => sphere::PySphere::make_class(&vm.ctx),
-        "Scene" => scene::PyScene::make_class(&vm.ctx),
-        "Camera" => camera::PyCamera::make_class(&vm.ctx),
-        "Rect" => rect::PyRect::make_class(&vm.ctx),
-        "BVHNode" => bvh::PyBVHNode::make_class(&vm.ctx),
-        "HitBox" => hitbox::PyHitBox::make_class(&vm.ctx),
         "Material" => material::PyMaterial::make_class(&vm.ctx),
         "Shape" => shape::PyShape::make_class(&vm.ctx),
+        "Scene" => scene::PyScene::make_class(&vm.ctx),
+        "Camera" => camera::PyCamera::make_class(&vm.ctx),
         "rand" => vm.ctx.new_function(|| {
             RNG.with(|rng_w| {
                 let mut guard = rng_w.borrow_mut();
