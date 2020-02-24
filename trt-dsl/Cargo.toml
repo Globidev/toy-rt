@@ -8,7 +8,7 @@ edition = "2018"
 
 [dependencies]
 trt-core = { path = "../trt-core" }
-rustpython-vm = { git = "https://github.com/RustPython/RustPython" }
+rustpython-vm = { git = "https://github.com/RustPython/RustPython", features = ["freeze-stdlib"] }
 rustpython-compiler = { git = "https://github.com/RustPython/RustPython" }
 thiserror = "1.0"
 reqwest = { path = "/home/globi/dev/reqwest" }
