@@ -17,11 +17,8 @@ pub struct PythonVM(trt_dsl::VirtualMachine);
 
 #[wasm_bindgen]
 impl PythonVM {
-    pub fn new() -> Result<PythonVM, JsValue> {
-        let vm = trt_dsl::new_vm()
-            .map_err(|e| format!("Failed to initialize Python VM: {}", e))?;
-
-        Ok(Self(vm))
+    pub fn new() -> PythonVM {
+        Self(trt_dsl::new_vm())
     }
 
     fn eval_impl(&self, source: &str) -> Result<SceneFuture, JsValue> {
