@@ -10,7 +10,7 @@ use rustpython_vm::{
 
 use std::{fmt, rc::Rc};
 
-use super::{float::FloatLike, vec3::PyVec3};
+use super::{vec3::PyVec3};
 use rpy::{obj::objstr::PyStringRef, pyobject::{TryFromObject, PyObjectRef, PyRef}};
 use crate::future::PyFuture;
 
@@ -59,8 +59,8 @@ impl TryFromObject for PyMaterial {
 #[rpy::pyimpl]
 impl PyMaterial {
     #[pyclassmethod]
-    fn dielectric(_cls: PyClassRef, ref_idx: FloatLike, _vm: &rpy::VirtualMachine) -> Self {
-        Self::new(Dielectric::new(ref_idx.as_f32()))
+    fn dielectric(_cls: PyClassRef, ref_idx: f32, _vm: &rpy::VirtualMachine) -> Self {
+        Self::new(Dielectric::new(ref_idx))
     }
 
     #[pyclassmethod]
@@ -79,8 +79,8 @@ impl PyMaterial {
     }
 
     #[pyclassmethod]
-    fn metallic_fuzzed(_cls: PyClassRef, albedo: PyVec3, fuzz: FloatLike, _vm: &rpy::VirtualMachine) -> Self {
-        Self::new(Metal::new(albedo.into_vec(), fuzz.as_f32()))
+    fn metallic_fuzzed(_cls: PyClassRef, albedo: PyVec3, fuzz: f32, _vm: &rpy::VirtualMachine) -> Self {
+        Self::new(Metal::new(albedo.into_vec(), fuzz))
     }
 
     #[pyclassmethod]

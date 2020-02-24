@@ -3,7 +3,7 @@ use trt_core::camera::CameraBuilder;
 use rustpython_vm::{
     self as rpy,
     obj::objtype::PyClassRef,
-    pyobject::{PyResult, PyValue},
+    pyobject::PyValue,
 };
 
 use super::vec3::PyVec3;
@@ -33,11 +33,11 @@ struct PyCameraArgs {
 #[rpy::pyimpl]
 impl PyCamera {
     #[pyslot(new)]
-    fn tp_new(_cls: PyClassRef, args: PyCameraArgs, _vm: &rpy::VirtualMachine) -> PyResult<Self> {
+    fn tp_new(_cls: PyClassRef, args: PyCameraArgs, _vm: &rpy::VirtualMachine) -> Self {
         let builder = CameraBuilder::default()
             .look_from(args.look_from.into_vec())
             .look_at(args.look_at.into_vec());
 
-        Ok(Self(builder))
+        Self(builder)
     }
 }

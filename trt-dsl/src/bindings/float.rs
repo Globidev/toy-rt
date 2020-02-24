@@ -12,10 +12,6 @@ impl FloatLike {
     pub fn as_f32(self) -> f32 {
         self.0 as _
     }
-
-    pub fn as_f64(self) -> f64 {
-        self.0
-    }
 }
 
 fn extract_f64(obj: &PyObjectRef, vm: &VirtualMachine) -> PyResult<f64> {

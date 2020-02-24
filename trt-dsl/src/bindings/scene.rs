@@ -10,7 +10,7 @@ use rustpython_vm::{
     pyobject::{PyResult, PyValue, TryIntoRef, TryFromObject},
 };
 
-use super::{camera::PyCamera, sphere::PySphere, rect::PyRect, SharedHit, vec3::PyVec3, hitbox::PyHitBox, bvh::PyBVHNode};
+use super::{camera::PyCamera, vec3::PyVec3, shape::PyShape};
 use rpy::{obj::objlist::PyListRef, pyobject::{PyRef, PyObjectRef}};
 use std::{fmt, rc::Rc};
 
@@ -51,27 +51,6 @@ struct PySceneArgs {
     ambiant_color: PyVec3,
 }
 
-fn extract_hit(vm: &rpy::VirtualMachine, obj: PyObjectRef) -> PyResult<SharedHit> {
-    match <PyRef<PySphere>>::try_from_object(vm, obj.clone()) {
-        Ok(r) => Ok(r.shared_hit()),
-        Err(_) => {
-            match <PyRef<PyRect>>::try_from_object(vm, obj.clone()) {
-                Ok(r) => Ok(r.shared_hit()),
-                Err(_) => {
-                    match <PyRef<PyBVHNode>>::try_from_object(vm, obj.clone()) {
-                        Ok(r) => Ok(r.shared_hit()),
-                        Err(_) => {
-                            let r = <PyRef<PyHitBox>>::try_from_object(vm, obj)?;
-                            Ok(r.shared_hit())
-                        }
-                    }
-
-                }
-            }
-        },
-    }
-}
-
 #[rpy::pyimpl]
 impl PyScene {
     #[pyslot(new)]
@@ -83,7 +62,8 @@ impl PyScene {
             .borrow_elements()
             .iter()
             .map(|py_obj| {
-                extract_hit(vm, py_obj.clone()).map(|s| s.get().shared())
+                let shape = <PyRef<PyShape>>::try_from_object(vm, py_obj.clone())?;
+                Ok(shape.shared_hit().get().shared())
             })
             .collect::<PyResult<_>>()?;
 
