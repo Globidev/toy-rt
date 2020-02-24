@@ -14,33 +14,7 @@ use rustpython_vm::{
     pyobject::{PyObjectRef, PyClassImpl},
     VirtualMachine
 };
-use std::{fmt, rc::Rc};
-use trt_core::hit::Hit;
-use crate::future::PyFuture;
 use rpy::py_compile_bytecode;
-
-#[derive(Clone)]
-pub struct SharedHit(PyFuture<Rc<dyn Hit>>);
-
-impl fmt::Debug for SharedHit {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "<SharedHit object>")
-    }
-}
-
-impl SharedHit {
-    pub fn new<T: Hit + 'static>(hit: T) -> Self {
-        Self(PyFuture::ready(Rc::new(hit)))
-    }
-
-    pub fn get(&self) -> &PyFuture<Rc<dyn Hit>> {
-        &self.0
-    }
-
-    pub fn map<T: Hit + 'static>(self, f: impl FnOnce(Rc<dyn Hit>) -> T + 'static) -> Self {
-        Self(self.0.map(|x| Rc::new(f(x)) as _))
-    }
-}
 
 pub fn init_module(vm: &VirtualMachine) {
     vm.stdlib_inits

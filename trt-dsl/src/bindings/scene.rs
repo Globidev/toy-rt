@@ -1,3 +1,4 @@
+use crate::bindings::material::MaterialError;
 use trt_core::{
     hit::HitList,
     prelude::*,
@@ -20,7 +21,7 @@ use futures::prelude::*;
 pub type DynScene = Scene<HitList<Rc<dyn Hit>>>;
 
 #[rpy::pyclass(name = "Scene")]
-pub struct PyScene(PyFuture<Rc<DynScene>>);
+pub struct PyScene(PyFuture<Result<Rc<DynScene>, Rc<MaterialError>>>);
 
 impl fmt::Debug for PyScene {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
@@ -29,7 +30,7 @@ impl fmt::Debug for PyScene {
 }
 
 impl PyScene {
-    pub fn get(&self) -> &PyFuture<Rc<DynScene>> {
+    pub fn get(&self) -> &PyFuture<Result<Rc<DynScene>, Rc<MaterialError>>> {
         &self.0
     }
 }
@@ -63,7 +64,7 @@ impl PyScene {
             .iter()
             .map(|py_obj| {
                 let shape = <PyRef<PyShape>>::try_from_object(vm, py_obj.clone())?;
-                Ok(shape.shared_hit().get().shared())
+                Ok(shape.shared_hit().shared())
             })
             .collect::<PyResult<_>>()?;
 
@@ -78,8 +79,8 @@ impl PyScene {
         let rays_per_sample = args.rays_per_sample;
         let ambiant_color = args.ambiant_color.into_vec();
 
-        let scene_future = future::join_all(world_futures)
-            .map(move |world| {
+        let scene_future = future::try_join_all(world_futures)
+            .map_ok(move |world| {
                 let scene = Scene {
                     camera,
                     width,

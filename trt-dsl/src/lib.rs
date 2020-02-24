@@ -1,6 +1,7 @@
 mod bindings;
 mod future;
 
+pub use crate::bindings::material::MaterialError;
 use rustpython_vm::pyobject::ItemProtocol;
 use rustpython_vm::{self as rpy, exceptions::PyBaseExceptionRef};
 
@@ -35,7 +36,7 @@ impl EvalError {
     }
 }
 
-pub fn eval_scene(vm: &rpy::VirtualMachine, source: &str) -> Result<impl Future<Output = Rc<DynScene>>, EvalError> {
+pub fn eval_scene(vm: &rpy::VirtualMachine, source: &str) -> Result<impl Future<Output = Result<Rc<DynScene>, Rc<MaterialError>>>, EvalError> {
     let scope = vm.new_scope_with_builtins();
     let module = vm.import("_trt", &[], 0)?;
     module.dict.as_ref().unwrap().borrow().set_item("__render_scene", PyNone.into_ref(vm).into(), vm)?;

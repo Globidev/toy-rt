@@ -10,17 +10,17 @@ use rustpython_vm::{
 
 use std::{fmt, rc::Rc};
 
-use super::{vec3::PyVec3};
+use super::{vec3::PyVec3, shape::SharedHit};
 use rpy::{obj::objstr::PyStringRef, pyobject::{TryFromObject, PyObjectRef, PyRef}};
 use crate::future::PyFuture;
 
 #[derive(Debug)]
-enum MaterialError {
+pub enum MaterialError {
     ImageFetch(reqwest::Error),
     ImageLoad(ImageLoadError)
 }
 
-type SharedMaterial = PyFuture<Rc<dyn Material>>;
+type SharedMaterial = PyFuture<Result<Rc<dyn Material>, Rc<MaterialError>>>;
 
 #[rpy::pyclass(name = "Material")]
 // #[derive(Debug)]
@@ -34,11 +34,22 @@ impl fmt::Debug for PyMaterial {
 
 impl PyMaterial {
     pub fn new<Mat: Material + 'static>(mat: Mat) -> Self {
-        Self(PyFuture::ready(Rc::new(mat)))
+        Self(PyFuture::ready(Ok(Rc::new(mat))))
     }
 
     pub fn shared_material(&self) -> SharedMaterial {
         self.0.clone()
+    }
+
+    pub fn map_to_hit<F, H>(self, f: F) -> SharedHit
+    where
+        F: FnOnce(Rc<dyn Material>) -> H + 'static,
+        H: Hit + 'static,
+    {
+        self.0.map(move |mat_res| {
+            let hit = f(mat_res?);
+            Ok(Rc::new(hit) as _)
+        })
     }
 }
 
@@ -86,11 +97,16 @@ impl PyMaterial {
     #[pyclassmethod]
     fn image(_cls: PyClassRef, url: PyStringRef, _vm: &rpy::VirtualMachine) -> Self {
         Self(PyFuture::new(async move {
-            let resp = reqwest::get(url.as_str()).await.unwrap();
-            let bytes = resp.bytes().await.unwrap();
-            let img = Image::load_from_memory(&bytes).unwrap();
+            let resp = reqwest::get(url.as_str()).await
+                .map_err(|e| Rc::new(MaterialError::ImageFetch(e)))?;
 
-            Rc::new(Lambertian::new(img)) as _
+            let bytes = resp.bytes().await
+                .map_err(|e| Rc::new(MaterialError::ImageFetch(e)))?;
+
+            let img = Image::load_from_memory(&bytes)
+                .map_err(|e| Rc::new(MaterialError::ImageLoad(e)))?;
+
+            Ok(Rc::new(Lambertian::new(img)) as _)
         }))
     }
 }

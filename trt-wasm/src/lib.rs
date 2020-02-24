@@ -5,7 +5,7 @@ use std::{rc::Rc, future::Future};
 use wasm_bindgen::prelude::*;
 
 use trt_core::prelude::*;
-use trt_dsl::DynScene;
+use trt_dsl::{MaterialError, DynScene};
 
 #[wasm_bindgen]
 pub fn setup_panic_hook() {
@@ -38,12 +38,15 @@ pub struct ScenePromise(SceneFuture);
 
 #[wasm_bindgen]
 impl ScenePromise {
-    pub async fn build_scene(self) -> Scene {
-        Scene(self.0.await)
+    pub async fn build_scene(self) -> Result<Scene, JsValue> {
+        let dyn_scene = self.0.await
+            .map_err(|e| format!("{:?}", e))?;
+
+        Ok(Scene(dyn_scene))
     }
 }
 
-type SceneFuture = impl Future<Output = Rc<DynScene>>;
+type SceneFuture = impl Future<Output = Result<Rc<DynScene>, Rc<MaterialError>>>;
 
 #[wasm_bindgen]
 pub struct Scene(Rc<DynScene>);
