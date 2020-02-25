@@ -12,5 +12,4 @@ rustpython-vm = { git = "https://github.com/RustPython/RustPython", features = [
 rustpython-compiler = { git = "https://github.com/RustPython/RustPython" }
 thiserror = "1.0"
 reqwest = { path = "/home/globi/dev/reqwest" }
-rand = { version = "0.7", features = ["wasm-bindgen"] }
 futures = "0.3"

@@ -28,6 +28,3 @@ def render(world, **config):
 
 def _camera(look_from, look_at):
     return _trt.Camera(look_from, look_at)
-
-def rand():
-    return _trt.rand()

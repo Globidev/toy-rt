@@ -1,6 +1,7 @@
 use crate::{future::PyFuture, prelude::*};
+
 use rpy::py_compile_bytecode;
-use rand::prelude::{Rng, StdRng, SeedableRng};
+
 use std::cell::RefCell;
 
 const TRT_INTERNAL_MODULE_NAME: &str = "_trt";
@@ -84,23 +85,11 @@ impl<'vm> SceneInjector<'vm> {
     }
 }
 
-thread_local! {
-    static RNG: RefCell<Option<StdRng>> = RefCell::new(None);
-}
-
 fn make_trt_module(vm: &VirtualMachine) -> PyObjectRef {
     rpy::py_module!(vm, TRT_INTERNAL_MODULE_NAME, {
         "Material" => material::PyMaterial::make_class(&vm.ctx),
         "Shape" => shape::PyShape::make_class(&vm.ctx),
         "Scene" => scene::PyScene::make_class(&vm.ctx),
         "Camera" => camera::PyCamera::make_class(&vm.ctx),
-
-        "rand" => vm.ctx.new_function(|| {
-            RNG.with(|rng_w| {
-                let mut guard = rng_w.borrow_mut();
-                let rng = guard.get_or_insert_with(|| StdRng::seed_from_u64(0xDEAD_BEEF));
-                rng.gen::<f32>()
-            })
-        }),
     })
 }
