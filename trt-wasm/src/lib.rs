@@ -55,10 +55,7 @@ pub struct Scene(Rc<DynScene>);
 impl Scene {
     pub fn row_color(&self, y: usize) -> Vec<u32> {
         (0..self.0.width)
-            .map(|x| {
-                let Color(r, g, b) = self.0.pixel_color((x, y));
-                u32::from_be_bytes([0, r, g, b])
-            })
+            .map(|x| self.pixel_color(x, y))
             .collect()
     }
 

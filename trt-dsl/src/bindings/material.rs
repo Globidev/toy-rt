@@ -65,11 +65,6 @@ impl PyMaterial {
     }
 
     #[pyclassmethod]
-    fn metallic(_cls: PyClassRef, albedo: PyVec3, _vm: &VirtualMachine) -> Self {
-        Self::new(Metal::new(albedo.into_vec(), 0.))
-    }
-
-    #[pyclassmethod]
     fn metallic_fuzzed(_cls: PyClassRef, albedo: PyVec3, fuzz: f32, _vm: &VirtualMachine) -> Self {
         Self::new(Metal::new(albedo.into_vec(), fuzz))
     }
