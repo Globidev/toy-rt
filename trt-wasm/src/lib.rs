@@ -5,7 +5,7 @@ use std::{rc::Rc, future::Future};
 use wasm_bindgen::prelude::*;
 
 use trt_core::prelude::*;
-use trt_dsl::{MaterialError, DynScene};
+use trt_dsl::{DynScene, DynSceneResult};
 
 #[wasm_bindgen]
 pub fn setup_panic_hook() {
@@ -21,15 +21,15 @@ impl PythonVM {
         Self(trt_dsl::new_vm())
     }
 
-    fn eval_impl(&self, source: &str) -> Result<SceneFuture, JsValue> {
+    fn eval_impl(&self, source: &str) -> Result<Option<SceneFuture>, JsValue> {
         trt_dsl::eval_scene(&self.0, &source)
             .map_err(|e| format!("Failed to eval scene: {}", e.pretty_print(&self.0)).into())
     }
 
-    pub fn eval(&self, source: &str) -> Result<ScenePromise, JsValue> {
-        let scene = self.eval_impl(source)?;
+    pub fn eval(&self, source: &str) -> Result<Option<ScenePromise>, JsValue> {
+        let scene_opt = self.eval_impl(source)?;
 
-        Ok(ScenePromise(scene))
+        Ok(scene_opt.map(ScenePromise))
     }
 }
 
@@ -46,7 +46,7 @@ impl ScenePromise {
     }
 }
 
-type SceneFuture = impl Future<Output = Result<Rc<DynScene>, Rc<MaterialError>>>;
+type SceneFuture = impl Future<Output = DynSceneResult>;
 
 #[wasm_bindgen]
 pub struct Scene(Rc<DynScene>);
