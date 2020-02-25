@@ -42,7 +42,7 @@ impl PyShape {
 #[rpy::pyimpl]
 impl PyShape {
     #[pyclassmethod]
-    fn sphere(_cls: PyClassRef, center: PyVec3, radius: f32, material: PyMaterial, _vm: &VirtualMachine) -> Self {
+    fn sphere(_cls: PyClassRef, center: PyVec3, radius: f32, material: PyMaterial) -> Self {
         let shared_hit = material
             .map_to_hit(move |mat| {
                 Sphere::builder()

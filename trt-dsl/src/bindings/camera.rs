@@ -17,7 +17,7 @@ struct PyCameraArgs {
 #[rpy::pyimpl]
 impl PyCamera {
     #[pyslot(new)]
-    fn tp_new(_cls: PyClassRef, args: PyCameraArgs, _vm: &VirtualMachine) -> Self {
+    fn tp_new(_cls: PyClassRef, args: PyCameraArgs) -> Self {
         let builder = CameraBuilder::default()
             .look_from(args.look_from.into_vec())
             .look_at(args.look_at.into_vec());

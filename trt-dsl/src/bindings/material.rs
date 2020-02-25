@@ -50,27 +50,27 @@ impl TryFromObject for PyMaterial {
 #[rpy::pyimpl]
 impl PyMaterial {
     #[pyclassmethod]
-    fn dielectric(_cls: PyClassRef, ref_idx: f32, _vm: &VirtualMachine) -> Self {
+    fn dielectric(_cls: PyClassRef, ref_idx: f32) -> Self {
         Self::new(Dielectric::new(ref_idx))
     }
 
     #[pyclassmethod]
-    fn diffuse_color(_cls: PyClassRef, color: PyVec3, _vm: &VirtualMachine) -> Self {
+    fn diffuse_color(_cls: PyClassRef, color: PyVec3) -> Self {
         Self::new(Diffuse::colored(color.into_vec()))
     }
 
     #[pyclassmethod]
-    fn matte(_cls: PyClassRef, color: PyVec3, _vm: &VirtualMachine) -> Self {
+    fn matte(_cls: PyClassRef, color: PyVec3) -> Self {
         Self::new(Lambertian::colored(color.into_vec()))
     }
 
     #[pyclassmethod]
-    fn metallic_fuzzed(_cls: PyClassRef, albedo: PyVec3, fuzz: f32, _vm: &VirtualMachine) -> Self {
+    fn metallic_fuzzed(_cls: PyClassRef, albedo: PyVec3, fuzz: f32) -> Self {
         Self::new(Metal::new(albedo.into_vec(), fuzz))
     }
 
     #[pyclassmethod]
-    fn image(_cls: PyClassRef, url: PyStringRef, _vm: &VirtualMachine) -> Self {
+    fn image(_cls: PyClassRef, url: PyStringRef) -> Self {
         Self(PyFuture::new(async move {
             let resp = reqwest::get(url.as_str())
                 .await
