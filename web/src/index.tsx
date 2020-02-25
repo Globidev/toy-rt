@@ -14,13 +14,20 @@ export function main() {
 
   let source = window.localStorage.getItem("last-source") || demoCode;
   const run = async () => {
+    const el = document.getElementById('traceback') as HTMLDivElement;
+    el.innerText = ""
+
     window.localStorage.setItem("last-source", source)
 
     let scene;
     try {
-      scene = await pythonVM.eval(source).build_scene();
+      const scenePromise = pythonVM.eval(source);
+
+      if (scenePromise === undefined)
+        return
+
+      scene = await scenePromise.build_scene();
     } catch (error) {
-      const el = document.getElementById('traceback') as HTMLDivElement;
       el.innerText = error
       return
     }

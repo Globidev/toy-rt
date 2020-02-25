@@ -21,7 +21,10 @@ import("trt")
       switch (e.data.type) {
         case "scene":
           scene = null
-          scene = await vm.eval(e.data.code).build_scene() as import('trt').Scene
+          const scenePromise = vm.eval(e.data.code);
+          if (scenePromise === undefined)
+            return;
+          scene = await scenePromise.build_scene() as import('trt').Scene
           if (backlog !== null) {
             compute(scene, backlog)
           }
