@@ -3,24 +3,18 @@ use trt_core::camera::CameraBuilder;
 use rustpython_vm::{
     self as rpy,
     obj::objtype::PyClassRef,
-    pyobject::PyValue,
 };
 
 use super::vec3::PyVec3;
 
-#[rpy::pyclass(name = "Camera")]
-#[derive(Debug, Clone)]
-pub struct PyCamera(CameraBuilder);
+trt_py_class! { "Camera", PyCamera,
+    #[derive(Clone)]
+    pub struct PyCamera(CameraBuilder);
+}
 
 impl PyCamera {
     pub fn builder(self) -> CameraBuilder {
         self.0
-    }
-}
-
-impl PyValue for PyCamera {
-    fn class(vm: &rpy::VirtualMachine) -> PyClassRef {
-        vm.class(super::TRT_MODULE_NAME, "Camera")
     }
 }
 

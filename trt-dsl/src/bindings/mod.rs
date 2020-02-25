@@ -1,3 +1,22 @@
+macro_rules! trt_py_class {
+    ($py_name:literal, $name:ident, $item:item) => {
+        #[rpy::pyclass(name = $py_name)]
+        $item
+
+        impl ::std::fmt::Debug for $name {
+            fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+                write!(f, concat!("<", $py_name, " object>"))
+            }
+        }
+
+        impl ::rustpython_vm::pyobject::PyValue for $name {
+            fn class(vm: &::rustpython_vm::VirtualMachine) -> ::rustpython_vm::obj::objtype::PyClassRef {
+                vm.class(crate::bindings::TRT_MODULE_NAME, $py_name)
+            }
+        }
+    };
+}
+
 pub mod camera;
 pub mod vec3;
 pub mod float;
@@ -38,6 +57,7 @@ fn make_trt_module(vm: &VirtualMachine) -> PyObjectRef {
         "Shape" => shape::PyShape::make_class(&vm.ctx),
         "Scene" => scene::PyScene::make_class(&vm.ctx),
         "Camera" => camera::PyCamera::make_class(&vm.ctx),
+
         "rand" => vm.ctx.new_function(|| {
             RNG.with(|rng_w| {
                 let mut guard = rng_w.borrow_mut();

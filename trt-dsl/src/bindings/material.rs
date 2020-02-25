@@ -5,10 +5,10 @@ use trt_core::{
 use rustpython_vm::{
     self as rpy,
     obj::objtype::PyClassRef,
-    pyobject::{PyResult, PyValue},
+    pyobject::PyResult,
 };
 
-use std::{fmt, rc::Rc};
+use std::rc::Rc;
 
 use super::{vec3::PyVec3, shape::SharedHit};
 use rpy::{obj::objstr::PyStringRef, pyobject::{TryFromObject, PyObjectRef, PyRef}};
@@ -22,14 +22,8 @@ pub enum MaterialError {
 
 type SharedMaterial = PyFuture<Result<Rc<dyn Material>, Rc<MaterialError>>>;
 
-#[rpy::pyclass(name = "Material")]
-// #[derive(Debug)]
-pub struct PyMaterial(SharedMaterial);
-
-impl fmt::Debug for PyMaterial {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "<Material>")
-    }
+trt_py_class! { "Material", PyMaterial,
+    pub struct PyMaterial(SharedMaterial);
 }
 
 impl PyMaterial {
@@ -50,12 +44,6 @@ impl PyMaterial {
             let hit = f(mat_res?);
             Ok(Rc::new(hit) as _)
         })
-    }
-}
-
-impl PyValue for PyMaterial {
-    fn class(vm: &rpy::VirtualMachine) -> PyClassRef {
-        vm.class(super::TRT_MODULE_NAME, "Material")
     }
 }
 

@@ -7,11 +7,11 @@ use trt_core::{
 use rustpython_vm::{
     self as rpy,
     obj::objtype::PyClassRef,
-    pyobject::{PyResult, PyValue, TryFromObject},
+    pyobject::{PyResult, TryFromObject},
 };
 
 use super::{float::FloatLike, material::PyMaterial, vec3::PyVec3};
-use std::{rc::Rc, fmt};
+use std::rc::Rc;
 use rpy::{obj::objlist::PyListRef, pyobject::PyRef};
 
 use futures::prelude::*;
@@ -19,8 +19,9 @@ use crate::future::PyFuture;
 
 pub type SharedHit = PyFuture<Result<Rc<dyn Hit>, Rc<MaterialError>>>;
 
-#[rpy::pyclass(name = "Shape")]
-pub struct PyShape(SharedHit);
+trt_py_class! { "Shape", PyShape,
+    pub struct PyShape(SharedHit);
+}
 
 impl PyShape {
     pub fn shared_hit(&self) -> SharedHit {
@@ -39,18 +40,6 @@ impl PyShape {
             });
 
         Self(mapped)
-    }
-}
-
-impl fmt::Debug for PyShape {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "<Shape object>")
-    }
-}
-
-impl PyValue for PyShape {
-    fn class(vm: &rpy::VirtualMachine) -> PyClassRef {
-        vm.class(super::TRT_MODULE_NAME, "Shape")
     }
 }
 

@@ -87,12 +87,5 @@ mod tests {
         if let Err(e) = res {
             panic!("{}", e.pretty_print(&vm))
         }
-
-        let res = eval_scene(&vm, "");
-        if let Err(e) = res {
-            panic!("{}", e.pretty_print(&vm))
-        }
-
-        panic!()
     }
 }

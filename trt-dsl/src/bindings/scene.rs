@@ -8,36 +8,25 @@ use trt_core::{
 use rustpython_vm::{
     self as rpy,
     obj::objtype::PyClassRef,
-    pyobject::{PyResult, PyValue, TryIntoRef, TryFromObject},
+    pyobject::{PyResult, TryIntoRef, TryFromObject},
 };
 
 use super::{camera::PyCamera, vec3::PyVec3, shape::PyShape};
 use rpy::{obj::objlist::PyListRef, pyobject::{PyRef, PyObjectRef}};
-use std::{fmt, rc::Rc};
+use std::rc::Rc;
 
 use crate::future::PyFuture;
 use futures::prelude::*;
 
 pub type DynScene = Scene<HitList<Rc<dyn Hit>>>;
 
-#[rpy::pyclass(name = "Scene")]
-pub struct PyScene(PyFuture<Result<Rc<DynScene>, Rc<MaterialError>>>);
-
-impl fmt::Debug for PyScene {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "<Scene>")
-    }
+trt_py_class! { "Scene", PyScene,
+    pub struct PyScene(PyFuture<Result<Rc<DynScene>, Rc<MaterialError>>>);
 }
 
 impl PyScene {
     pub fn get(&self) -> &PyFuture<Result<Rc<DynScene>, Rc<MaterialError>>> {
         &self.0
-    }
-}
-
-impl PyValue for PyScene {
-    fn class(vm: &rpy::VirtualMachine) -> PyClassRef {
-        vm.class(super::TRT_MODULE_NAME, "Scene")
     }
 }
 

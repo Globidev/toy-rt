@@ -3,15 +3,16 @@ use trt_core::prelude::Vec3;
 use rustpython_vm as rpy;
 use rpy::{
     pyobject::{PyObjectRef, PyResult, TryFromObject, TryIntoRef},
-    obj::objtuple::{PyTupleRef},
+    obj::objtuple::PyTupleRef,
     VirtualMachine,
 };
 
 use super::float::FloatLike;
 
-#[rpy::pyclass(name = "Vec3")]
-#[derive(Debug, Clone, Copy)]
-pub struct PyVec3(Vec3);
+trt_py_class! { "Vec3", PyVec3,
+    #[derive(Clone, Copy)]
+    pub struct PyVec3(Vec3);
+}
 
 impl PyVec3 {
     pub fn into_vec(self) -> Vec3 {
