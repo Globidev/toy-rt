@@ -62,7 +62,7 @@ impl<'vm> SceneInjector<'vm> {
 
         module_dict
             .borrow()
-            .set_item(RENDER_SCENE_IDENT, PyNone.into_ref(vm).into(), vm)?;
+            .set_item(RENDER_SCENE_IDENT, vm.ctx.none(), vm)?;
 
         Ok(Self {
             trt_module_dict: module_dict,
@@ -78,8 +78,12 @@ impl<'vm> SceneInjector<'vm> {
         match render_scene {
             None => Ok(None),
             Some(obj) => {
-                let py_scene: PyRef<scene::PyScene> = obj.try_into_ref(self.vm)?;
-                Ok(Some(py_scene.0.clone()))
+                if self.vm.is_none(&obj) {
+                    Ok(None)
+                } else {
+                    let py_scene: PyRef<scene::PyScene> = obj.try_into_ref(self.vm)?;
+                    Ok(Some(py_scene.0.clone()))
+                }
             }
         }
     }
