@@ -1,21 +1,17 @@
-use crate::bindings::material::MaterialError;
+use crate::prelude::*;
+use crate::future::PyFuture;
+use super::{
+    float::FloatLike,
+    material::{MaterialError, PyMaterial},
+    vec3::PyVec3,
+};
+
 use trt_core::{
     hit::{RectBuilder, Sphere, HitBox, BVHNode},
     prelude::*,
 };
 
-use rustpython_vm::{
-    self as rpy,
-    obj::objtype::PyClassRef,
-    pyobject::{PyResult, TryFromObject},
-};
-
-use super::{float::FloatLike, material::PyMaterial, vec3::PyVec3};
-use std::rc::Rc;
-use rpy::{obj::objlist::PyListRef, pyobject::PyRef};
-
 use futures::prelude::*;
-use crate::future::PyFuture;
 
 pub type SharedHit = PyFuture<Result<Rc<dyn Hit>, Rc<MaterialError>>>;
 
@@ -46,7 +42,7 @@ impl PyShape {
 #[rpy::pyimpl]
 impl PyShape {
     #[pyclassmethod]
-    fn sphere(_cls: PyClassRef, center: PyVec3, radius: f32, material: PyMaterial, _vm: &rpy::VirtualMachine) -> Self {
+    fn sphere(_cls: PyClassRef, center: PyVec3, radius: f32, material: PyMaterial, _vm: &VirtualMachine) -> Self {
         let shared_hit = material
             .map_to_hit(move |mat| {
                 Sphere::builder()
@@ -115,12 +111,12 @@ impl PyShape {
     }
 
     #[pyclassmethod]
-    fn bvh_node(_cls: PyClassRef, objects: PyListRef, vm: &rpy::VirtualMachine) -> PyResult<Self> {
+    fn bvh_node(_cls: PyClassRef, objects: PyListRef, vm: &VirtualMachine) -> PyResult<Self> {
         let world_futures: Vec<_> = objects
             .borrow_elements()
             .iter()
             .map(|py_obj| {
-                let shape = <PyRef<PyShape>>::try_from_object(vm, py_obj.clone())?;
+                let shape: PyRef<PyShape> = py_obj.clone().try_into_ref(vm)?;
                 Ok(shape.shared_hit().shared())
             })
             .collect::<PyResult<_>>()?;

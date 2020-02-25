@@ -1,13 +1,9 @@
-use trt_core::prelude::Vec3;
-
-use rustpython_vm as rpy;
-use rpy::{
-    pyobject::{PyObjectRef, PyResult, TryFromObject, TryIntoRef},
-    obj::objtuple::PyTupleRef,
-    VirtualMachine,
-};
-
+use crate::prelude::*;
 use super::float::FloatLike;
+
+use rpy::obj::objtuple::PyTupleRef;
+
+use trt_core::prelude::Vec3;
 
 trt_py_class! { "Vec3", PyVec3,
     #[derive(Clone, Copy)]

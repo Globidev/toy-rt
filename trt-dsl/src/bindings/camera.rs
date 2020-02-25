@@ -1,21 +1,11 @@
-use trt_core::camera::CameraBuilder;
-
-use rustpython_vm::{
-    self as rpy,
-    obj::objtype::PyClassRef,
-};
-
+use crate::prelude::*;
 use super::vec3::PyVec3;
+
+use trt_core::camera::CameraBuilder;
 
 trt_py_class! { "Camera", PyCamera,
     #[derive(Clone)]
-    pub struct PyCamera(CameraBuilder);
-}
-
-impl PyCamera {
-    pub fn builder(self) -> CameraBuilder {
-        self.0
-    }
+    pub struct PyCamera(pub(crate) CameraBuilder);
 }
 
 #[derive(Debug, rpy::FromArgs)]
@@ -27,7 +17,7 @@ struct PyCameraArgs {
 #[rpy::pyimpl]
 impl PyCamera {
     #[pyslot(new)]
-    fn tp_new(_cls: PyClassRef, args: PyCameraArgs, _vm: &rpy::VirtualMachine) -> Self {
+    fn tp_new(_cls: PyClassRef, args: PyCameraArgs, _vm: &VirtualMachine) -> Self {
         let builder = CameraBuilder::default()
             .look_from(args.look_from.into_vec())
             .look_at(args.look_at.into_vec());

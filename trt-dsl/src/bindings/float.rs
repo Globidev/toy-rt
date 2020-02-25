@@ -1,9 +1,6 @@
-use rustpython_vm as rpy;
-use rpy::{
-    pyobject::{PyObjectRef, PyResult, TryFromObject},
-    obj::objfloat::try_float,
-    VirtualMachine,
-};
+use crate::prelude::*;
+
+use rpy::obj::objfloat::try_float;
 
 #[derive(Debug, Clone, Copy)]
 pub struct FloatLike(f64);

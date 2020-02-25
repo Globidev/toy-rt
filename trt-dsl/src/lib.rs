@@ -1,15 +1,37 @@
+mod prelude;
 mod bindings;
 mod future;
 
-pub use crate::bindings::material::MaterialError;
-use rustpython_vm::pyobject::ItemProtocol;
-use rustpython_vm::{self as rpy, exceptions::PyBaseExceptionRef};
+use prelude::*;
 
-pub use bindings::scene::{PyScene, DynScene};
+use bindings::SceneInjector;
+
 use rustpython_compiler::{compile::Mode as CompileMode, error::CompileError};
-use rpy::{PySettings, pyobject::{TryIntoRef, PyRef, PyValue}, InitParameter};
-pub use rpy::{obj::{objdict::PyDictRef, objnone::PyNone}, VirtualMachine, scope::Scope};
-use std::{rc::Rc, future::Future};
+use rpy::{PySettings, InitParameter};
+
+pub use rpy::VirtualMachine;
+pub use bindings::{DynScene, DynSceneResult};
+
+pub fn eval_scene(vm: &VirtualMachine, source: &str) -> Result<Option<impl Future<Output = DynSceneResult>>, EvalError> {
+    let scene_injector = SceneInjector::new(vm)?;
+
+    let scope = vm.new_scope_with_builtins();
+    let code = vm.compile(source, CompileMode::Exec, String::from("User script"))?;
+    vm.run_code_obj(code, scope)?;
+
+    Ok(scene_injector.retrieve()?.map(|fut| fut.shared()))
+}
+
+pub fn new_vm() -> VirtualMachine {
+    let mut settings = PySettings::default();
+    settings.initialization_parameter = InitParameter::NoInitialize;
+
+    let mut vm = VirtualMachine::new(settings);
+    bindings::init_module(&vm);
+    vm.initialize(InitParameter::InitializeInternal);
+
+    vm
+}
 
 #[derive(Debug, thiserror::Error)]
 pub enum EvalError {
@@ -24,7 +46,7 @@ impl From<PyBaseExceptionRef> for EvalError {
 }
 
 impl EvalError {
-    pub fn pretty_print(&self, vm: &rpy::VirtualMachine) -> String {
+    pub fn pretty_print(&self, vm: &VirtualMachine) -> String {
         match self {
             EvalError::Compile(c) => c.to_string(),
             EvalError::Exception(e) => {
@@ -34,35 +56,6 @@ impl EvalError {
             },
         }
     }
-}
-
-pub fn eval_scene(vm: &rpy::VirtualMachine, source: &str) -> Result<impl Future<Output = Result<Rc<DynScene>, Rc<MaterialError>>>, EvalError> {
-    let scope = vm.new_scope_with_builtins();
-    let module = vm.import("_trt", &[], 0)?;
-    module.dict.as_ref().unwrap().borrow().set_item("__render_scene", PyNone.into_ref(vm).into(), vm)?;
-
-    let code = vm.compile(source, CompileMode::Exec, "test".to_string())?;
-    vm.run_code_obj(code, scope.clone())?;
-
-    let result = module.dict.as_ref().unwrap().borrow().get_item_option("__render_scene", vm)?;
-    dbg!(&result);
-
-    let py_scene: PyRef<PyScene> = result.unwrap().try_into_ref(vm)?;
-
-    Ok(py_scene.get().shared())
-}
-
-pub fn new_vm() -> rpy::VirtualMachine {
-    let mut settings = PySettings::default();
-    settings.initialization_parameter = InitParameter::NoInitialize;
-
-    let mut vm = rpy::VirtualMachine::new(settings);
-
-    bindings::init_module(&vm);
-
-    vm.initialize(InitParameter::InitializeInternal);
-
-    vm
 }
 
 #[cfg(test)]

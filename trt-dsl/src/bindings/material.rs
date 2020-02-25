@@ -1,38 +1,30 @@
+use crate::{future::PyFuture, prelude::*};
+use super::{shape::SharedHit, vec3::PyVec3};
+
 use trt_core::{
-    prelude::*, material::{Dielectric, Lambertian, Diffuse, Metal}, texture::{Image, ImageLoadError},
+    material::{Dielectric, Diffuse, Lambertian, Metal},
+    prelude::*,
+    texture::{Image, ImageLoadError},
 };
 
-use rustpython_vm::{
-    self as rpy,
-    obj::objtype::PyClassRef,
-    pyobject::PyResult,
-};
-
-use std::rc::Rc;
-
-use super::{vec3::PyVec3, shape::SharedHit};
-use rpy::{obj::objstr::PyStringRef, pyobject::{TryFromObject, PyObjectRef, PyRef}};
-use crate::future::PyFuture;
+use rpy::obj::objstr::PyStringRef;
 
 #[derive(Debug)]
 pub enum MaterialError {
     ImageFetch(reqwest::Error),
-    ImageLoad(ImageLoadError)
+    ImageLoad(ImageLoadError),
 }
 
-type SharedMaterial = PyFuture<Result<Rc<dyn Material>, Rc<MaterialError>>>;
+type MaterialResult = Result<Rc<dyn Material>, Rc<MaterialError>>;
 
 trt_py_class! { "Material", PyMaterial,
-    pub struct PyMaterial(SharedMaterial);
+    #[derive(Clone)]
+    pub struct PyMaterial(PyFuture<MaterialResult>);
 }
 
 impl PyMaterial {
     pub fn new<Mat: Material + 'static>(mat: Mat) -> Self {
         Self(PyFuture::ready(Ok(Rc::new(mat))))
-    }
-
-    pub fn shared_material(&self) -> SharedMaterial {
-        self.0.clone()
     }
 
     pub fn map_to_hit<F, H>(self, f: F) -> SharedHit
@@ -48,47 +40,50 @@ impl PyMaterial {
 }
 
 impl TryFromObject for PyMaterial {
-    fn try_from_object(vm: &rpy::VirtualMachine, obj: PyObjectRef) -> PyResult<Self> {
-        let x: PyRef<Self> = obj.downcast()
-            .map_err(|e| vm.new_type_error(format!("Expected Material, got: {}", e)))?;
-        Ok(Self(x.shared_material().clone()))
+    fn try_from_object(vm: &VirtualMachine, obj: PyObjectRef) -> PyResult<Self> {
+        let mat: PyRef<Self> = obj.try_into_ref(vm)?;
+
+        Ok((*mat).clone())
     }
 }
 
 #[rpy::pyimpl]
 impl PyMaterial {
     #[pyclassmethod]
-    fn dielectric(_cls: PyClassRef, ref_idx: f32, _vm: &rpy::VirtualMachine) -> Self {
+    fn dielectric(_cls: PyClassRef, ref_idx: f32, _vm: &VirtualMachine) -> Self {
         Self::new(Dielectric::new(ref_idx))
     }
 
     #[pyclassmethod]
-    fn diffuse_color(_cls: PyClassRef, color: PyVec3, _vm: &rpy::VirtualMachine) -> Self {
+    fn diffuse_color(_cls: PyClassRef, color: PyVec3, _vm: &VirtualMachine) -> Self {
         Self::new(Diffuse::colored(color.into_vec()))
     }
 
     #[pyclassmethod]
-    fn matte(_cls: PyClassRef, color: PyVec3, _vm: &rpy::VirtualMachine) -> Self {
+    fn matte(_cls: PyClassRef, color: PyVec3, _vm: &VirtualMachine) -> Self {
         Self::new(Lambertian::colored(color.into_vec()))
     }
 
     #[pyclassmethod]
-    fn metallic(_cls: PyClassRef, albedo: PyVec3, _vm: &rpy::VirtualMachine) -> Self {
+    fn metallic(_cls: PyClassRef, albedo: PyVec3, _vm: &VirtualMachine) -> Self {
         Self::new(Metal::new(albedo.into_vec(), 0.))
     }
 
     #[pyclassmethod]
-    fn metallic_fuzzed(_cls: PyClassRef, albedo: PyVec3, fuzz: f32, _vm: &rpy::VirtualMachine) -> Self {
+    fn metallic_fuzzed(_cls: PyClassRef, albedo: PyVec3, fuzz: f32, _vm: &VirtualMachine) -> Self {
         Self::new(Metal::new(albedo.into_vec(), fuzz))
     }
 
     #[pyclassmethod]
-    fn image(_cls: PyClassRef, url: PyStringRef, _vm: &rpy::VirtualMachine) -> Self {
+    fn image(_cls: PyClassRef, url: PyStringRef, _vm: &VirtualMachine) -> Self {
         Self(PyFuture::new(async move {
-            let resp = reqwest::get(url.as_str()).await
+            let resp = reqwest::get(url.as_str())
+                .await
                 .map_err(|e| Rc::new(MaterialError::ImageFetch(e)))?;
 
-            let bytes = resp.bytes().await
+            let bytes = resp
+                .bytes()
+                .await
                 .map_err(|e| Rc::new(MaterialError::ImageFetch(e)))?;
 
             let img = Image::load_from_memory(&bytes)

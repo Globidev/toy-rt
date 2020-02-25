@@ -16,7 +16,7 @@ impl<T: 'static + Clone> PyFuture<T> {
     }
 
     pub fn ready(x: T) -> Self {
-        PyFuture(future::ready(x).boxed_local().shared())
+        Self::new(future::ready(x))
     }
 
     pub fn map<U: 'static + Clone>(self, f: impl FnOnce(T) -> U + 'static) -> PyFuture<U> {

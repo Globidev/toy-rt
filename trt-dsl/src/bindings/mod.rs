@@ -1,3 +1,10 @@
+use crate::{future::PyFuture, prelude::*};
+use rpy::py_compile_bytecode;
+use rand::prelude::{Rng, StdRng, SeedableRng};
+use std::cell::RefCell;
+
+const TRT_INTERNAL_MODULE_NAME: &str = "_trt";
+
 macro_rules! trt_py_class {
     ($py_name:literal, $name:ident, $item:item) => {
         #[rpy::pyclass(name = $py_name)]
@@ -11,34 +18,25 @@ macro_rules! trt_py_class {
 
         impl ::rustpython_vm::pyobject::PyValue for $name {
             fn class(vm: &::rustpython_vm::VirtualMachine) -> ::rustpython_vm::obj::objtype::PyClassRef {
-                vm.class(crate::bindings::TRT_MODULE_NAME, $py_name)
+                vm.class(crate::bindings::TRT_INTERNAL_MODULE_NAME, $py_name)
             }
         }
     };
 }
 
-pub mod camera;
-pub mod vec3;
-pub mod float;
-pub mod scene;
-pub mod material;
-pub mod shape;
+mod camera;
+mod vec3;
+mod float;
+mod scene;
+mod material;
+mod shape;
 
-const TRT_MODULE_NAME: &str = "_trt";
-
-use rand::prelude::{Rng, StdRng, SeedableRng};
-use core::cell::RefCell;
-use rustpython_vm::{
-    self as rpy,
-    pyobject::{PyObjectRef, PyClassImpl},
-    VirtualMachine
-};
-use rpy::py_compile_bytecode;
+pub use scene::{DynScene, DynSceneResult};
 
 pub fn init_module(vm: &VirtualMachine) {
     vm.stdlib_inits
         .borrow_mut()
-        .insert(TRT_MODULE_NAME.to_owned(), Box::new(make_trt_module));
+        .insert(TRT_INTERNAL_MODULE_NAME.to_owned(), Box::new(make_trt_module));
 
     vm.frozen.borrow_mut()
         .extend(py_compile_bytecode!(
@@ -47,12 +45,51 @@ pub fn init_module(vm: &VirtualMachine) {
         ));
 }
 
+const RENDER_SCENE_IDENT: &str = "__render_scene";
+
+pub struct SceneInjector<'vm> {
+    trt_module_dict: RefCell<PyDictRef>,
+    vm: &'vm VirtualMachine,
+}
+
+impl<'vm> SceneInjector<'vm> {
+    pub fn new(vm: &'vm VirtualMachine) -> Result<Self, PyBaseExceptionRef> {
+        let module = vm.import(TRT_INTERNAL_MODULE_NAME, &[], 0)?;
+
+        let module_dict = module.dict.clone()
+            .expect("Module should have a dict");
+
+        module_dict
+            .borrow()
+            .set_item(RENDER_SCENE_IDENT, PyNone.into_ref(vm).into(), vm)?;
+
+        Ok(Self {
+            trt_module_dict: module_dict,
+            vm,
+        })
+    }
+
+    pub fn retrieve(&self) -> Result<Option<PyFuture<DynSceneResult>>, PyBaseExceptionRef> {
+        let render_scene = self.trt_module_dict
+            .borrow()
+            .get_item_option(RENDER_SCENE_IDENT, self.vm)?;
+
+        match render_scene {
+            None => Ok(None),
+            Some(obj) => {
+                let py_scene: PyRef<scene::PyScene> = obj.try_into_ref(self.vm)?;
+                Ok(Some(py_scene.0.clone()))
+            }
+        }
+    }
+}
+
 thread_local! {
     static RNG: RefCell<Option<StdRng>> = RefCell::new(None);
 }
 
 fn make_trt_module(vm: &VirtualMachine) -> PyObjectRef {
-    rpy::py_module!(vm, TRT_MODULE_NAME, {
+    rpy::py_module!(vm, TRT_INTERNAL_MODULE_NAME, {
         "Material" => material::PyMaterial::make_class(&vm.ctx),
         "Shape" => shape::PyShape::make_class(&vm.ctx),
         "Scene" => scene::PyScene::make_class(&vm.ctx),
