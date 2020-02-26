@@ -12,5 +12,7 @@ def dielectric(ref_idx):
 def diffuse_color(color):
     return _trt.Material.diffuse_color(color)
 
-def image(url):
+def image(url, cors_proxy=False):
+    if cors_proxy:
+        url = f'https://cors-anywhere.herokuapp.com/{url}'
     return _trt.Material.image(url)

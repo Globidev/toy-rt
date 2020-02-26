@@ -6,8 +6,8 @@ from random import seed, random as rand
 
 FERRIS_SWEAT = image("https://cdn.discordapp.com/emojis/448264617991602186.png?v=1")
 FERRIS_UNSAFE = image("https://cdn.discordapp.com/emojis/358652666265731072.png?v=1")
-GOPHER_PEEK = image('https://cors-anywhere.herokuapp.com/https://cdn.discordapp.com/attachments/178321904904568832/679154014083874816/golang-gopher-hello.png')
-GOPHER = image('https://cors-anywhere.herokuapp.com/https://cdn.discordapp.com/attachments/178321904904568832/679153876473217054/ap550x55012x161transparentt.png')
+GOPHER_PEEK = image('https://cdn.discordapp.com/attachments/178321904904568832/679154014083874816/golang-gopher-hello.png', cors_proxy=True)
+GOPHER = image('https://cdn.discordapp.com/attachments/178321904904568832/679153876473217054/ap550x55012x161transparentt.png', cors_proxy=True)
 
 def random_color():
     return (rand() * rand(), rand() * rand(), rand() * rand())
