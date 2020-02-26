@@ -12,12 +12,12 @@ export function main() {
 
   const pythonVM = trt.PythonVM.new();
 
-  let source = window.localStorage.getItem("last-source") || demoCode;
+  let source = window.localStorage.getItem("last-source-v2") || demoCode;
   const run = async () => {
     const el = document.getElementById('traceback') as HTMLDivElement;
     el.innerText = ""
 
-    window.localStorage.setItem("last-source", source)
+    window.localStorage.setItem("last-source-v2", source)
 
     let scene;
     try {
