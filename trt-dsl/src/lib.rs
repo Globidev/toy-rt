@@ -61,13 +61,29 @@ impl EvalError {
 #[cfg(test)]
 mod tests {
     use super::*;
-    #[test]
-    fn demo_scene() {
-        let vm = new_vm();
-        let res = eval_scene(&vm, include_str!("../scenes/demo.py"));
-        if let Err(e) = res {
-            panic!("{}", e.pretty_print(&vm))
-        }
+
+    macro_rules! test_valid_scenes {
+        ($($name:ident,)*) => {
+            $(
+                #[test]
+                fn $name() {
+                    let vm = new_vm();
+                    let scene_code = include_str!(concat!("../scenes/", stringify!($name), ".py"));
+                    let scene_res = eval_scene(&vm, scene_code);
+                    match scene_res {
+                        Ok(opt_scene) => assert!(opt_scene.is_some()),
+                        Err(e) => panic!("{}", e.pretty_print(&vm))
+                    }
+                }
+            )*
+        };
+    }
+
+    test_valid_scenes! {
+        simple_3_spheres,
+        cornell_box,
+        foam_cubes,
+        sphere_cluster,
     }
 
     #[test]
