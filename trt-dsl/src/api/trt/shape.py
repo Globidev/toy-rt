@@ -47,3 +47,6 @@ def bvh_node(hits):
         hit_list = hits
 
     return _trt.Shape.bvh_node(hit_list)
+
+def hitbox(min, max, material):
+    return _trt.Shape.hitbox(min, max, material)
