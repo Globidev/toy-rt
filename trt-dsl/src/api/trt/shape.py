@@ -1,4 +1,5 @@
 import _trt
+import types
 
 def _isfloatlike(x):
     return isinstance(x, int) or isinstance(x, float)
@@ -40,4 +41,9 @@ class WrongRectArgumentError(Exception):
     pass
 
 def bvh_node(hits):
-    return _trt.Shape.bvh_node(hits)
+    if isinstance(hits, types.GeneratorType):
+        hit_list = list(hits)
+    else:
+        hit_list = hits
+
+    return _trt.Shape.bvh_node(hit_list)
