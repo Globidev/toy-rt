@@ -4,7 +4,7 @@ use super::{shape::SharedHit, vec3::PyVec3};
 use trt_core::{
     material::{Dielectric, Diffuse, Lambertian, Metal},
     prelude::*,
-    texture::{Image, ImageLoadError},
+    texture::Image,
 };
 
 use rpy::obj::objstr::PyStringRef;
@@ -12,7 +12,7 @@ use rpy::obj::objstr::PyStringRef;
 #[derive(Debug)]
 pub enum MaterialError {
     ImageFetch(reqwest::Error),
-    ImageLoad(ImageLoadError),
+    ImageLoad(image::ImageError),
 }
 
 type MaterialResult = Result<Rc<dyn Material>, Rc<MaterialError>>;
@@ -81,8 +81,12 @@ impl PyMaterial {
                 .await
                 .map_err(|e| Rc::new(MaterialError::ImageFetch(e)))?;
 
-            let img = Image::load_from_memory(&bytes)
-                .map_err(|e| Rc::new(MaterialError::ImageLoad(e)))?;
+            let raw_img = image::load_from_memory(&bytes)
+                .map_err(|e| Rc::new(MaterialError::ImageLoad(e)))?
+                .into_rgb();
+
+            let (width, height) = raw_img.dimensions();
+            let img = Image::load(raw_img.into_vec(), width as _, height as _);
 
             Ok(Rc::new(Lambertian::new(img)) as _)
         }))
