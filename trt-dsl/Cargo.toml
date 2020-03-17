@@ -9,7 +9,7 @@ trt-core = { path = "../trt-core" }
 rustpython-vm = { git = "https://github.com/RustPython/RustPython", features = ["freeze-stdlib"] }
 rustpython-compiler = { git = "https://github.com/RustPython/RustPython" }
 thiserror = "1.0"
-reqwest = { path = "/home/globi/dev/reqwest" }
+reqwest = { git = "https://github.com/Globidev/reqwest.git", branch = "wasm-webworkers" }
 futures = "0.3"
 
 [dependencies.image]
