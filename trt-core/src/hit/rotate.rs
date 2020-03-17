@@ -88,12 +88,12 @@ impl<T: Hit> RotateX<T> {
 impl<T: Hit> Hit for RotateX<T> {
     fn hit(&self, ray: &Ray, t_min: f32, t_max: f32) -> Option<HitRecord<'_>> {
         let origin = ray.origin
-            .set::<Y>(self.cos_theta * ray.origin.y() - self.sin_theta * ray.origin.z())
-            .set::<Z>(self.sin_theta * ray.origin.y() + self.cos_theta * ray.origin.z());
+            .set::<Y>(self.cos_theta * ray.origin.y() + self.sin_theta * ray.origin.z())
+            .set::<Z>(-self.sin_theta * ray.origin.y() + self.cos_theta * ray.origin.z());
 
         let direction = ray.direction
-            .set::<Y>(self.cos_theta * ray.direction.y() - self.sin_theta * ray.direction.z())
-            .set::<Z>(self.sin_theta * ray.direction.y() + self.cos_theta * ray.direction.z());
+            .set::<Y>(self.cos_theta * ray.direction.y() + self.sin_theta * ray.direction.z())
+            .set::<Z>(-self.sin_theta * ray.direction.y() + self.cos_theta * ray.direction.z());
 
         let rotated_ray = Ray {
             origin,
@@ -149,12 +149,12 @@ impl<T: Hit> RotateZ<T> {
 impl<T: Hit> Hit for RotateZ<T> {
     fn hit(&self, ray: &Ray, t_min: f32, t_max: f32) -> Option<HitRecord<'_>> {
         let origin = ray.origin
-            .set::<X>(self.cos_theta * ray.origin.x() - self.sin_theta * ray.origin.y())
-            .set::<Y>(self.sin_theta * ray.origin.x() + self.cos_theta * ray.origin.y());
+            .set::<X>(self.cos_theta * ray.origin.x() + self.sin_theta * ray.origin.y())
+            .set::<Y>(-self.sin_theta * ray.origin.x() + self.cos_theta * ray.origin.y());
 
         let direction = ray.direction
-            .set::<X>(self.cos_theta * ray.direction.x() - self.sin_theta * ray.direction.y())
-            .set::<Y>(self.sin_theta * ray.direction.x() + self.cos_theta * ray.direction.y());
+            .set::<X>(self.cos_theta * ray.direction.x() + self.sin_theta * ray.direction.y())
+            .set::<Y>(-self.sin_theta * ray.direction.x() + self.cos_theta * ray.direction.y());
 
         let rotated_ray = Ray {
             origin,
