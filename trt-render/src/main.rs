@@ -3,7 +3,7 @@ use indicatif::{ParallelProgressIterator, ProgressStyle, ProgressBar};
 use rayon::prelude::*;
 
 use std::sync::Arc;
-use std::time;
+use std::{path::Path, time};
 
 use trt_core::prelude::*;
 
@@ -105,8 +105,7 @@ pub fn random_scene() -> impl Hit {
 pub fn two_perlin_spheres() -> impl Hit {
     let pertext = Noise::from_scale(5.);
 
-    let earth_img = Image::load("./assets/earthmap.jpg")
-        .expect("Failed to load image");
+    let earth_img = load_image("./assets/earthmap.jpg");
 
     world![
         Sphere::builder()
@@ -128,8 +127,7 @@ pub fn two_perlin_spheres() -> impl Hit {
 pub fn simple_light() -> impl Hit {
     let pertext = || Noise::from_scale(4.);
 
-    let earth_img = Image::load("./assets/earthmap.jpg")
-        .expect("Failed to load image");
+    let earth_img = load_image("./assets/earthmap.jpg");
 
     world![
         Sphere::builder()
@@ -157,8 +155,7 @@ pub fn cornell_box() -> impl Hit {
     let white = || Lambertian::colored((0.73, 0.73, 0.73));
     let green = Lambertian::colored((0.12, 0.45, 0.15));
 
-    let oreo_img = Image::load("./assets/oreo.jpg")
-        .expect("Failed to load image");
+    let oreo_img = load_image("./assets/oreo.jpg");
 
     let img_text = Arc::new(Lambertian::new(oreo_img));
 
@@ -224,8 +221,7 @@ fn final_scene() -> impl Hit {
         }
     }
 
-    let globibot_img = Image::load("./assets/globibot.png")
-        .expect("Failed to load image");
+    let globibot_img = load_image("./assets/globibot.png");
 
     let ns = 1000;
     for _ in 0..ns {
@@ -324,6 +320,15 @@ fn run() -> image::RgbImage {
 
     image::RgbImage::from_vec(WIDTH as u32, HEIGHT as u32, bytes)
         .expect("Image and buffer dimension mismatch")
+}
+
+fn load_image(path: impl AsRef<Path>) -> Image {
+    let img = image::open(path)
+        .expect("Failed to load image")
+        .into_rgb();
+
+    let (width, height) = img.dimensions();
+    Image::load(img.into_vec(), width as _, height as _)
 }
 
 fn main() {
