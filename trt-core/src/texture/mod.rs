@@ -14,5 +14,5 @@ mod noise;
 pub use noise::Noise;
 
 mod image;
-pub use self::image::{Image, ImageLoadError};
+pub use self::image::Image;
 

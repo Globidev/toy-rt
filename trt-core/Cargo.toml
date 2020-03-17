@@ -7,5 +7,4 @@ edition = "2018"
 [dependencies]
 rand = { version = "0.7", features = ["wasm-bindgen"] }
 packed_simd = "0.3"
-image = "0.22"
 num-traits = "0.2"
