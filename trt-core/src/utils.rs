@@ -1,6 +1,6 @@
 use crate::prelude::{Hit, Ray, Vec3};
 
-pub use rand::{Rng, thread_rng, seq::SliceRandom};
+pub use rand::{Rng, thread_rng, seq::SliceRandom, distributions::Distribution};
 
 pub fn compute_color(ray: &Ray, world: &impl Hit, ambiant_color: Vec3, depth: u32, max_depth: u32) -> Vec3 {
     if let Some(rec) = world.hit(ray, 0.001, std::f32::MAX) {
@@ -18,15 +18,13 @@ pub fn compute_color(ray: &Ray, world: &impl Hit, ambiant_color: Vec3, depth: u3
 }
 
 pub fn random_in_unit_sphere(mut rng: impl Rng) -> Vec3 {
-    std::iter::repeat_with(|| 2.0 * Vec3::random(&mut rng) - Vec3::splat(1.))
-        .find(|p| Vec3::dot(*p, *p) < 1.0)
-        .unwrap()
+    let [x, y, z]: [f32; 3] = rand_distr::UnitSphere.sample(&mut rng);
+    Vec3::new(x, y, z)
 }
 
 pub fn random_in_unit_disk(mut rng: impl Rng) -> Vec3 {
-    std::iter::repeat_with(|| 2.0 * Vec3::new(rng.gen::<f32>(), rng.gen::<f32>(), 0.) - Vec3::new(1., 1., 0.))
-        .find(|p| Vec3::dot(*p, *p) < 1.0)
-        .unwrap()
+    let [x, y]: [f32; 2] = rand_distr::UnitDisc.sample(&mut rng);
+    Vec3::new(x, y, 0)
 }
 
 pub fn reflect(v: Vec3, n: Vec3) -> Vec3 {
