@@ -2,19 +2,27 @@ use crate::prelude::{Hit, Ray, Vec3};
 
 pub use rand::{Rng, thread_rng, seq::SliceRandom, distributions::Distribution};
 
-pub fn compute_color(ray: &Ray, world: &impl Hit, ambiant_color: Vec3, depth: u32, max_depth: u32) -> Vec3 {
-    if let Some(rec) = world.hit(ray, 0.001, std::f32::MAX) {
-        let emitted = rec.mat.emitted(rec.u, rec.v, rec.p);
-        if depth < max_depth {
-            if let Some((scattered, attenuation)) = rec.mat.scatter(ray, &rec) {
-                return emitted + attenuation * compute_color(&scattered, world, ambiant_color, depth + 1, max_depth);
-            }
-        }
+pub fn compute_color(mut ray: Ray, world: &impl Hit, ambiant_color: Vec3, max_depth: usize) -> Vec3 {
+    let mut components = Vec::with_capacity(max_depth);
 
-        emitted
-    } else {
-        ambiant_color
+    for _depth in 0..max_depth {
+        if let Some(rec) = world.hit(&ray, 0.001, std::f32::MAX) {
+            let emitted = rec.mat.emitted(rec.u, rec.v, rec.p);
+
+            if let Some((scattered, attenuation)) = rec.mat.scatter(&ray, &rec) {
+                components.push((emitted, attenuation));
+                ray = scattered;
+            } else {
+                return components.into_iter().rev()
+                    .fold(emitted, |r, (e, a)| r * a + e)
+            }
+        } else {
+            break
+        }
     }
+
+    components.into_iter().rev()
+        .fold(ambiant_color, |r, (e, a)| r * a + e)
 }
 
 pub fn random_in_unit_sphere(mut rng: impl Rng) -> Vec3 {
