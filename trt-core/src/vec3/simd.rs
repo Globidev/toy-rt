@@ -29,16 +29,6 @@ impl Vec3 {
         self.get::<Z>()
     }
 
-    pub fn r(&self) -> f32 {
-        self.x()
-    }
-    pub fn g(&self) -> f32 {
-        self.y()
-    }
-    pub fn b(&self) -> f32 {
-        self.z()
-    }
-
     pub fn set<D: Dimension>(self, value: f32) -> Self {
         Self(unsafe { self.0.replace_unchecked(D::INDEX, value) })
     }
