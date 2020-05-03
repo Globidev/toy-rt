@@ -1,11 +1,11 @@
+import 'codemirror/lib/codemirror.css'
 import '../public/style.css';
 //@ts-ignore ????????
 import demoCode from '../public/demo.py';
 
-import React from "react";
-import { render } from "react-dom";
-import AceEditor from "react-ace-builds";
-import "react-ace-builds/webpack-resolver-min";
+import CodeMirror from 'codemirror';
+import 'codemirror/mode/python/python.js'
+import 'codemirror/theme/monokai.css'
 
 export function main() {
   trt.setup_panic_hook();
@@ -68,30 +68,21 @@ export function main() {
     dispatchWork()
   };
 
-  render(
-    <AceEditor
-      mode="python"
-      theme="monokai"
-      onChange={(s) => { source = s }}
-      name="ace-editor-rendered"
-      editorProps={{ $blockScrolling: true }}
-      value={source}
-      height="80%"
-      width="100%"
-      ref={(e) => {
-        if (e == null) return
-        // @ts-ignore
-        const editor = e.editor;
-        editor.commands.addCommand({
-          name: "Run",
-          bindKey: { win: "Ctrl-Enter", mac: "Command-Enter" },
-          exec: run
-        });
-      }}
-      enableBasicAutocompletion={true}
-    />,
-    document.getElementById("editor")
-  );
+  const editor = CodeMirror(document.getElementById("editor") as HTMLElement, {
+    value: source,
+    mode: 'python',
+    theme: 'monokai',
+  });
+
+  editor.on('change', (self, changes) => {
+    source = editor.getValue()
+  })
+
+  editor.setOption("extraKeys", {
+    "Ctrl-Enter": (_cm) => {
+      run()
+    }
+  })
 
   // console.log(foo)
 
