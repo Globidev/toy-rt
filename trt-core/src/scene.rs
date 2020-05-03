@@ -1,5 +1,5 @@
 use crate::{camera::Camera, prelude::{Hit, Vec3, Color}};
-use crate::utils::{compute_color, Rng, thread_rng};
+use crate::utils::{compute_color, Rng};
 
 pub struct Scene<World> {
     pub camera: Camera,
@@ -12,15 +12,15 @@ pub struct Scene<World> {
 }
 
 impl<World: Hit> Scene<World> {
-    pub fn pixel_color(&self, (x, y): (usize, usize)) -> Color {
+    pub fn pixel_color(&self, (x, y): (usize, usize), mut rng: impl Rng) -> Color {
         let summed_color = (0..self.samples_per_px)
             .fold(Vec3::splat(0), |current_color, _r| {
-                let u = (x as f32 + thread_rng().gen::<f32>()) / self.width as f32;
-                let v = (y as f32 + thread_rng().gen::<f32>()) / self.height as f32;
+                let u = (x as f32 + rng.gen::<f32>()) / self.width as f32;
+                let v = (y as f32 + rng.gen::<f32>()) / self.height as f32;
 
                 let ray = self.camera.get_ray(u, v);
 
-                current_color + compute_color(&ray, &self.world, self.ambiant_color, 0, self.rays_per_sample)
+                current_color + compute_color(ray, &self.world, self.ambiant_color, self.rays_per_sample as _)
             });
 
         (summed_color / self.samples_per_px as f32)

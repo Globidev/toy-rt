@@ -1,4 +1,4 @@
-use rand::{random, thread_rng, Rng};
+use rand::{random, thread_rng, Rng, SeedableRng};
 use indicatif::{ParallelProgressIterator, ProgressStyle, ProgressBar};
 use rayon::prelude::*;
 
@@ -303,11 +303,12 @@ fn run() -> image::RgbImage {
     let progress = ProgressBar::new((WIDTH * HEIGHT) as u64)
         .with_style(ProgressStyle::default_bar().template("{pos:>7}/{len:7} {bar:40.cyan/yellow} - [{elapsed_precise}] [{eta_precise}]"));
 
+    let rng = rand::rngs::SmallRng::from_entropy();
     let bytes = (0..HEIGHT)
         .into_par_iter()
         .rev()
         .flat_map(|j| (0..WIDTH).into_par_iter().map(move |i| (i, j)))
-        .map(|(i, j)| scene.pixel_color((i, j)))
+        .map_with(rng, |rng, (i, j)| scene.pixel_color((i, j), rng))
         .progress_with(progress)
         .flat_map(|Color(r, g, b)| {
             use rayon::iter::once;

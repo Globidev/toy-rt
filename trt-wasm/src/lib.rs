@@ -6,6 +6,7 @@ use wasm_bindgen::prelude::*;
 
 use trt_core::prelude::*;
 use trt_dsl::{DynScene, DynSceneResult};
+use rand::{SeedableRng, prelude::SmallRng};
 
 #[wasm_bindgen]
 pub fn setup_panic_hook() {
@@ -42,25 +43,25 @@ impl ScenePromise {
         let dyn_scene = self.0.await
             .map_err(|e| format!("{:?}", e))?;
 
-        Ok(Scene(dyn_scene))
+        Ok(Scene(dyn_scene, SmallRng::from_entropy()))
     }
 }
 
 type SceneFuture = impl Future<Output = DynSceneResult>;
 
 #[wasm_bindgen]
-pub struct Scene(Rc<DynScene>);
+pub struct Scene(Rc<DynScene>, SmallRng);
 
 #[wasm_bindgen]
 impl Scene {
-    pub fn row_color(&self, y: usize) -> Vec<u32> {
+    pub fn row_color(&mut self, y: usize) -> Vec<u32> {
         (0..self.0.width)
             .map(|x| self.pixel_color(x, y))
             .collect()
     }
 
-    pub fn pixel_color(&self, x: usize, y: usize) -> u32 {
-        let Color(r, g, b) = self.0.pixel_color((x, y));
+    pub fn pixel_color(&mut self, x: usize, y: usize) -> u32 {
+        let Color(r, g, b) = self.0.pixel_color((x, y), &mut self.1);
         u32::from_be_bytes([0, r, g, b])
     }
 
