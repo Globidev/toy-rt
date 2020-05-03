@@ -8,22 +8,18 @@
     "start": "webpack-dev-server  --host 0.0.0.0"
   },
   "dependencies": {
-    "react": "^16.12.0",
-    "react-ace": "^8.0.0",
-    "react-ace-builds": "^7.3.1",
-    "react-dom": "^16.12.0",
+    "codemirror": "^5.52.0",
     "trt": "file:../trt-wasm/pkg"
   },
   "devDependencies": {
-    "@types/react": "^16.9.14",
-    "@types/react-dom": "^16.9.4",
+    "@types/codemirror": "0.0.88",
     "copy-webpack-plugin": "^5.0.0",
     "css-loader": "^3.2.0",
     "file-loader": "^4.3.0",
     "raw-loader": "^4.0.0",
     "style-loader": "^1.0.0",
     "ts-loader": "^6.2.0",
-    "typescript": "^3.6.3",
+    "typescript": "^3.8",
     "webpack": "^4.29.3",
     "webpack-cli": "^3.1.0",
     "webpack-dev-server": "^3.1.5"
