@@ -1,5 +1,5 @@
 const CopyWebpackPlugin = require("copy-webpack-plugin");
-const path = require('path');
+const path = require("path");
 
 const browserConfig = {
   entry: "./src/bootstrap.ts",
@@ -8,63 +8,52 @@ const browserConfig = {
     rules: [
       {
         test: /\.tsx?$/,
-        use: 'ts-loader',
+        use: "ts-loader",
         exclude: /node_modules/,
       },
       {
         test: /\.(svg|png|md)$/,
-        use: [
-          'file-loader',
-        ],
+        use: ["file-loader"],
       },
       {
         test: /\.css$/,
-        use: [
-          'style-loader',
-          'css-loader',
-        ],
+        use: ["style-loader", "css-loader"],
       },
       {
         test: /\.py$/,
-        use: [
-          'raw-loader',
-        ],
+        use: ["raw-loader"],
       },
     ],
   },
   resolve: {
-    extensions: ['.tsx', '.ts', '.js', '.wasm']
+    extensions: [".tsx", ".ts", ".js", ".wasm"],
   },
   output: {
     filename: "bundle.js",
     path: path.resolve(__dirname, "dist"),
   },
   mode: "development",
-  plugins: [
-    new CopyWebpackPlugin(['public/index.html'])
-  ],
+  plugins: [new CopyWebpackPlugin(["public/index.html"])],
   devServer: {
     compress: true,
     inline: true,
-    port: '8080',
-    allowedHosts: [
-      'manjaro'
-    ]
+    port: "8082",
+    allowedHosts: ["manjaro"],
   },
 };
 
 const workerConfig = {
-  entry: './src/worker.ts',
-  target: 'webworker',
+  entry: "./src/worker.ts",
+  target: "webworker",
   output: {
     path: path.resolve(__dirname, "dist"),
-    filename: "worker.js"
+    filename: "worker.js",
   },
   module: {
     rules: [
       {
         test: /\.tsx?$/,
-        use: 'ts-loader',
+        use: "ts-loader",
         exclude: /node_modules/,
       },
     ],
@@ -73,6 +62,6 @@ const workerConfig = {
   //   extensions: ['.tsx', '.ts', '.js']
   // },
   mode: "development",
-}
+};
 
-module.exports = [browserConfig, workerConfig]
+module.exports = [browserConfig, workerConfig];
