@@ -75,6 +75,8 @@ body {
 
 .CodeMirror {
   height: 100%;
+  font-family: "Fira Code", "Courier New", monospace;
+  font-size: 13px;
 }
 
 .github-corner:hover .octo-arm {
