@@ -9,17 +9,24 @@ use bindings::SceneInjector;
 use rustpython_compiler::{compile::Mode as CompileMode, error::CompileError};
 use rpy::{PySettings, InitParameter};
 
-pub use rpy::VirtualMachine;
+pub use rpy::{VirtualMachine, scope::Scope, obj::objstr::PyStringRef};
 pub use bindings::{DynScene, DynSceneResult};
 
-pub fn eval_scene(vm: &VirtualMachine, source: &str) -> Result<Option<impl Future<Output = DynSceneResult>>, EvalError> {
+pub struct EvalOutput<F> {
+    pub rendered_scene: Option<F>,
+    pub data: String,
+}
+
+pub fn eval(vm: &VirtualMachine, source: &str, scope: Scope) -> Result<EvalOutput<impl Future<Output = DynSceneResult>>, EvalError> {
     let scene_injector = SceneInjector::new(vm)?;
 
-    let scope = vm.new_scope_with_builtins();
-    let code = vm.compile(source, CompileMode::Exec, String::from("User script"))?;
-    vm.run_code_obj(code, scope)?;
+    let code = vm.compile(source, CompileMode::Single, String::from("<webconsole>"))?;
+    let result = vm.run_code_obj(code, scope)?;
 
-    Ok(scene_injector.retrieve()?.map(|fut| fut.shared()))
+    let result_data = vm.to_str(&result)?.to_string();
+    let scene = scene_injector.retrieve()?.map(|fut| fut.shared());
+
+    Ok(EvalOutput { rendered_scene: scene, data: result_data })
 }
 
 pub fn new_vm() -> VirtualMachine {
@@ -29,6 +36,20 @@ pub fn new_vm() -> VirtualMachine {
     let mut vm = VirtualMachine::new(settings);
     bindings::init_module(&vm);
     vm.initialize(InitParameter::InitializeInternal);
+
+    let ctx = &vm.ctx;
+
+    let write = ctx.new_method(|_self: PyObjectRef, data: PyStringRef, vm: &VirtualMachine| {
+        // TODO, hook to caller
+    });
+    let flush = ctx.new_method(|| ());
+
+    let stdout = ctx.new_base_object(rpy::py_class!(ctx, "WasmStdout", ctx.object(), {
+        "write" => write,
+        "flush" => flush
+    }), None);
+
+    vm.set_attr(&vm.sys_module, "stdout", stdout).unwrap();
 
     vm
 }
@@ -69,9 +90,9 @@ mod tests {
                 fn $name() {
                     let vm = new_vm();
                     let scene_code = include_str!(concat!("../scenes/", stringify!($name), ".py"));
-                    let scene_res = eval_scene(&vm, scene_code);
-                    match scene_res {
-                        Ok(opt_scene) => assert!(opt_scene.is_some()),
+                    let eval_res = eval(&vm, scene_code, vm.new_scope_with_builtins());
+                    match eval_res {
+                        Ok(ret) => assert!(ret.rendered_scene.is_some()),
                         Err(e) => panic!("{}", e.pretty_print(&vm))
                     }
                 }
@@ -92,7 +113,7 @@ mod tests {
         let source =
             std::fs::read_to_string("/home/globi/dev/toy-ray-tracer/trt-dsl/scenes/dynamic.py")
                 .expect("Failed to open dynamic scene");
-        let res = eval_scene(&vm, &source);
+        let res = eval(&vm, &source, vm.new_scope_with_builtins());
         if let Err(e) = res {
             panic!("{}", e.pretty_print(&vm))
         }

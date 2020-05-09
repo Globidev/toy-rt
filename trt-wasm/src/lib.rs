@@ -5,7 +5,7 @@ use std::{rc::Rc, future::Future};
 use wasm_bindgen::prelude::*;
 
 use trt_core::prelude::*;
-use trt_dsl::{DynScene, DynSceneResult};
+use trt_dsl::{DynScene, DynSceneResult, EvalOutput};
 use rand::{SeedableRng, prelude::SmallRng};
 
 #[wasm_bindgen]
@@ -14,36 +14,53 @@ pub fn setup_panic_hook() {
 }
 
 #[wasm_bindgen]
-pub struct PythonVM(trt_dsl::VirtualMachine);
+pub struct PythonVM(trt_dsl::VirtualMachine, trt_dsl::Scope);
 
 #[wasm_bindgen]
 impl PythonVM {
     pub fn new() -> PythonVM {
-        Self(trt_dsl::new_vm())
+        let vm = trt_dsl::new_vm();
+        let scope = vm.new_scope_with_builtins();
+        Self(vm, scope)
     }
 
-    fn eval_impl(&self, source: &str) -> Result<Option<SceneFuture>, JsValue> {
-        trt_dsl::eval_scene(&self.0, &source)
-            .map_err(|e| format!("Failed to eval scene: {}", e.pretty_print(&self.0)).into())
+    fn eval_impl(&self, source: &str) -> Result<EvalOutput<SceneFuture>, JsValue> {
+        trt_dsl::eval(&self.0, source, self.1.clone())
+            .map_err(|e| e.pretty_print(&self.0).into())
     }
 
-    pub fn eval(&self, source: &str) -> Result<Option<ScenePromise>, JsValue> {
-        let scene_opt = self.eval_impl(source)?;
+    pub fn eval(&self, source: &str) -> Result<WasmEvalOutput, JsValue> {
+        let EvalOutput { data, rendered_scene } = self.eval_impl(source)?;
 
-        Ok(scene_opt.map(ScenePromise))
+        Ok(WasmEvalOutput {
+            data,
+            rendered_scene
+        })
     }
 }
 
-#[wasm_bindgen]
-pub struct ScenePromise(SceneFuture);
+#[wasm_bindgen(js_name=EvalResult)]
+pub struct WasmEvalOutput {
+    data: String,
+    rendered_scene: Option<SceneFuture>
+}
 
-#[wasm_bindgen]
-impl ScenePromise {
-    pub async fn build_scene(self) -> Result<Scene, JsValue> {
-        let dyn_scene = self.0.await
-            .map_err(|e| format!("{:?}", e))?;
+#[wasm_bindgen(js_class=EvalResult)]
+impl WasmEvalOutput {
+    pub fn data(&self) -> String {
+        self.data.clone()
+    }
 
-        Ok(Scene(dyn_scene, SmallRng::from_entropy()))
+    pub async fn build_scene(self) -> Result<Option<Scene>, JsValue> {
+        match self.rendered_scene {
+            Some(scene_fut) => {
+                let dyn_scene = scene_fut.await
+                    .map_err(|e| format!("{:?}", e))?;
+
+                Ok(Some(Scene(dyn_scene, SmallRng::from_entropy())))
+            },
+            None => Ok(None)
+        }
     }
 }
 
