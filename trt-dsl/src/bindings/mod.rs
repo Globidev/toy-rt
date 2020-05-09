@@ -2,8 +2,6 @@ use crate::{future::PyFuture, prelude::*};
 
 use rpy::py_compile_bytecode;
 
-use std::cell::RefCell;
-
 const TRT_INTERNAL_MODULE_NAME: &str = "_trt";
 
 macro_rules! trt_py_class {
@@ -49,7 +47,7 @@ pub fn init_module(vm: &VirtualMachine) {
 const RENDER_SCENE_IDENT: &str = "__render_scene";
 
 pub struct SceneInjector<'vm> {
-    trt_module_dict: RefCell<PyDictRef>,
+    trt_module_dict: PyDictRef,
     vm: &'vm VirtualMachine,
 }
 
@@ -57,11 +55,10 @@ impl<'vm> SceneInjector<'vm> {
     pub fn new(vm: &'vm VirtualMachine) -> Result<Self, PyBaseExceptionRef> {
         let module = vm.import(TRT_INTERNAL_MODULE_NAME, &[], 0)?;
 
-        let module_dict = module.dict.clone()
+        let module_dict = module.dict()
             .expect("Module should have a dict");
 
         module_dict
-            .borrow()
             .set_item(RENDER_SCENE_IDENT, vm.ctx.none(), vm)?;
 
         Ok(Self {
@@ -72,7 +69,6 @@ impl<'vm> SceneInjector<'vm> {
 
     pub fn retrieve(&self) -> Result<Option<PyFuture<DynSceneResult>>, PyBaseExceptionRef> {
         let render_scene = self.trt_module_dict
-            .borrow()
             .get_item_option(RENDER_SCENE_IDENT, self.vm)?;
 
         match render_scene {

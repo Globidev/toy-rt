@@ -19,7 +19,7 @@ fn extract_f64(obj: &PyObjectRef, vm: &VirtualMachine) -> PyResult<f64> {
 
             let error_msg = format!(
                 "Expected a numeric value, got a value of type '{}': '{}'",
-                obj.typ.name,
+                obj.typ.payload.name,
                 value_as_str
             );
 
