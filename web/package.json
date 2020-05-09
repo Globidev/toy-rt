@@ -12,6 +12,7 @@
     "comlink": "^4.3.0",
     "react": "^16.13.1",
     "react-dom": "^16.13.1",
+    "react-draggable": "^4.3.1",
     "trt": "file:../trt-wasm/pkg"
   },
   "devDependencies": {
