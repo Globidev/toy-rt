@@ -24,7 +24,6 @@ interface IControlPanelProps {
 }
 
 interface IControlPanelState {
-  running: boolean;
   workerStates: WorkerState[];
 }
 
@@ -33,9 +32,7 @@ export class ControlPanel extends React.Component<
   IControlPanelState
 > {
   termRef = React.createRef<HTMLDivElement>();
-  term: JQueryTerminal | null = null;
   state: IControlPanelState = {
-    running: false,
     workerStates: [],
   };
 
@@ -68,23 +65,15 @@ export class ControlPanel extends React.Component<
     const self = this;
 
     if (termElement != null) {
-      this.term = $(termElement).terminal(
+      const term = $(termElement).terminal(
         async (source, term) => {
-          if (this.state.running) {
-            return;
-          }
-          term.freeze(true);
-          this.setState({ running: true });
           let result = await self.props.onEval(source);
-          this.setState({ running: false });
-          term.freeze(false);
           switch (result.kind) {
             case "success":
               if (result.returnValue != "None") term.echo(result.returnValue);
               break;
 
             case "error":
-              term.error(result.error);
               break;
           }
         },
@@ -93,13 +82,12 @@ export class ControlPanel extends React.Component<
           prompt: "> ",
           completion: () => self.props.wasmExecutor.getLocalNames(),
           clear: false,
+          onInit: () => $.terminal.syntax("python"),
         }
       );
 
-      $.terminal.syntax("python");
-
       this.props.wasmExecutor.onEvalError = (error) => {
-        this.term?.error(error);
+        term.error(error);
       };
     }
   }
@@ -116,18 +104,7 @@ export class ControlPanel extends React.Component<
         >
           <div ref={this.termRef}></div>
           <div>
-            <button
-              onClick={async () => {
-                this.term?.freeze(true);
-                this.setState({ running: true });
-                await this.props.onRunScript();
-                this.setState({ running: false });
-                this.term?.freeze(false);
-              }}
-              disabled={this.state.running}
-            >
-              Run script
-            </button>
+            <div className="wasm-container-title">Wasm Workers</div>
             <div className="workers-container">
               {this.state.workerStates.map((state, id) => {
                 return (
@@ -166,7 +143,7 @@ function StateElement(state: WorkerState): JSX.Element {
           <span className="status-working">Rendering</span>
           <span> row </span>
           <span className="status-data">{state.row}</span>
-          <span>…</span>
+          <span> …</span>
         </React.Fragment>
       );
     case "eval":

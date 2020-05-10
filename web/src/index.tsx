@@ -22,12 +22,17 @@ export function main() {
 
 interface IAppState {
   wasmExecutor: WasmExecutor;
+  rendering: boolean;
+  runningScript: boolean;
 }
 
 class App extends React.Component<{}, IAppState> {
   sceneCode = initialSource();
   state: IAppState = {
     wasmExecutor: new WasmExecutor(navigator.hardwareConcurrency),
+    // wasmExecutor: new WasmExecutor(1),
+    rendering: false,
+    runningScript: false,
   };
 
   async componentDidMount() {
@@ -35,21 +40,32 @@ class App extends React.Component<{}, IAppState> {
   }
 
   async evalCode(source: string): Promise<EvalResult> {
+    this.setState({ ...this.state, runningScript: true });
     let result = await this.state.wasmExecutor.eval(source);
 
     if (result.kind == "success" && result.sceneDimensions !== null) {
+      if (this.state.rendering) {
+        return { kind: "error", error: "A scene is already being rendered" };
+      }
+
+      this.setState({ ...this.state, rendering: true });
       await this.state.wasmExecutor.render(result.sceneDimensions, source);
+      this.setState({ ...this.state, rendering: false });
     }
 
+    this.setState({ ...this.state, runningScript: false });
     return result;
   }
 
   async evalScript() {
-    return await this.evalCode(this.sceneCode);
+    let result = await this.evalCode(this.sceneCode);
+    return result;
   }
 
   render() {
-    let wasmExecutor = this.state.wasmExecutor;
+    const wasmExecutor = this.state.wasmExecutor;
+    const runBtnText = this.state.rendering ? "STOP ■" : "RUN ⯈";
+
     return (
       <React.Fragment>
         <GithubCorner />
@@ -60,14 +76,28 @@ class App extends React.Component<{}, IAppState> {
           className="split-main"
           gutterSize={6}
           elementStyle={(dim, size, gutterSize) => {
-            return { height: `calc(${size}% - ${gutterSize + 8}px)` };
+            return { height: `calc(${size}% - ${gutterSize + 12}px)` };
           }}
         >
-          <Editor
-            initialSource={this.sceneCode}
-            onChange={(code) => (this.sceneCode = code)}
-            onRunScript={() => this.evalScript()}
-          />
+          <div className="top-container">
+            <div>
+              <button
+                className="run-btn"
+                onClick={async () => {
+                  if (!this.state.rendering) await this.evalScript();
+                  else wasmExecutor.cancelRender();
+                }}
+                disabled={this.state.runningScript && !this.state.rendering}
+              >
+                {runBtnText}
+              </button>
+            </div>
+            <Editor
+              initialSource={this.sceneCode}
+              onChange={(code) => (this.sceneCode = code)}
+              onRunScript={() => this.evalScript()}
+            />
+          </div>
           <ControlPanel
             onEval={(code) => this.evalCode(code)}
             onRunScript={() => this.evalScript()}

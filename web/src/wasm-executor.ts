@@ -14,6 +14,7 @@ type OnEvalErrorCb = (error: string) => void;
 export class WasmExecutor {
   workers: Comlink.Remote<WasmWorker>[];
   enabledWorkers: number = 0;
+  cancelCurrentRender: boolean = false;
 
   onLineComputed: OnLineComputedCb = () => {};
   onSceneLoaded: OnSceneLoadedCb = () => {};
@@ -47,6 +48,8 @@ export class WasmExecutor {
   }
 
   async render(sceneSize: SceneSize, sceneCode: string) {
+    this.cancelCurrentRender = false;
+
     let { width, height } = sceneSize;
 
     this.onSceneLoaded(width, height);
@@ -56,6 +59,10 @@ export class WasmExecutor {
       if (i != 0) await worker.eval(sceneCode);
 
       while (rows >= 0) {
+        if (this.cancelCurrentRender) {
+          break;
+        }
+
         let row = rows;
         rows -= 1;
 
@@ -68,5 +75,9 @@ export class WasmExecutor {
     await Promise.all(work);
 
     this.onSceneRendered();
+  }
+
+  cancelRender() {
+    this.cancelCurrentRender = true;
   }
 }
