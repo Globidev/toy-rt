@@ -1,6 +1,8 @@
 import ReactDOM from "react-dom";
 import React from "react";
 
+import Split from "react-split";
+
 import { Canvas } from "./components/canvas";
 import { GithubCorner } from "./components/github-corner";
 import { Editor } from "./components/editor";
@@ -51,7 +53,16 @@ class App extends React.Component<{}, IAppState> {
     return (
       <React.Fragment>
         <GithubCorner />
-        <div>
+        <Split
+          sizes={[80, 20]}
+          minSize={[200, 100]}
+          direction="vertical"
+          className="split-main"
+          gutterSize={6}
+          elementStyle={(dim, size, gutterSize) => {
+            return { height: `calc(${size}% - ${gutterSize + 8}px)` };
+          }}
+        >
           <Editor
             initialSource={this.sceneCode}
             onChange={(code) => (this.sceneCode = code)}
@@ -60,8 +71,9 @@ class App extends React.Component<{}, IAppState> {
           <ControlPanel
             onEval={(code) => this.evalCode(code)}
             onRunScript={() => this.evalScript()}
+            wasmExecutor={wasmExecutor}
           />
-        </div>
+        </Split>
         <Canvas wasmExecutor={wasmExecutor} />
       </React.Fragment>
     );
