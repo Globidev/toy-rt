@@ -7,34 +7,43 @@ import { Editor } from "./components/editor";
 import { ControlPanel } from "./components/control-panel";
 
 import { WasmExecutor } from "./wasm-executor";
+import { EvalResult } from "./worker";
 
 import demoCode from "../public/demo.py";
 
 import "../public/style.css";
 
-function initialSource() {
-  return window.localStorage.getItem("last-source-v2") || demoCode;
+export function main() {
+  const $root = document.getElementById("app");
+  ReactDOM.render(<App />, $root);
 }
 
 interface IAppState {
-  wasmExecutor: WasmExecutor | null;
+  wasmExecutor: WasmExecutor;
 }
 
 class App extends React.Component<{}, IAppState> {
   sceneCode = initialSource();
-  state: IAppState = { wasmExecutor: null };
+  state: IAppState = {
+    wasmExecutor: new WasmExecutor(navigator.hardwareConcurrency),
+  };
 
   async componentDidMount() {
-    let wasmExecutor = await WasmExecutor.new(4);
-    this.setState({ wasmExecutor });
+    await this.state.wasmExecutor.init();
   }
 
-  async evalCode(source: string) {
-    return (await this.state.wasmExecutor?.eval(source)) || "";
+  async evalCode(source: string): Promise<EvalResult> {
+    let result = await this.state.wasmExecutor.eval(source);
+
+    if (result.kind == "success" && result.sceneDimensions !== null) {
+      await this.state.wasmExecutor.render(result.sceneDimensions, source);
+    }
+
+    return result;
   }
 
-  async evalScene() {
-    await this.state.wasmExecutor?.render(this.sceneCode);
+  async evalScript() {
+    return await this.evalCode(this.sceneCode);
   }
 
   render() {
@@ -46,22 +55,19 @@ class App extends React.Component<{}, IAppState> {
           <Editor
             initialSource={this.sceneCode}
             onChange={(code) => (this.sceneCode = code)}
-            onRunScript={() => this.evalScene()}
+            onRunScript={() => this.evalScript()}
           />
           <ControlPanel
             onEval={(code) => this.evalCode(code)}
-            onRunScript={() => this.evalScene()}
+            onRunScript={() => this.evalScript()}
           />
         </div>
-        {wasmExecutor && <Canvas wasmExecutor={wasmExecutor} />}
+        <Canvas wasmExecutor={wasmExecutor} />
       </React.Fragment>
     );
   }
 }
 
-export function main() {
-  trt.setup_panic_hook();
-
-  const $root = document.getElementById("app");
-  ReactDOM.render(<App />, $root);
+function initialSource() {
+  return window.localStorage.getItem("last-source-v2") || demoCode;
 }
