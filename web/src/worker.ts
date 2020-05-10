@@ -2,39 +2,113 @@ import { expose as comlinkExpose } from "comlink";
 
 import { PythonVM, Scene } from "trt";
 
-type SceneSize = { width: number; height: number };
+export type SceneSize = { width: number; height: number };
+
+export type WorkerState =
+  | { kind: "created" }
+  | { kind: "loading" }
+  | { kind: "loaded" }
+  | { kind: "idle" }
+  | { kind: "eval" }
+  | { kind: "compute"; row: number };
+
+type OnStateChangeCb = (state: WorkerState) => void;
+
+export type EvalResult =
+  | { kind: "error"; error: string }
+  | { kind: "success"; returnValue: string; sceneDimensions: SceneSize | null };
 
 export class WasmWorker {
   vm: PythonVM | null = null;
   scene: Scene | null = null;
+  state: WorkerState = { kind: "created" };
+  debounceIdleTimeoutId = 0;
+
+  onStateChange: OnStateChangeCb | null = null;
 
   async init() {
     let wasm = await import("trt");
 
     wasm.setup_panic_hook();
+
+    this.changeState({ kind: "loading" });
     this.vm = wasm.PythonVM.new();
+    this.changeState({ kind: "loaded" });
   }
 
-  async compileScene(code: string): Promise<SceneSize | null> {
-    if (this.vm) {
-      const result = this.vm.eval(code);
+  changeState(state: WorkerState) {
+    this.state = state;
+    if (state.kind == "idle") {
+      this.debounceIdleTimeoutId = self.setTimeout(
+        () => this.notifyChangeState(state),
+        100
+      );
+    } else {
+      clearTimeout(this.debounceIdleTimeoutId);
+      this.notifyChangeState(state);
+    }
+  }
 
-      let scene: Scene | null = await result.build_scene();
+  notifyChangeState(state: WorkerState) {
+    if (this.onStateChange != null) this.onStateChange(state);
+  }
 
-      if (scene) {
-        this.scene = scene;
-        return { width: scene.width(), height: scene.height() };
-      }
+  setOnStateChange(cb: OnStateChangeCb) {
+    this.onStateChange = cb;
+  }
+
+  compute(row: number) {
+    if (this.scene != null) {
+      this.changeState({ kind: "compute", row: this.scene.height() - row });
+      let colors = this.scene.row_color(row);
+      this.changeState({ kind: "idle" });
+      return colors;
     }
     return null;
   }
 
-  compute(row: number) {
-    return this.scene?.row_color(row);
+  async eval(source: string): Promise<EvalResult> {
+    if (this.vm === null)
+      return { kind: "success", returnValue: "", sceneDimensions: null };
+
+    this.changeState({ kind: "eval" });
+    try {
+      let result = this.vm.eval(source);
+
+      let evalResult: EvalResult = {
+        kind: "success",
+        returnValue: result.data(),
+        sceneDimensions: null,
+      };
+
+      let scene: Scene | undefined = await result.build_scene();
+      if (scene !== undefined) {
+        this.scene = scene;
+        evalResult.sceneDimensions = {
+          width: scene.width(),
+          height: scene.height(),
+        };
+      }
+
+      return evalResult;
+    } catch (error) {
+      return { kind: "error", error };
+    } finally {
+      this.changeState({ kind: "idle" });
+    }
   }
 
-  eval(source: string) {
-    return this.vm?.eval(source).data();
+  localNames(): string[] {
+    if (this.vm === null) return [];
+
+    try {
+      let result = this.vm
+        .eval(`'[{}]'.format(",".join(f'"{k}"' for k in locals().keys()))`)
+        .data();
+      return JSON.parse(result);
+    } catch (error) {
+      return [];
+    }
   }
 }
 
