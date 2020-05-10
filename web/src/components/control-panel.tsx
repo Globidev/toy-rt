@@ -1,5 +1,7 @@
 import React from "react";
 
+import Split from "react-split";
+
 import $ from "jquery";
 
 import "prismjs/prism.js";
@@ -105,8 +107,15 @@ export class ControlPanel extends React.Component<
   render() {
     return (
       <div className="control-panel">
-        <div style={{ display: "flex", height: "100%" }}>
-          <div style={{ flex: 0.1, margin: "5px" }}>
+        <Split
+          direction="horizontal"
+          sizes={[60, 40]}
+          minSize={[100, 100]}
+          gutterSize={6}
+          className="split-panel"
+        >
+          <div ref={this.termRef}></div>
+          <div>
             <button
               onClick={async () => {
                 this.term?.freeze(true);
@@ -130,8 +139,7 @@ export class ControlPanel extends React.Component<
               })}
             </div>
           </div>
-          <div ref={this.termRef} style={{ height: "100%", flex: 1 }}></div>
-        </div>
+        </Split>
       </div>
     );
   }
