@@ -2,8 +2,13 @@ import React from "react";
 
 import $ from "jquery";
 
+import "prismjs/prism.js";
+import "prismjs/themes/prism-twilight.css";
+import "prismjs/components/prism-python.min.js";
+
 import "jquery.terminal";
 import "jquery.terminal/css/jquery.terminal.min.css";
+import "jquery.terminal/js/prism.js";
 
 interface IControlPanelProps {
   onEval: (source: string) => Promise<string>;
@@ -40,6 +45,7 @@ export class ControlPanel extends React.Component<
           prompt: "> ",
         }
       );
+      $.terminal.syntax("python");
     }
   }
 
