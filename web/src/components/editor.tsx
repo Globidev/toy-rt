@@ -24,6 +24,7 @@ export class Editor extends React.Component<IEditorProps> {
         value: source,
         mode: "python",
         theme: "monokai",
+        lineNumbers: true,
       });
 
       cm.on("change", (self, changes) => {
@@ -42,10 +43,6 @@ export class Editor extends React.Component<IEditorProps> {
   }
 
   render() {
-    return (
-      <div className="editor-container">
-        <div ref={this.editorRef}></div>
-      </div>
-    );
+    return <div className="editor-container" ref={this.editorRef}></div>;
   }
 }
