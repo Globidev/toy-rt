@@ -17,8 +17,30 @@ body {
   height: 100%;
 }
 
+.top-container {
+  display: flex;
+  flex-direction: column;
+}
+
+.run-btn {
+  border-radius: 5px;
+  height: 2.5em;
+  font-weight: bold;
+  outline: 0;
+  border-style: solid;
+}
+
+.run-btn:enabled {
+  background-color: #a42;
+  border-color: #88361b;
+  color: white;
+  cursor: pointer;
+}
+
 .editor-container {
   border: 4px solid #bbb;
+  height: 100%;
+  position: relative;
 }
 
 .gutter.gutter-vertical {
@@ -51,8 +73,11 @@ body {
 
 .CodeMirror {
   height: 100%;
+  width: 100%;
+  position: absolute;
   font-family: "Fira Code", "Courier New", monospace;
   font-size: 13px;
+  /* position: unset; */
 }
 
 .status-working {
@@ -71,10 +96,18 @@ body {
   font-weight: bolder;
 }
 
+.wasm-container-title {
+  color: white;
+  /* border-bottom: 1px solid white; */
+  font-size: 18px;
+}
+
 .workers-container {
   display: flex;
   flex-flow: row wrap;
   justify-content: space-between;
+  padding: 3px;
+  border: 1px solid white;
 }
 
 .worker-state-container {
@@ -82,6 +115,7 @@ body {
   margin: 2px;
   padding: 2px;
   width: 200px;
+  background-color: darkslategrey;
 }
 
 .github-corner:hover .octo-arm {
