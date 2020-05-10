@@ -11,6 +11,7 @@
     "codemirror": "^5.52.0",
     "comlink": "^4.3.0",
     "jquery.terminal": "^2.15.4",
+    "nanoevents": "^5.1.5",
     "prismjs": "^1.20.0",
     "react": "^16.13.1",
     "react-dom": "^16.13.1",
