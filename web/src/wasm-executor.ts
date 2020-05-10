@@ -1,5 +1,5 @@
 import * as Comlink from "comlink";
-import { WasmWorker } from "./worker";
+import { WasmWorker, SceneSize } from "./worker";
 
 type OnLineComputedCb = (
   y: number,
@@ -9,66 +9,51 @@ type OnLineComputedCb = (
 ) => void;
 type OnSceneLoadedCb = (width: number, height: number) => void;
 type OnSceneRenderedCb = () => void;
-
-type RemoteWorker = Comlink.Remote<WasmWorker>;
+type OnEvalErrorCb = (error: string) => void;
 
 export class WasmExecutor {
-  workers: RemoteWorker[];
+  workers: Comlink.Remote<WasmWorker>[];
   enabledWorkers: number = 0;
 
   onLineComputed: OnLineComputedCb = () => {};
   onSceneLoaded: OnSceneLoadedCb = () => {};
   onSceneRendered: OnSceneRenderedCb = () => {};
+  onEvalError: OnEvalErrorCb = () => {};
 
-  constructor(workers: RemoteWorker[]) {
-    this.workers = workers;
+  constructor(workerCount: number) {
+    this.workers = Array(Math.max(1, workerCount))
+      .fill(null)
+      .map(() => {
+        const rawWorker = new Worker("./worker.js");
+        return Comlink.wrap(rawWorker);
+      });
   }
 
-  static async new(workerCount: number) {
-    let initWorkers = Array(Math.max(1, workerCount))
-      .fill(null)
-      .map(async () => {
-        const rawWorker = new Worker("./worker.js");
-        const worker = Comlink.wrap<WasmWorker>(rawWorker);
-
-        await worker.init();
-
-        return worker;
-      });
-
-    let workers = await Promise.all(initWorkers);
-
-    return new WasmExecutor(workers);
+  async init() {
+    let initWorkers = this.workers.map((worker) => worker.init());
+    await Promise.all(initWorkers);
   }
 
   async eval(code: string) {
-    return await this.workers[0].eval(code);
+    const result = await this.workers[0].eval(code);
+
+    if (result.kind == "error") this.onEvalError(result.error);
+
+    return result;
   }
 
-  async render(sceneCode: string) {
-    let sceneSize = await this.workers[0].compileScene(sceneCode);
-    if (sceneSize === null) return;
+  async getLocalNames() {
+    return await this.workers[0].localNames();
+  }
 
+  async render(sceneSize: SceneSize, sceneCode: string) {
     let { width, height } = sceneSize;
-    // let scene: Scene;
-    // try {
-    //   // @ts-ignore
-    //   const scenePromise = this.vm.eval(sceneCode);
-
-    //   if (scenePromise === undefined) return;
-
-    //   scene = await scenePromise.build_scene();
-    // } catch (error) {
-    //   console.warn(error);
-    //   // TODO
-    //   return;
-    // }
 
     this.onSceneLoaded(width, height);
 
     let rows = height - 1;
     let work = this.workers.map(async (worker, i) => {
-      if (i != 0) await worker.compileScene(sceneCode);
+      if (i != 0) await worker.eval(sceneCode);
 
       while (rows >= 0) {
         let row = rows;
