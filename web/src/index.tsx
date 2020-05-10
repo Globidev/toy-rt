@@ -1,6 +1,3 @@
-// @ts-ignore ????????
-import demoCode from "../public/demo.py";
-
 import ReactDOM from "react-dom";
 import React from "react";
 
@@ -10,6 +7,8 @@ import { Editor } from "./components/editor";
 import { ControlPanel } from "./components/control-panel";
 
 import { WasmExecutor } from "./wasm-executor";
+
+import demoCode from "../public/demo.py";
 
 import "../public/style.css";
 
