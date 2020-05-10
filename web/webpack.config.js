@@ -58,6 +58,7 @@ const workerConfig = {
       },
     ],
   },
+  mode: "development",
 };
 
 module.exports = [browserConfig, workerConfig];
