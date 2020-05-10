@@ -7,18 +7,32 @@ body {
 #app {
   height: 100vh;
 }
+
+.split-main {
+  height: 100%;
+}
+
+.split-panel {
   display: flex;
-  flex-direction: column;
+  height: 100%;
 }
 
 .editor-container {
   border: 4px solid #bbb;
 }
 
+.gutter.gutter-vertical {
+  cursor: row-resize;
+}
+
+.gutter.gutter-horizontal {
+  cursor: col-resize;
+}
+
 .control-panel {
-  height: calc(20vh - 8px);
   border: 4px solid #f00;
   overflow: auto;
+  padding: 4px;
 }
 
 .canvas-container {
@@ -36,9 +50,38 @@ body {
 }
 
 .CodeMirror {
-  height: calc(80vh - 8px);
+  height: 100%;
   font-family: "Fira Code", "Courier New", monospace;
   font-size: 13px;
+}
+
+.status-working {
+  color: rgb(245, 255, 100);
+}
+
+.status-initial {
+  color: rgb(124 124 255);
+}
+
+.status-done {
+  color: rgb(108, 236, 108);
+}
+
+.status-data {
+  font-weight: bolder;
+}
+
+.workers-container {
+  display: flex;
+  flex-flow: row wrap;
+  justify-content: space-between;
+}
+
+.worker-state-container {
+  border: 1px solid lightgray;
+  margin: 2px;
+  padding: 2px;
+  width: 200px;
 }
 
 .github-corner:hover .octo-arm {
