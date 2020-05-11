@@ -76,11 +76,11 @@ class App extends React.Component<{}, IAppState> {
           className="split-main"
           gutterSize={6}
           elementStyle={(dim, size, gutterSize) => {
-            return { height: `calc(${size}% - ${gutterSize + 12}px)` };
+            return { height: `calc(${size}% - ${gutterSize + 4}px)` };
           }}
         >
           <div className="top-container">
-            <div>
+            <div className="top-controls">
               <button
                 className="run-btn"
                 onClick={async () => {

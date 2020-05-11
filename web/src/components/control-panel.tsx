@@ -104,8 +104,8 @@ export class ControlPanel extends React.Component<
           gutterSize={6}
           className="split-panel"
         >
-          <div ref={this.termRef}></div>
-          <div>
+          <div className="terminal-container" ref={this.termRef}></div>
+          <div className="status-container">
             <div className="wasm-container-title">Wasm Workers</div>
             <div className="workers-container">
               {this.state.workerStates.map((state, id) => {

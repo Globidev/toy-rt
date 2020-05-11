@@ -22,6 +22,10 @@ body {
   flex-direction: column;
 }
 
+.top-controls {
+  margin-bottom: 5px;
+}
+
 .run-btn {
   border-radius: 5px;
   height: 2.5em;
@@ -38,9 +42,18 @@ body {
 }
 
 .editor-container {
-  border: 4px solid #bbb;
+  border: 2px solid #bbb;
   height: 100%;
   position: relative;
+}
+
+.terminal-container {
+  border-right: 2px solid #bbb;
+}
+
+.status-container {
+  border-left: 2px solid #bbb;
+  padding: 5px;
 }
 
 .gutter.gutter-vertical {
@@ -52,9 +65,8 @@ body {
 }
 
 .control-panel {
-  border: 4px solid #f00;
+  border: 2px solid #bbb;
   overflow: auto;
-  padding: 4px;
 }
 
 .canvas-container {
@@ -77,19 +89,18 @@ body {
   position: absolute;
   font-family: "Fira Code", "Courier New", monospace;
   font-size: 13px;
-  /* position: unset; */
 }
 
 .status-working {
-  color: rgb(245, 255, 100);
+  color: #c2c277;
 }
 
 .status-initial {
-  color: rgb(124 124 255);
+  color: #7374c1;
 }
 
 .status-done {
-  color: rgb(108, 236, 108);
+  color: #75c276;
 }
 
 .status-data {
@@ -97,7 +108,7 @@ body {
 }
 
 .wasm-container-title {
-  color: white;
+  color: #d0d0d0;
   /* border-bottom: 1px solid white; */
   font-size: 18px;
 }
@@ -107,7 +118,8 @@ body {
   flex-flow: row wrap;
   justify-content: space-between;
   padding: 3px;
-  border: 1px solid white;
+  border-top: 1px solid white;
+  border-bottom: 1px solid white;
 }
 
 .worker-state-container {
@@ -115,11 +127,27 @@ body {
   margin: 2px;
   padding: 2px;
   width: 200px;
-  background-color: darkslategrey;
+  background-color: #29262f;
+  color: #d9d9d9;
 }
 
 .github-corner:hover .octo-arm {
   animation: octocat-wave 560ms ease-in-out;
+}
+
+.terminal {
+  --color: #deb88d;
+  --background: #09141b;
+}
+
+.terminal,
+.terminal-output > :not(.raw) span,
+.terminal-output > :not(.raw) a,
+.terminal-output > :not(.raw) div,
+.cmd,
+.cmd span,
+.cmd div {
+  font-family: "Fira Code", "Courier New", monospace;
 }
 
 @keyframes octocat-wave {
