@@ -89,6 +89,8 @@ export class ControlPanel extends React.Component<
       this.props.wasmExecutor.onEvalError = (error) => {
         term.error(error);
       };
+
+      term.disable();
     }
   }
 

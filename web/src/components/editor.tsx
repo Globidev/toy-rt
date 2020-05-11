@@ -38,6 +38,11 @@ export class Editor extends React.Component<IEditorProps> {
         },
       });
 
+      setTimeout(() => {
+        cm.refresh();
+        cm.focus();
+      }, 0);
+
       this.cm = cm;
     }
   }
