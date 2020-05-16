@@ -124,10 +124,17 @@ export class ControlPanel extends React.Component<
   }
 }
 
-function StateElement(state: WorkerState): JSX.Element {
+function stateElement(state: WorkerState): JSX.Element {
   switch (state.kind) {
     case "created":
       return <span className="status-initial">Created</span>;
+    case "fetching":
+      return (
+        <React.Fragment>
+          <span className="status-working">Fetching wasm</span>
+          <span> …</span>
+        </React.Fragment>
+      );
     case "loading":
       return (
         <React.Fragment>

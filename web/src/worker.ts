@@ -6,6 +6,7 @@ export type SceneSize = { width: number; height: number };
 
 export type WorkerState =
   | { kind: "created" }
+  | { kind: "fetching" }
   | { kind: "loading" }
   | { kind: "loaded" }
   | { kind: "idle" }
@@ -27,6 +28,7 @@ export class WasmWorker {
   onStateChange: OnStateChangeCb | null = null;
 
   async init() {
+    this.changeState({ kind: "fetching" });
     let wasm = await import("trt");
 
     wasm.setup_panic_hook();
