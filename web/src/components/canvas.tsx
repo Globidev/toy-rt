@@ -20,8 +20,24 @@ export class Canvas extends React.Component<ICanvasProps, ICanvasState> {
     const canvas = this.canvasRef.current;
     if (canvas !== null) {
       const ctx = canvas.getContext("2d") as CanvasRenderingContext2D;
+
       ctx.fillStyle = defaultCanvasFilling(ctx, canvas.width, canvas.height);
       ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      const initialRender = loadLastRender();
+      if (initialRender !== null) {
+        const img = new Image();
+        img.src = initialRender;
+        img.onload = () => {
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+          this.setState({
+            ...this.state,
+            width: img.width,
+            height: img.height,
+          });
+          ctx.drawImage(img, 0, 0);
+        };
+      }
 
       let executor = this.props.wasmExecutor;
 
@@ -43,6 +59,7 @@ export class Canvas extends React.Component<ICanvasProps, ICanvasState> {
 
       executor.events.on("sceneRendered", () => {
         this.setState({ ...this.state, rendering: false });
+        saveLastRender(canvas.toDataURL());
       });
     }
   }
@@ -81,4 +98,14 @@ function defaultCanvasFilling(
   gradient.addColorStop(0.5, "orange");
   gradient.addColorStop(1, "purple");
   return gradient;
+}
+
+const LAST_RENDER_STORAGE_KEY = "last-render-data";
+
+function loadLastRender() {
+  return window.localStorage.getItem(LAST_RENDER_STORAGE_KEY);
+}
+
+function saveLastRender(renderData: string) {
+  window.localStorage.setItem(LAST_RENDER_STORAGE_KEY, renderData);
 }
