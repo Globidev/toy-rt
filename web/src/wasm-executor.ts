@@ -1,25 +1,26 @@
 import * as Comlink from "comlink";
 import { WasmWorker, SceneSize } from "./worker";
 
-type OnLineComputedCb = (
-  y: number,
-  width: number,
-  height: number,
-  colors: Uint32Array
-) => void;
-type OnSceneLoadedCb = (width: number, height: number) => void;
-type OnSceneRenderedCb = () => void;
-type OnEvalErrorCb = (error: string) => void;
+import { createNanoEvents } from "nanoevents";
+
+interface ExecutorEvents {
+  lineComputed: (
+    y: number,
+    width: number,
+    height: number,
+    colors: Uint32Array
+  ) => void;
+  sceneLoaded: (width: number, height: number) => void;
+  sceneRendered: (ms: number) => void;
+  evalError: (error: string) => void;
+}
 
 export class WasmExecutor {
   workers: Comlink.Remote<WasmWorker>[];
   enabledWorkers: number = 0;
   cancelCurrentRender: boolean = false;
 
-  onLineComputed: OnLineComputedCb = () => {};
-  onSceneLoaded: OnSceneLoadedCb = () => {};
-  onSceneRendered: OnSceneRenderedCb = () => {};
-  onEvalError: OnEvalErrorCb = () => {};
+  events = createNanoEvents<ExecutorEvents>();
 
   constructor(workerCount: number) {
     this.workers = Array(Math.max(1, workerCount))
@@ -38,7 +39,7 @@ export class WasmExecutor {
   async eval(code: string) {
     const result = await this.workers[0].eval(code);
 
-    if (result.kind == "error") this.onEvalError(result.error);
+    if (result.kind == "error") this.events.emit("evalError", result.error);
 
     return result;
   }
@@ -52,8 +53,9 @@ export class WasmExecutor {
 
     let { width, height } = sceneSize;
 
-    this.onSceneLoaded(width, height);
+    this.events.emit("sceneLoaded", width, height);
 
+    let startTime = performance.now();
     let rows = height - 1;
     let work = this.workers.map(async (worker, i) => {
       if (i != 0) await worker.eval(sceneCode);
@@ -68,13 +70,16 @@ export class WasmExecutor {
 
         let colors = await worker.compute(row);
 
-        if (colors) this.onLineComputed(row, width, height, colors);
+        if (colors)
+          this.events.emit("lineComputed", row, width, height, colors);
       }
     });
 
     await Promise.all(work);
 
-    this.onSceneRendered();
+    let renderDuration = performance.now() - startTime;
+
+    this.events.emit("sceneRendered", renderDuration);
   }
 
   cancelRender() {
