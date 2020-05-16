@@ -25,12 +25,12 @@ export class Canvas extends React.Component<ICanvasProps, ICanvasState> {
 
       let executor = this.props.wasmExecutor;
 
-      executor.onSceneLoaded = (width, height) => {
+      executor.events.on("sceneLoaded", (width, height) => {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         this.setState({ rendering: true, width, height });
-      };
+      });
 
-      executor.onLineComputed = (y, width, height, colors) => {
+      executor.events.on("lineComputed", (y, width, height, colors) => {
         for (let x = 0; x < width; ++x) {
           const r = (colors[x] & 0x00ff0000) >> 16;
           const g = (colors[x] & 0x0000ff00) >> 8;
@@ -39,11 +39,11 @@ export class Canvas extends React.Component<ICanvasProps, ICanvasState> {
           ctx.fillStyle = `rgb(${r}, ${g}, ${b})`;
           ctx.fillRect(x, height - y, 1, 1);
         }
-      };
+      });
 
-      executor.onSceneRendered = () => {
+      executor.events.on("sceneRendered", () => {
         this.setState({ ...this.state, rendering: false });
-      };
+      });
     }
   }
 
