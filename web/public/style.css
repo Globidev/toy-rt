@@ -109,7 +109,12 @@ body {
 
 .wasm-container-title {
   color: #d0d0d0;
-  /* border-bottom: 1px solid white; */
+  font-size: 18px;
+}
+
+.render-time {
+  color: #d0d0d0;
+  margin-top: 3px;
   font-size: 18px;
 }
 

@@ -23,8 +23,14 @@ interface IControlPanelProps {
   wasmExecutor: WasmExecutor;
 }
 
+type RenderState =
+  | { kind: "none" }
+  | { kind: "rendering" }
+  | { kind: "rendered"; time: number };
+
 interface IControlPanelState {
   workerStates: WorkerState[];
+  renderState: RenderState;
 }
 
 export class ControlPanel extends React.Component<
@@ -34,10 +40,19 @@ export class ControlPanel extends React.Component<
   termRef = React.createRef<HTMLDivElement>();
   state: IControlPanelState = {
     workerStates: [],
+    renderState: { kind: "none" },
   };
 
   constructor(props: IControlPanelProps) {
     super(props);
+
+    this.props.wasmExecutor.events.on("sceneLoaded", () => {
+      this.setState({ ...this.state, renderState: { kind: "rendering" } });
+    });
+
+    this.props.wasmExecutor.events.on("sceneRendered", (time) => {
+      this.setState({ ...this.state, renderState: { kind: "rendered", time } });
+    });
 
     this.wireWorkers();
   }
@@ -86,9 +101,9 @@ export class ControlPanel extends React.Component<
         }
       );
 
-      this.props.wasmExecutor.onEvalError = (error) => {
+      this.props.wasmExecutor.events.on("evalError", (error) => {
         term.error(error);
-      };
+      });
 
       term.disable();
     }
@@ -112,11 +127,12 @@ export class ControlPanel extends React.Component<
                 return (
                   <div key={id} className="worker-state-container">
                     <span>{`[W${id}] - `}</span>
-                    {StateElement(state)}
+                    {stateElement(state)}
                   </div>
                 );
               })}
             </div>
+            {renderStateElement(this.state.renderState)}
           </div>
         </Split>
       </div>
@@ -161,6 +177,21 @@ function stateElement(state: WorkerState): JSX.Element {
           <span className="status-working">Evaluating</span>
           <span> script …</span>
         </React.Fragment>
+      );
+  }
+}
+
+function renderStateElement(renderState: RenderState): JSX.Element {
+  switch (renderState.kind) {
+    case "none":
+      return <div></div>;
+    case "rendering":
+      return <div className="render-time">Rendering …</div>;
+    case "rendered":
+      return (
+        <div className="render-time">
+          Render Time: {renderState.time.toFixed()} ms
+        </div>
       );
   }
 }
