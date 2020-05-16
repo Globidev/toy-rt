@@ -27,7 +27,7 @@ interface IAppState {
 }
 
 class App extends React.Component<{}, IAppState> {
-  sceneCode = initialSource();
+  sceneCode = loadLastSource();
   state: IAppState = {
     wasmExecutor: new WasmExecutor(navigator.hardwareConcurrency),
     // wasmExecutor: new WasmExecutor(1),
@@ -62,6 +62,11 @@ class App extends React.Component<{}, IAppState> {
     return result;
   }
 
+  onSceneCodeChanged(code: string) {
+    saveLastSource(code);
+    this.sceneCode = code;
+  }
+
   render() {
     const wasmExecutor = this.state.wasmExecutor;
     const runBtnText = this.state.rendering ? "STOP ■" : "RUN ⯈";
@@ -94,7 +99,7 @@ class App extends React.Component<{}, IAppState> {
             </div>
             <Editor
               initialSource={this.sceneCode}
-              onChange={(code) => (this.sceneCode = code)}
+              onChange={(code) => this.onSceneCodeChanged(code)}
               onRunScript={() => this.evalScript()}
             />
           </div>
@@ -110,6 +115,12 @@ class App extends React.Component<{}, IAppState> {
   }
 }
 
-function initialSource() {
-  return window.localStorage.getItem("last-source-v2") || demoCode;
+const LAST_SOURCE_STORAGE_KEY = "last-source";
+
+function loadLastSource() {
+  return window.localStorage.getItem(LAST_SOURCE_STORAGE_KEY) || demoCode;
+}
+
+function saveLastSource(source: string) {
+  window.localStorage.setItem(LAST_SOURCE_STORAGE_KEY, source);
 }
