@@ -11,7 +11,7 @@ import { ControlPanel } from "./components/control-panel";
 import { WasmExecutor } from "./wasm-executor";
 import { EvalResult } from "./worker";
 
-import demoCode from "../public/demo.py";
+import { scenes } from "./assets/scenes";
 
 import "../public/style.css";
 
@@ -28,6 +28,7 @@ interface IAppState {
 
 class App extends React.Component<{}, IAppState> {
   sceneCode = loadLastSource();
+  editorRef = React.createRef<Editor>();
   state: IAppState = {
     wasmExecutor: new WasmExecutor(navigator.hardwareConcurrency),
     // wasmExecutor: new WasmExecutor(1),
@@ -96,11 +97,33 @@ class App extends React.Component<{}, IAppState> {
               >
                 {runBtnText}
               </button>
+              <select
+                className="load-model-select"
+                onChange={(e) => {
+                  const selectedSceneKey = e.target.value;
+                  const scene = scenes[selectedSceneKey];
+                  if (scene !== undefined && this.editorRef.current) {
+                    this.sceneCode = scene;
+                    this.editorRef.current.cm?.setValue(scene);
+                  }
+                  e.target.selectedIndex = 0;
+                }}
+              >
+                <option>Load model…</option>
+                {Object.keys(scenes).map((sceneName, idx) => {
+                  return (
+                    <option value={sceneName} key={idx}>
+                      {sceneName}
+                    </option>
+                  );
+                })}
+              </select>
             </div>
             <Editor
               initialSource={this.sceneCode}
               onChange={(code) => this.onSceneCodeChanged(code)}
               onRunScript={() => this.evalScript()}
+              ref={this.editorRef}
             />
           </div>
           <ControlPanel
