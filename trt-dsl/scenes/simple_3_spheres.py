@@ -25,12 +25,14 @@ def scene():
 
     return spheres + [ground]
 
-config = {
-    'ambiant_color': (0.5, 0.7, 0.9),
-    'camera': {
-        'look_at': (0, 0, 0),
-        'look_from': (150, 100, 200),
+def config(spx):
+    return {
+        'samples_per_px': spx,
+        'ambiant_color': (0.5, 0.7, 0.9),
+        'camera': {
+            'look_at': (0, 0, 0),
+            'look_from': (150, 100, 200),
+        }
     }
-}
 
-render(scene(), **config)
+render(scene(), **config(100))

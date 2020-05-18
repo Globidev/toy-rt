@@ -1,4 +1,4 @@
-from trt.material import matte, metallic, dielectric, diffuse_color, image
+from trt.material import matte, metallic, diffuse_color
 from trt.shape import sphere, rect
 from trt import render
 
@@ -29,21 +29,22 @@ def scene():
         # right
         rect(y=(0, 600), z=(-1000, 600), x=0, material=matte(green)),
         # front
-        rect(x=(0, 600), y=(0, 600), z=600, material=matte(white)).flip_normals(),
+        rect(x=(0, 600), y=(0, 600), z=600, material=metallic(white)).flip_normals(),
         # back
-        rect(x=(0, 600), y=(0, 600), z=-1000, material=matte(white)),
+        rect(x=(0, 600), y=(0, 600), z=-1000, material=metallic(blue)),
     ]
 
     return cornell_box + spheres
 
-config = {
-    'width': 400,
-    'height': 400,
-    'samples_per_px': 50,
-    "camera": {
-        'look_at': (300, 300, 0),
-        'look_from': (300, 300, -800)
+def config(spx):
+    return {
+        'width': 300,
+        'height': 300,
+        'samples_per_px': spx,
+        "camera": {
+            'look_at': (300, 300, 0),
+            'look_from': (300, 380, -800)
+        }
     }
-}
 
-render(scene(), **config)
+render(scene(), **config(100))

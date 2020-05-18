@@ -1,22 +1,26 @@
 from trt import render
 from trt.shape import sphere, bvh_node
-from trt.material import matte, metallic, dielectric
+from trt.material import matte, metallic, dielectric, diffuse_color
 
-from random import random as rand, seed, choice
+from random import random as rand, seed, choices
 
 def random_color():
     return (rand() * rand(), rand() * rand(), rand() * rand())
 
 def spheres():
-    for a in range(-11, 11):
-        for b in range(-11, 11):
-            center = (a + 0.9 * rand(), 0.2, b + 0.9 * rand())
+    material_choices = (
+        (lambda: matte(random_color()),                   0.5),
+        (lambda: metallic(random_color(), 0.25 * rand()), 0.4),
+        (lambda: dielectric(1.0 * rand()),                0.1)
+    )
 
-            material = choice([
-                matte(random_color()),
-                metallic(random_color(), 0.25 * rand()),
-                dielectric(1.0 * rand())
-            ])
+    materials = iter(choices(*zip(*material_choices), k=400))
+
+    for dx in range(-10, 10):
+        for dz in range(-10, 10):
+            center = (dx + 0.9 * rand(), 0.2, dz + 0.9 * rand())
+
+            material = next(materials)()
 
             yield sphere(center, 0.2, material)
 
@@ -27,20 +31,23 @@ def spheres():
     ]
 
 def scene():
-    ground = sphere((0, -200, 0), 200, metallic((0.5, 0.5, 0.5)))
+    seed(0xDEADBEEF)
 
-    return [bvh_node(spheres()), bvh_node([ground])]
+    ground = sphere((0, -1000, 0), 1000, metallic((0.5, 0.5, 0.5)))
 
-seed(0xDEADBEEF)
+    return [bvh_node(spheres()), ground]
 
-config = {
-    'width': 600,
-    'height': 450,
-    'ambiant_color': (0.5, 0.7, 0.9),
-    'camera': {
-        'look_at': (0, 0, 0),
-        'look_from': (10, 2, 4),
-    },
-}
+def config(spx):
+    return {
+        'width': 600,
+        'height': 450,
+        'samples_per_px': spx,
+        'rays_per_sample': 50,
+        'ambiant_color': (0.5, 0.7, 0.9),
+        'camera': {
+            'look_at': (0, 0, 0),
+            'look_from': (10, 2, 4),
+        },
+    }
 
-render(scene(), **config)
+render(scene(), **config(25))
