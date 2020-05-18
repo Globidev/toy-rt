@@ -69,7 +69,9 @@ export class Canvas extends React.Component<ICanvasProps, ICanvasState> {
       <div className="canvas-container">
         <Draggable positionOffset={{ x: "calc(90vw - 500px)", y: "10vh" }}>
           <div
-            className={this.state.rendering ? "active-border" : ""}
+            className={
+              this.state.rendering ? "active-border" : "inactive-border"
+            }
             style={{
               width: this.state.width + 4,
               height: this.state.height + 4,

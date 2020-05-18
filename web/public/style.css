@@ -55,6 +55,11 @@ body {
   cursor: pointer;
 }
 
+.load-model-select {
+  margin-left: 20px;
+  height: 2em;
+}
+
 .editor-container {
   border: 2px solid #bbb;
   height: 100%;
@@ -205,6 +210,10 @@ body {
   background-size: 15px 2px, 15px 2px, 2px 15px, 2px 15px;
   background-position: left top, right bottom, left bottom, right top;
   animation: border-dance 0.25s infinite linear;
+}
+
+.inactive-border {
+  border: 1px solid silver;
 }
 
 @keyframes border-dance {
