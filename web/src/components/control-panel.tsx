@@ -114,7 +114,7 @@ export class ControlPanel extends React.Component<
       <div className="control-panel">
         <Split
           direction="horizontal"
-          sizes={[60, 40]}
+          sizes={[55, 45]}
           minSize={[100, 100]}
           gutterSize={6}
           className="split-panel"
