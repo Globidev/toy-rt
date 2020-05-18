@@ -7,6 +7,7 @@ import { Canvas } from "./components/canvas";
 import { GithubCorner } from "./components/github-corner";
 import { Editor } from "./components/editor";
 import { ControlPanel } from "./components/control-panel";
+import { ProgressLoader } from "./components/progress-loader";
 
 import { WasmExecutor } from "./wasm-executor";
 import { EvalResult } from "./worker";
@@ -105,6 +106,11 @@ class App extends React.Component<{}, IAppState> {
     const wasmExecutor = this.state.wasmExecutor;
     const runBtnText = this.state.rendering ? "STOP ■" : "RUN ⯈";
 
+    if (this.state.loadingWasm.kind == "loading") {
+      return (
+        <ProgressLoader progressPercent={this.state.loadingWasm.percent} />
+      );
+    }
     return (
       <React.Fragment>
         <GithubCorner />

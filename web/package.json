@@ -13,6 +13,7 @@
     "jquery.terminal": "^2.15.4",
     "nanoevents": "^5.1.5",
     "prismjs": "^1.20.0",
+    "rc-progress": "^3.0.0",
     "react": "^16.13.1",
     "react-dom": "^16.13.1",
     "react-draggable": "^4.3.1",
