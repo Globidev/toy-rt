@@ -8,6 +8,20 @@ body {
   height: 100vh;
 }
 
+.main {
+  height: 100%;
+  animation: fadein 0.5s linear 1;
+}
+
+@keyframes fadein {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
 .split-main {
   height: 100%;
 }

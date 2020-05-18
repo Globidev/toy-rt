@@ -111,8 +111,9 @@ class App extends React.Component<{}, IAppState> {
         <ProgressLoader progressPercent={this.state.loadingWasm.percent} />
       );
     }
+
     return (
-      <React.Fragment>
+      <div className="main">
         <GithubCorner />
         <Split
           sizes={[80, 20]}
@@ -172,7 +173,7 @@ class App extends React.Component<{}, IAppState> {
           />
         </Split>
         <Canvas wasmExecutor={wasmExecutor} />
-      </React.Fragment>
+      </div>
     );
   }
 }
