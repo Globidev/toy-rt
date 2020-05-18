@@ -189,7 +189,7 @@ function renderStateElement(renderState: RenderState): JSX.Element {
     case "rendered":
       return (
         <div className="render-time">
-          Render Time: {renderState.time.toFixed()} ms
+          Render Time: {(renderState.time / 1000).toFixed(3)} s
         </div>
       );
   }
