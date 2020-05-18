@@ -59,11 +59,17 @@ export class ControlPanel extends React.Component<
 
   wireWorkers() {
     this.props.wasmExecutor.workers.forEach((worker, id) => {
+      let stateChanged = false;
       let statePromise: Promise<WorkerState> = worker.state; // Typescript issue: Promise<A> | Promise<B> can't be coerced to a Promise<A | B>
-      statePromise.then((state) => this.changeWorkerState(id, state));
+      statePromise.then((state) => {
+        if (!stateChanged) this.changeWorkerState(id, state);
+      });
 
       worker.setOnStateChange(
-        Comlink.proxy((state) => this.changeWorkerState(id, state))
+        Comlink.proxy((state) => {
+          this.changeWorkerState(id, state);
+          stateChanged = true;
+        })
       );
     });
   }
