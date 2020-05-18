@@ -174,7 +174,10 @@ class App extends React.Component<{}, IAppState> {
 const LAST_SOURCE_STORAGE_KEY = "last-source";
 
 function loadLastSource() {
-  return window.localStorage.getItem(LAST_SOURCE_STORAGE_KEY) || demoCode;
+  return (
+    window.localStorage.getItem(LAST_SOURCE_STORAGE_KEY) ||
+    scenes["gophers versus the world"]
+  );
 }
 
 function saveLastSource(source: string) {
