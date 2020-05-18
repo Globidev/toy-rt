@@ -4,6 +4,7 @@ import CodeMirror from "codemirror";
 import "codemirror/lib/codemirror.css";
 import "codemirror/theme/monokai.css";
 import "codemirror/mode/python/python.js";
+import "codemirror/addon/comment/comment.js";
 
 interface IEditorProps {
   initialSource: string;
@@ -25,17 +26,19 @@ export class Editor extends React.Component<IEditorProps> {
         mode: "python",
         theme: "monokai",
         lineNumbers: true,
+        indentUnit: 4,
+        indentWithTabs: false,
+        extraKeys: {
+          Tab: (cm) => cm.execCommand("indentMore"),
+          "Shift-Tab": (cm) => cm.execCommand("indentLess"),
+          "Ctrl-Enter": (_cm) => this.props.onRunScript(),
+          "Ctrl-/": (cm) => cm.execCommand("toggleComment"),
+        },
       });
 
       cm.on("change", (self, changes) => {
         let code = cm.getValue();
         this.props.onChange(code);
-      });
-
-      cm.setOption("extraKeys", {
-        "Ctrl-Enter": (_cm) => {
-          this.props.onRunScript();
-        },
       });
 
       setTimeout(() => {
