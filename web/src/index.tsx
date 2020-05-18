@@ -24,7 +24,12 @@ interface IAppState {
   wasmExecutor: WasmExecutor;
   rendering: boolean;
   runningScript: boolean;
+  loadingWasm: LoadingWasmState;
 }
+
+type LoadingWasmState =
+  | { kind: "loading"; percent: number }
+  | { kind: "loaded" };
 
 class App extends React.Component<{}, IAppState> {
   sceneCode = loadLastSource();
@@ -34,10 +39,38 @@ class App extends React.Component<{}, IAppState> {
     // wasmExecutor: new WasmExecutor(1),
     rendering: false,
     runningScript: false,
+    loadingWasm: { kind: "loading", percent: 0 },
   };
 
   async componentDidMount() {
-    await this.state.wasmExecutor.init();
+    const resp = await fetch("trt_wasm_bg.wasm");
+    const reader = resp.body?.getReader();
+    const length = 21_311_358;
+    console.log(length);
+    if (reader == undefined) return;
+
+    let wasmData = new Uint8Array();
+    for (;;) {
+      const result = await reader.read();
+      if (result.done) {
+        break;
+      }
+      const newData = new Uint8Array(result.value.length + wasmData.length);
+      newData.set(wasmData, 0);
+      newData.set(result.value, wasmData.length);
+      wasmData = newData;
+      this.setState({
+        ...this.state,
+        loadingWasm: {
+          kind: "loading",
+          percent: (wasmData.length / length) * 100,
+        },
+      });
+    }
+
+    this.setState({ ...this.state, loadingWasm: { kind: "loaded" } });
+
+    await this.state.wasmExecutor.init(wasmData);
   }
 
   async evalCode(source: string): Promise<EvalResult> {

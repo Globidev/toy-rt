@@ -20,6 +20,7 @@
     "trt": "file:../trt-wasm/pkg"
   },
   "devDependencies": {
+    "@open-wc/webpack-import-meta-loader": "^0.4.6",
     "@types/codemirror": "0.0.88",
     "@types/react": "^16.9.34",
     "@types/react-dom": "^16.9.7",

@@ -33,7 +33,12 @@ const browserConfig = {
     path: path.resolve(__dirname, "dist"),
   },
   mode: "development",
-  plugins: [new CopyWebpackPlugin(["public/index.html"])],
+  plugins: [
+    new CopyWebpackPlugin([
+      "public/index.html",
+      "../trt-wasm/pkg/trt_wasm_bg.wasm",
+    ]),
+  ],
   devServer: {
     compress: true,
     inline: true,
@@ -55,6 +60,10 @@ const workerConfig = {
         test: /\.ts$/,
         use: "ts-loader",
         exclude: /node_modules/,
+      },
+      {
+        test: /\.js$/,
+        loader: require.resolve("@open-wc/webpack-import-meta-loader"),
       },
     ],
   },

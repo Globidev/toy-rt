@@ -31,8 +31,8 @@ export class WasmExecutor {
       });
   }
 
-  async init() {
-    let initWorkers = this.workers.map((worker) => worker.init());
+  async init(wasmData: ArrayBuffer) {
+    let initWorkers = this.workers.map((worker) => worker.init(wasmData));
     await Promise.all(initWorkers);
   }
 

@@ -1,6 +1,7 @@
 import { expose as comlinkExpose } from "comlink";
 
-import { PythonVM, Scene } from "trt";
+import { PythonVM, Scene, setup_panic_hook } from "trt";
+import initWasm from "../../trt-wasm/pkg/trt_wasm.js";
 
 export type SceneSize = { width: number; height: number };
 
@@ -27,14 +28,13 @@ export class WasmWorker {
 
   onStateChange: OnStateChangeCb | null = null;
 
-  async init() {
-    this.changeState({ kind: "fetching" });
-    let wasm = await import("trt");
-
-    wasm.setup_panic_hook();
-
+  async init(wasmData: ArrayBuffer) {
     this.changeState({ kind: "loading" });
-    this.vm = wasm.PythonVM.new();
+
+    await initWasm(wasmData);
+    setup_panic_hook();
+    this.vm = PythonVM.new();
+
     this.changeState({ kind: "loaded" });
   }
 
