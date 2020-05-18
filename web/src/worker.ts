@@ -7,7 +7,6 @@ export type SceneSize = { width: number; height: number };
 
 export type WorkerState =
   | { kind: "created" }
-  | { kind: "fetching" }
   | { kind: "loading" }
   | { kind: "loaded" }
   | { kind: "idle" }
