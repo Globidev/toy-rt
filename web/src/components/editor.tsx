@@ -5,6 +5,7 @@ import "codemirror/lib/codemirror.css";
 import "codemirror/theme/monokai.css";
 import "codemirror/mode/python/python.js";
 import "codemirror/addon/comment/comment.js";
+import "codemirror/keymap/sublime.js";
 
 interface IEditorProps {
   initialSource: string;
@@ -34,6 +35,7 @@ export class Editor extends React.Component<IEditorProps> {
           "Ctrl-Enter": (_cm) => this.props.onRunScript(),
           "Ctrl-/": (cm) => cm.execCommand("toggleComment"),
         },
+        keyMap: "sublime",
       });
 
       cm.on("change", (self, changes) => {
