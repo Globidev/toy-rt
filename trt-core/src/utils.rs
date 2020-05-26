@@ -66,3 +66,11 @@ pub fn sphere_uv(p: Vec3) -> (f32, f32) {
     let v = (theta + PI / 2.) / PI;
     (u, v)
 }
+
+pub fn cylinder_uv(p: Vec3) -> (f32, f32) {
+    use std::f32::consts::PI;
+    let phi = f32::atan2(p.z(), p.x());
+    let u = 1. - (phi + PI) / (2. * PI);
+    let v = p.y() % 1.;
+    (u, v)
+}

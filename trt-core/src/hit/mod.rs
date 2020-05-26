@@ -112,6 +112,9 @@ pub use hitlist::HitList;
 mod sphere;
 pub use sphere::{Sphere, SphereBuilder};
 
+mod cylinder;
+pub use cylinder::{Cylinder, CylinderBuilder};
+
 mod moving_sphere;
 pub use moving_sphere::MovingSphere;
 
