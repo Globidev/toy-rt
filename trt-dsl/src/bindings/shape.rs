@@ -7,7 +7,7 @@ use super::{
 };
 
 use trt_core::{
-    hit::{RectBuilder, Sphere, HitBox, BVHNode},
+    hit::{RectBuilder, Sphere, HitBox, BVHNode, Cylinder},
     prelude::*,
 };
 
@@ -48,6 +48,20 @@ impl PyShape {
                 Sphere::builder()
                     .radius(radius)
                     .center(center.into_vec())
+                    .material(mat)
+            });
+
+        Self(shared_hit)
+    }
+
+    #[pyclassmethod]
+    fn cylinder(_cls: PyClassRef, base: PyVec3, height: f32, radius: f32, material: PyMaterial) -> Self {
+        let shared_hit = material
+            .map_to_hit(move |mat| {
+                Cylinder::builder()
+                    .radius(radius)
+                    .base(base.into_vec())
+                    .height(height)
                     .material(mat)
             });
 

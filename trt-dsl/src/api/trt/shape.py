@@ -10,6 +10,9 @@ def _map_range(r):
 def sphere(center, radius, material):
     return _trt.Shape.sphere(_map_range(center), float(radius), material)
 
+def cylinder(base, height, radius, material):
+    return _trt.Shape.cylinder(_map_range(base), float(height), float(radius), material)
+
 def rect(x, y, z, material):
     def validate_rect_args(r1, r2, f):
         correct_outer_types = isinstance(r1, tuple) and\
