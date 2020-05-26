@@ -21,6 +21,10 @@ impl TryFromObject for PyVec3 {
         let as_py_tuple: PyTupleRef = obj.try_into_ref(vm)?;
         let as_slice = as_py_tuple.as_slice();
 
+        if as_slice.len() != 3 {
+            return Err(vm.new_type_error("Expected a tuple of 3 elements".to_owned()))
+        }
+
         let vec3 = Vec3::new(
             FloatLike::try_from_object(vm, as_slice[0].clone())?.as_f32(),
             FloatLike::try_from_object(vm, as_slice[1].clone())?.as_f32(),
