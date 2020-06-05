@@ -37,7 +37,12 @@ export class WasmExecutor {
   }
 
   async eval(code: string) {
-    const result = await this.workers[0].eval(code);
+    const results = await Promise.all(
+      this.workers.map(async (w) => {
+        return await w.eval(code);
+      })
+    );
+    const result = results[0];
 
     if (result.kind == "error") this.events.emit("evalError", result.error);
 
