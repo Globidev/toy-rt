@@ -184,7 +184,7 @@ const LAST_SOURCE_STORAGE_KEY = "last-source";
 function loadLastSource() {
   return (
     window.localStorage.getItem(LAST_SOURCE_STORAGE_KEY) ||
-    scenes["gophers versus the world"]
+    scenes["gophery nightmare"]
   );
 }
 
