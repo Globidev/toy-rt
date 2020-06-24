@@ -23,7 +23,7 @@ def scene():
         material=metallic(white),
     )
 
-    return spheres + [ground]
+    return [*spheres, ground]
 
 def config(spx):
     return {
