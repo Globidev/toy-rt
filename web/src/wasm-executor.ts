@@ -2,6 +2,7 @@ import * as Comlink from "comlink";
 import { WasmWorker, SceneSize } from "./worker";
 
 import { createNanoEvents } from "nanoevents";
+import { EvalMode } from "trt";
 
 interface ExecutorEvents {
   lineComputed: (
@@ -45,10 +46,10 @@ export class WasmExecutor {
     await Promise.all(initWorkers);
   }
 
-  async eval(code: string) {
+  async eval(code: string, mode: EvalMode) {
     const results = await Promise.all(
       this.workers.map(async (w) => {
-        return await w.eval(code);
+        return await w.eval(code, mode);
       })
     );
     const result = results[0];
@@ -72,7 +73,7 @@ export class WasmExecutor {
     let startTime = performance.now();
     let rows = height - 1;
     let work = this.workers.map(async (worker, i) => {
-      if (i != 0) await worker.eval(sceneCode);
+      // if (i != 0) await worker.eval(sceneCode, EvalMode.Verbose);
 
       while (rows >= 0) {
         if (this.cancelCurrentRender) {

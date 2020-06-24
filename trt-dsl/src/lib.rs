@@ -6,11 +6,12 @@ use prelude::*;
 
 use bindings::SceneInjector;
 
-use rustpython_compiler::{compile::Mode as CompileMode, error::CompileError};
+use rustpython_compiler::error::CompileError;
 use rpy::{PySettings, InitParameter};
 
 pub use rpy::{VirtualMachine, scope::Scope, obj::objstr::PyStringRef};
 pub use bindings::{DynScene, DynSceneResult};
+pub use rustpython_compiler::compile::Mode as CompileMode;
 use std::{sync::Mutex, io::Write};
 
 pub struct EvalOutput<F> {
@@ -18,10 +19,10 @@ pub struct EvalOutput<F> {
     pub data: String,
 }
 
-pub fn eval(vm: &VirtualMachine, source: &str, scope: Scope) -> Result<EvalOutput<impl Future<Output = DynSceneResult>>, EvalError> {
+pub fn eval(vm: &VirtualMachine, source: &str, scope: Scope, mode: CompileMode) -> Result<EvalOutput<impl Future<Output = DynSceneResult>>, EvalError> {
     let scene_injector = SceneInjector::new(vm)?;
 
-    let code = vm.compile(source, CompileMode::Single, String::from("<webconsole>"))?;
+    let code = vm.compile(source, mode, String::from("<webconsole>"))?;
     let result = vm.run_code_obj(code, scope)?;
 
     let result_data = vm.to_str(&result)?.to_string();
@@ -93,7 +94,7 @@ mod tests {
                 fn $name() {
                     let vm = new_vm(Vec::new());
                     let scene_code = include_str!(concat!("../scenes/", stringify!($name), ".py"));
-                    let eval_res = eval(&vm, scene_code, vm.new_scope_with_builtins());
+                    let eval_res = eval(&vm, scene_code, vm.new_scope_with_builtins(), CompileMode::Single);
                     match eval_res {
                         Ok(ret) => assert!(ret.rendered_scene.is_some()),
                         Err(e) => panic!("{}", e.pretty_print(&vm))
@@ -106,8 +107,21 @@ mod tests {
     test_valid_scenes! {
         simple_3_spheres,
         cornell_box,
-        foam_cubes,
+        gophery_nightmare,
         sphere_cluster,
+    }
+
+    #[test]
+    fn traceback() {
+        let vm = new_vm(Vec::new());
+        match eval(&vm, "a=32; import a", vm.new_scope_with_builtins(), CompileMode::Single) {
+            Ok(_) => panic!("Should fail"),
+            Err(e) => match e {
+                EvalError::Compile(e) => { dbg!(e); },
+                EvalError::Exception(e) => { dbg!(&*e.traceback().unwrap()); },
+            },
+        }
+        panic!()
     }
 
     #[test]
@@ -116,7 +130,7 @@ mod tests {
         let source =
             std::fs::read_to_string("/home/globi/dev/toy-ray-tracer/trt-dsl/scenes/dynamic.py")
                 .expect("Failed to open dynamic scene");
-        let res = eval(&vm, &source, vm.new_scope_with_builtins());
+        let res = eval(&vm, &source, vm.new_scope_with_builtins(), CompileMode::Single);
         if let Err(e) = res {
             panic!("{}", e.pretty_print(&vm))
         }

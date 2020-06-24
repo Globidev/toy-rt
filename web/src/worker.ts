@@ -1,6 +1,6 @@
 import { expose as comlinkExpose } from "comlink";
 
-import { PythonVM, Scene, setup_panic_hook } from "trt";
+import { PythonVM, Scene, setup_panic_hook, EvalMode } from "trt";
 import initWasm from "../../trt-wasm/pkg/trt_wasm.js";
 
 export type SceneSize = { width: number; height: number };
@@ -68,13 +68,13 @@ export class WasmWorker {
     return null;
   }
 
-  async eval(source: string): Promise<EvalResult> {
+  async eval(source: string, mode: EvalMode): Promise<EvalResult> {
     if (this.vm === null)
       return { kind: "success", returnValue: "", sceneDimensions: null };
 
     this.changeState({ kind: "eval" });
     try {
-      let result = this.vm.eval(source);
+      let result = this.vm.eval(source, mode);
 
       let evalResult: EvalResult = {
         kind: "success",
@@ -104,7 +104,10 @@ export class WasmWorker {
 
     try {
       let result = this.vm
-        .eval(`'[{}]'.format(",".join(f'"{k}"' for k in locals().keys()))`)
+        .eval(
+          `'[{}]'.format(",".join(f'"{k}"' for k in locals().keys()))`,
+          EvalMode.Silent
+        )
         .data();
       return JSON.parse(result);
     } catch (error) {

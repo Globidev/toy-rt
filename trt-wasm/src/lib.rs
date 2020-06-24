@@ -5,7 +5,7 @@ use std::{rc::Rc, future::Future, io::Write};
 use wasm_bindgen::{JsCast, prelude::*};
 
 use trt_core::prelude::*;
-use trt_dsl::{DynScene, DynSceneResult, EvalOutput};
+use trt_dsl::{DynScene, DynSceneResult, EvalOutput, CompileMode};
 use rand::{SeedableRng, prelude::SmallRng};
 
 #[wasm_bindgen]
@@ -34,6 +34,12 @@ impl Write for FnWriter {
 pub struct PythonVM(trt_dsl::VirtualMachine, trt_dsl::Scope);
 
 #[wasm_bindgen]
+pub enum EvalMode {
+    Verbose,
+    Silent,
+}
+
+#[wasm_bindgen]
 impl PythonVM {
     pub fn new(write_callback: JsValue) -> PythonVM {
         let write_callback_fn = write_callback
@@ -46,13 +52,17 @@ impl PythonVM {
         Self(vm, scope)
     }
 
-    fn eval_impl(&self, source: &str) -> Result<EvalOutput<SceneFuture>, JsValue> {
-        trt_dsl::eval(&self.0, source, self.1.clone())
+    fn eval_impl(&self, source: &str, mode: EvalMode) -> Result<EvalOutput<SceneFuture>, JsValue> {
+        let compile_mode = match mode {
+            EvalMode::Verbose => CompileMode::Single,
+            EvalMode::Silent => CompileMode::Eval,
+        };
+        trt_dsl::eval(&self.0, source, self.1.clone(), compile_mode)
             .map_err(|e| e.pretty_print(&self.0).into())
     }
 
-    pub fn eval(&self, source: &str) -> Result<WasmEvalOutput, JsValue> {
-        let EvalOutput { data, rendered_scene } = self.eval_impl(source)?;
+    pub fn eval(&self, source: &str, mode: EvalMode) -> Result<WasmEvalOutput, JsValue> {
+        let EvalOutput { data, rendered_scene } = self.eval_impl(source, mode)?;
 
         Ok(WasmEvalOutput {
             data,

@@ -15,6 +15,7 @@ import { EvalResult } from "./worker";
 import { scenes } from "./assets/scenes";
 
 import "../public/style.css";
+import { EvalMode } from "trt";
 
 export function main() {
   const $root = document.getElementById("app");
@@ -74,9 +75,9 @@ class App extends React.Component<{}, IAppState> {
     await this.state.wasmExecutor.init(wasmData);
   }
 
-  async evalCode(source: string): Promise<EvalResult> {
+  async evalCode(source: string, mode: EvalMode): Promise<EvalResult> {
     this.setState({ ...this.state, runningScript: true });
-    let result = await this.state.wasmExecutor.eval(source);
+    let result = await this.state.wasmExecutor.eval(source, mode);
 
     if (result.kind == "success" && result.sceneDimensions !== null) {
       if (this.state.rendering) {
@@ -93,7 +94,7 @@ class App extends React.Component<{}, IAppState> {
   }
 
   async evalScript() {
-    let result = await this.evalCode(this.sceneCode);
+    let result = await this.evalCode(this.sceneCode, EvalMode.Verbose);
     return result;
   }
 
@@ -167,7 +168,7 @@ class App extends React.Component<{}, IAppState> {
             />
           </div>
           <ControlPanel
-            onEval={(code) => this.evalCode(code)}
+            onEval={(code) => this.evalCode(code, EvalMode.Verbose)}
             onRunScript={() => this.evalScript()}
             wasmExecutor={wasmExecutor}
           />
