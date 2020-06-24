@@ -27,12 +27,12 @@ export class WasmWorker {
 
   onStateChange: OnStateChangeCb | null = null;
 
-  async init(wasmData: ArrayBuffer) {
+  async init(wasmData: ArrayBuffer, onStdout: (text: string) => void) {
     this.changeState({ kind: "loading" });
 
     await initWasm(wasmData);
     setup_panic_hook();
-    this.vm = PythonVM.new();
+    this.vm = PythonVM.new(onStdout);
 
     this.changeState({ kind: "loaded" });
   }

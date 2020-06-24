@@ -11,6 +11,7 @@ use rpy::{PySettings, InitParameter};
 
 pub use rpy::{VirtualMachine, scope::Scope, obj::objstr::PyStringRef};
 pub use bindings::{DynScene, DynSceneResult};
+use std::{sync::Mutex, io::Write};
 
 pub struct EvalOutput<F> {
     pub rendered_scene: Option<F>,
@@ -29,7 +30,7 @@ pub fn eval(vm: &VirtualMachine, source: &str, scope: Scope) -> Result<EvalOutpu
     Ok(EvalOutput { rendered_scene: scene, data: result_data })
 }
 
-pub fn new_vm() -> VirtualMachine {
+pub fn new_vm(writer: impl Write + Send + 'static) -> VirtualMachine {
     let mut settings = PySettings::default();
     settings.initialization_parameter = InitParameter::NoInitialize;
 
@@ -39,8 +40,10 @@ pub fn new_vm() -> VirtualMachine {
 
     let ctx = &vm.ctx;
 
-    let write = ctx.new_method(|_self: PyObjectRef, data: PyStringRef, vm: &VirtualMachine| {
-        // TODO, hook to caller
+    let thread_safe_writer = Mutex::new(writer);
+    let write = ctx.new_method(move |_self: PyObjectRef, data: PyStringRef, vm: &VirtualMachine| {
+        thread_safe_writer.lock().unwrap().write(data.as_str().as_bytes())
+            .unwrap();
     });
     let flush = ctx.new_method(|| ());
 
@@ -88,7 +91,7 @@ mod tests {
             $(
                 #[test]
                 fn $name() {
-                    let vm = new_vm();
+                    let vm = new_vm(Vec::new());
                     let scene_code = include_str!(concat!("../scenes/", stringify!($name), ".py"));
                     let eval_res = eval(&vm, scene_code, vm.new_scope_with_builtins());
                     match eval_res {
@@ -109,7 +112,7 @@ mod tests {
 
     #[test]
     fn dynamic_scene() {
-        let vm = new_vm();
+        let vm = new_vm(Vec::new());
         let source =
             std::fs::read_to_string("/home/globi/dev/toy-ray-tracer/trt-dsl/scenes/dynamic.py")
                 .expect("Failed to open dynamic scene");

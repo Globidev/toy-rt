@@ -13,6 +13,7 @@ interface ExecutorEvents {
   sceneLoaded: (width: number, height: number) => void;
   sceneRendered: (ms: number) => void;
   evalError: (error: string) => void;
+  stdoutWritten: (text: string) => void;
 }
 
 export class WasmExecutor {
@@ -32,7 +33,15 @@ export class WasmExecutor {
   }
 
   async init(wasmData: ArrayBuffer) {
-    let initWorkers = this.workers.map((worker) => worker.init(wasmData));
+    let initWorkers = this.workers.map((worker, i) => {
+      let onStdout;
+      if (i == 0) {
+        onStdout = (s: string) => this.events.emit("stdoutWritten", s);
+      } else {
+        onStdout = (_: string) => {};
+      }
+      return worker.init(wasmData, Comlink.proxy(onStdout));
+    });
     await Promise.all(initWorkers);
   }
 
