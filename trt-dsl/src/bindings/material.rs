@@ -4,7 +4,7 @@ use super::{shape::SharedHit, vec3::PyVec3};
 use trt_core::{
     material::{Dielectric, Diffuse, Lambertian, Metal},
     prelude::*,
-    texture::Image,
+    texture::{Checker, Image, Constant},
 };
 
 use rpy::obj::objstr::PyStringRef;
@@ -78,6 +78,15 @@ impl PyMaterial {
     #[pyclassmethod]
     fn metallic_fuzzed(_cls: PyClassRef, albedo: PyVec3, fuzz: f32) -> Self {
         Self::new(Metal::new(albedo.into_vec(), fuzz))
+    }
+
+    #[pyclassmethod]
+    fn checker(_cls: PyClassRef, col1: PyVec3, col2: PyVec3, repeat_frequency: f32) -> Self {
+        let tx1 = Constant::new(col1.into_vec());
+        let tx2 = Constant::new(col2.into_vec());
+        let checker = Checker::new(tx1, tx2, repeat_frequency);
+
+        Self::new(Lambertian::new(checker))
     }
 
     #[pyclassmethod]

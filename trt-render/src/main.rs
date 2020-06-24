@@ -27,6 +27,7 @@ pub fn random_scene() -> impl Hit {
     let checker = Checker::new(
         Constant::new(Vec3::new(0.9, 0.8, 0.2)),
         Constant::new(Vec3::new(0.3, 0.75, 0.9)),
+        10.
     );
 
     objects.push(Arc::new(Sphere::builder()

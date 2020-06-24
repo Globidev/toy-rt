@@ -16,3 +16,6 @@ def image(url, cors_proxy=False):
     if cors_proxy:
         url = f'https://cors-anywhere.herokuapp.com/{url}'
     return _trt.Material.image(url)
+
+def checker(c1, c2, repeat_frequency):
+    return _trt.Material.checker(c1, c2, float(repeat_frequency))
