@@ -55,7 +55,7 @@ impl WasmEvalOutput {
         match self.rendered_scene {
             Some(scene_fut) => {
                 let dyn_scene = scene_fut.await
-                    .map_err(|e| format!("{:?}", e))?;
+                    .map_err(|e| format!("{}", e))?;
 
                 Ok(Some(Scene(dyn_scene, SmallRng::from_entropy())))
             },

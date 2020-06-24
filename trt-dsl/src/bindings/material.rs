@@ -9,10 +9,21 @@ use trt_core::{
 
 use rpy::obj::objstr::PyStringRef;
 
+use std::fmt;
+
 #[derive(Debug)]
 pub enum MaterialError {
-    ImageFetch(reqwest::Error),
-    ImageLoad(image::ImageError),
+    ImageFetch { err: reqwest::Error, url: String },
+    ImageLoad { err: image::ImageError, url: String },
+}
+
+impl fmt::Display for MaterialError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            MaterialError::ImageFetch { err, url } => write!(f, "Error fetching \"{}\": {}", url, err),
+            MaterialError::ImageLoad { err, url } => write!(f, "Unsupported image format for: \"{}\": {}", url, err)
+        }
+    }
 }
 
 type MaterialResult = Result<Rc<dyn Material>, Rc<MaterialError>>;
@@ -72,17 +83,19 @@ impl PyMaterial {
     #[pyclassmethod]
     fn image(_cls: PyClassRef, url: PyStringRef) -> Self {
         Self(PyFuture::new(async move {
-            let resp = reqwest::get(url.as_str())
+            let url = url.as_str();
+
+            let resp = reqwest::get(url)
                 .await
-                .map_err(|e| Rc::new(MaterialError::ImageFetch(e)))?;
+                .map_err(|err| Rc::new(MaterialError::ImageFetch { err, url: url.to_owned() }))?;
 
             let bytes = resp
                 .bytes()
                 .await
-                .map_err(|e| Rc::new(MaterialError::ImageFetch(e)))?;
+                .map_err(|err| Rc::new(MaterialError::ImageFetch { err, url: url.to_owned() }))?;
 
             let raw_img = image::load_from_memory(&bytes)
-                .map_err(|e| Rc::new(MaterialError::ImageLoad(e)))?
+                .map_err(|err| Rc::new(MaterialError::ImageLoad { err, url: url.to_owned() }))?
                 .into_rgb();
 
             let (width, height) = raw_img.dimensions();
