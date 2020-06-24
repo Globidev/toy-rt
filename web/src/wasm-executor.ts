@@ -73,8 +73,6 @@ export class WasmExecutor {
     let startTime = performance.now();
     let rows = height - 1;
     let work = this.workers.map(async (worker, i) => {
-      // if (i != 0) await worker.eval(sceneCode, EvalMode.Verbose);
-
       while (rows >= 0) {
         if (this.cancelCurrentRender) {
           break;
