@@ -18,20 +18,12 @@ impl Cylinder<UnboundedMat> {
 
 impl<Mat: Material> Hit for Cylinder<Mat> {
     fn hit(&self, ray: &Ray, t_min: f32, t_max: f32) -> Option<HitRecord<'_>> {
-        // let ca = self.pmax - self.pmin;
-        // let center = (self.pmax - self.pmin) / 2.;
         let oc = ray.origin - self.base;
 
-        // let caca = Vec3::dot(ca, ca);
-        // let card = Vec3::dot(ca, ray.direction);
-        // let caoc = Vec3::dot(ca, oc);
-
-        // let a = caca - card * card;
-        // let b = caca * Vec3::dot(oc, ray.direction) - caoc * card;
-        // let c = caca * Vec3::dot(oc, oc) - caoc * caoc - self.radius * self.radius * caca;
         let a = ray.direction.x() * ray.direction.x() + ray.direction.z() * ray.direction.z();
         let b = oc.x() * ray.direction.x() + oc.z() * ray.direction.z();
         let c = (oc.x() * oc.x() + oc.z() * oc.z()) - self.radius * self.radius;
+
         let discriminant = b * b - a * c;
 
         if discriminant > 0. {
@@ -41,7 +33,6 @@ impl<Mat: Material> Hit for Cylinder<Mat> {
             let mut far = (-b + disc_sqrt) / a;
 
             if near > far {
-                // assert!(false);
                 std::mem::swap(&mut near, &mut far);
             }
 
@@ -68,7 +59,7 @@ impl<Mat: Material> Hit for Cylinder<Mat> {
                 far = cap.0
             }
 
-            if far > 0. && far > near && far < t_max && far > t_min {
+            if far > near && near < t_max && near > t_min {
                 let t = near;
                 let p = ray.point_at_parameter(t);
                 let normal = if capped {
