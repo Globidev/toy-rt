@@ -91,7 +91,6 @@ export class ControlPanel extends React.Component<
           let result = await self.props.onEval(source);
           switch (result.kind) {
             case "success":
-              if (result.returnValue != "None") term.echo(result.returnValue);
               break;
 
             case "error":
@@ -109,6 +108,13 @@ export class ControlPanel extends React.Component<
 
       this.props.wasmExecutor.events.on("evalError", (error) => {
         term.error(error);
+      });
+
+      this.props.wasmExecutor.events.on("stdoutWritten", (text) => {
+        text = text.trim();
+        if (text.length != 0) {
+          term.echo(text);
+        }
       });
 
       term.disable();
