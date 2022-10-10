@@ -6,8 +6,8 @@ edition = "2018"
 
 [dependencies]
 trt-core = { path = "../trt-core" }
-rustpython-vm = { git = "https://github.com/RustPython/RustPython", features = ["freeze-stdlib"] }
-rustpython-compiler = { git = "https://github.com/RustPython/RustPython" }
+rustpython-vm = { git = "https://github.com/RustPython/RustPython", features = ["freeze-stdlib"], rev = "9a8f47b14e5fcd3c1a15f30213e5f98751258912" }
+rustpython-compiler = { git = "https://github.com/RustPython/RustPython", rev = "9a8f47b14e5fcd3c1a15f30213e5f98751258912" }
 thiserror = "1.0"
 reqwest = { git = "https://github.com/Globidev/reqwest.git", branch = "wasm-webworkers" }
 futures = "0.3"
